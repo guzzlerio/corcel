@@ -31,3 +31,13 @@ Each differ from the number of features, the number of supported protocols and o
 ## Why will this one be different?
 
 I can't say yet but I am going to use the core aims at the top of this README and user feedback to keep me on track.
+
+## Git branching and release strategy
+
+ - All issues to be worked on inside a feature file
+ - All issues completed to merged into the develop branch
+	- Binaries are generated for all platforms as a pre-release set of artefacts under the label `latest`
+ - Upon a code freeze (when a release candidate is to be made) the `HEAD` of the `develop` branch will be merged into the `release` branch.
+	- Binaries are generated for all platforms as a pre-release set of artefacts under the label `pre-release`
+ - Following any hot-fixes to the release candidate the `HEAD` of the `release` branch will be merged into the `master` branch.
+	- The repository will be tagged at this stage with the next version for the release artefacts.  (Need to confirm the order and possibly update the CI release build script to ensure it is sync'd)

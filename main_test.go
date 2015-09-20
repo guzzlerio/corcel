@@ -50,14 +50,12 @@ http://127.0.0.1:8000/C
 		file.WriteString(list)
 		defer os.Remove(file.Name())
 
-		log.Printf(fmt.Sprintf("Temp filename = %s", file.Name()))
 		exePath, err := filepath.Abs("./code-named-something")
 		if err != nil {
 			panic(err)
 		}
 		cmd := exec.Command(exePath, "-f", file.Name())
 		output, err := cmd.CombinedOutput()
-		fmt.Println(fmt.Sprintf("OUTPUT : %v\n ERROR: %v" + string(output), err))
 
 		client := &http.Client{}
 		req, _ := http.NewRequest("GET", "http://127.0.0.1:8000/A", nil)

@@ -7,10 +7,6 @@ go:
 env:
    global:
       - BUILD_GOARCH=amd64
-   matrix:
-      - BUILD_GOOS=linux
-      - BUILD_GOOS=darwin
-      - BUILD_GOOS=windows
 
 before_install:
    - go get github.com/mitchellh/gox
@@ -18,7 +14,10 @@ before_install:
 
 after_success:
    - gox -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
-   - ghr --username tcnksm-sample --token $GITHUB_TOKEN --replace --prerelease --debug pre-release dist/
+   if ([ "$TRAVIS_BRANCH" == "master" ] || [ ! -z "$TRAVIS_TAG" ]) && 
+       [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+      ghr --username reaandrew --token $GITHUB_TOKEN --replace --prerelease --debug pre-release dist/  
+   fi
 
 install:
    - go get -t -v ./...

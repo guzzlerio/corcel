@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/REAANDREW/code-named-something.png?label=ready&title=Ready)](https://waffle.io/REAANDREW/code-named-something)
 [![Build Status](https://travis-ci.org/REAANDREW/code-named-something.svg?branch=master)](https://travis-ci.org/REAANDREW/code-named-something)
 
 # Code-named-something

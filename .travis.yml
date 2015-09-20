@@ -4,6 +4,14 @@ sudo: false
 go:
    - 1.5
 
+env:
+   global:
+      - BUILD_GOARCH=amd64
+   matrix:
+      - BUILD_GOOS=linux
+      - BUILD_GOOS=darwin
+      - BUILD_GOOS=windows
+
 install:
    - go get -t -v ./...
 

@@ -28,8 +28,8 @@ func main() {
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 
+	client := &http.Client{}
 	for scanner.Scan() {
-		client := &http.Client{}
 		line := scanner.Text()
 		req, _ := http.NewRequest("GET", line, nil)
 		_, _ = client.Do(req)

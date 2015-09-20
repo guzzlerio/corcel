@@ -31,7 +31,10 @@ var _ = Describe("Main", func() {
 http://127.0.0.1:8000/B
 http://127.0.0.1:8000/C
 		`
-
+		files, _ := ioutil.ReadDir("./")
+		for _, f := range files {
+			fmt.Println(f.Name())
+		}
 		urlsVisited := []string{}
 
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

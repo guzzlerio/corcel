@@ -13,8 +13,8 @@ before_install:
    - go get github.com/tcnksm/ghr
 
 after_success:
-   - gox -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
-   - sh ./ci/deploy-to-github.sh
+   - gox -os="linux" -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
+   - bash ./ci/deploy-to-github.sh
 
 install:
    - go get -t -v ./...

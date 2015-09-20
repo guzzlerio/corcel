@@ -14,10 +14,10 @@ before_install:
 
 after_success:
    - gox -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
-   if ([ "$TRAVIS_BRANCH" == "master" ] || [ ! -z "$TRAVIS_TAG" ]) && 
+   - if ([ "$TRAVIS_BRANCH" == "master" ] || [ ! -z "$TRAVIS_TAG" ]) && 
        [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
-      ghr --username reaandrew --token $GITHUB_TOKEN --replace --prerelease --debug pre-release dist/  
-   fi
+       ghr --username reaandrew --token $GITHUB_TOKEN --replace --prerelease --debug pre-release dist/  
+     fi
 
 install:
    - go get -t -v ./...

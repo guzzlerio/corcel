@@ -14,9 +14,7 @@ before_install:
 
 after_success:
    - gox -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
-   - if [ "$TRAVIS_BRANCH" == "release" ]; then
-      ghr --username reaandrew --token $GITHUB_TOKEN --replace `git describe --abbrev=0 --tags` dist/  
-     fi
+   - sh ./ci/deploy-to-github.sh
 
 install:
    - go get -t -v ./...

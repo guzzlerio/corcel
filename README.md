@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/REAANDREW/code-named-something.svg?branch=master)](https://travis-ci.org/REAANDREW/code-named-something)
+
 # Code-named-something
 
 ## What is it and what will it be?

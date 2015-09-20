@@ -14,8 +14,7 @@ before_install:
 
 after_success:
    - gox -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
-   - if ([ "$TRAVIS_BRANCH" == "master" ] || [ ! -z "$TRAVIS_TAG" ]) && 
-       [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+   - if [ "$TRAVIS_BRANCH" == "release" ]; then
        ghr --username reaandrew --token $GITHUB_TOKEN --replace --prerelease --debug pre-release dist/  
      fi
 

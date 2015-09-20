@@ -6,7 +6,6 @@ import (
 
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -55,7 +54,7 @@ http://127.0.0.1:8000/C
 			panic(err)
 		}
 		cmd := exec.Command(exePath, "-f", file.Name())
-		output, err := cmd.CombinedOutput()
+		_, _ = cmd.CombinedOutput()
 
 		client := &http.Client{}
 		req, _ := http.NewRequest("GET", "http://127.0.0.1:8000/A", nil)

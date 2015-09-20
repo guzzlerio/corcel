@@ -15,9 +15,6 @@ env:
 before_install:
    - go get github.com/mitchellh/gox
    - go get github.com/tcnksm/ghr
-   - go get github.com/axw/gocov/gocov
-   - go get github.com/mattn/goveralls
-   - go get code.google.com/p/go.tools/cmd/cover
 
 after_success:
    - gox -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"

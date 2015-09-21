@@ -1,9 +1,9 @@
 package main
 
 import (
+	"net"
 	"net/http"
 	"net/http/httptest"
-	"net"
 	"strconv"
 )
 
@@ -18,7 +18,7 @@ type RequestRecordingServer struct {
 func CreateRequestRecordingServer(port int) *RequestRecordingServer {
 	return &RequestRecordingServer{
 		requests: []*http.Request{},
-		port: port,
+		port:     port,
 	}
 }
 
@@ -35,13 +35,22 @@ func (instance *RequestRecordingServer) Stop() {
 	instance.server.Close()
 }
 
-func (instance *RequestRecordingServer) Contains(predicate HttpRequestPredicate) bool {
+func (instance *RequestRecordingServer) Contains(predicates ...HttpRequestPredicate) bool {
+
 	for _, request := range instance.requests {
-		if predicate(request) {
+		requestResult := false
+		for _, predicate := range predicates {
+			requestResult = predicate(request)
+			if !requestResult {
+				break
+			}
+		}
+		if requestResult {
 			return true
 		}
 	}
 	return false
+
 }
 
 func RequestWithPath(path string) HttpRequestPredicate {

@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
-	"net"
 	"strconv"
+	"log"
 )
 
 type HttpRequestPredicate func(request *http.Request) bool
@@ -18,7 +20,7 @@ type RequestRecordingServer struct {
 func CreateRequestRecordingServer(port int) *RequestRecordingServer {
 	return &RequestRecordingServer{
 		requests: []*http.Request{},
-		port: port,
+		port:     port,
 	}
 }
 
@@ -35,17 +37,48 @@ func (instance *RequestRecordingServer) Stop() {
 	instance.server.Close()
 }
 
-func (instance *RequestRecordingServer) Contains(predicate HttpRequestPredicate) bool {
+func (instance *RequestRecordingServer) Clear() {
+	instance.requests = []*http.Request{}
+}
+
+func (instance *RequestRecordingServer) Contains(predicates ...HttpRequestPredicate) bool {
+
 	for _, request := range instance.requests {
-		if predicate(request) {
-			return true
+		results := make([]bool, len(predicates))
+		for index, predicate := range predicates {
+			results[index] = predicate(request)
+		}
+		thing := true
+		for _, result := range results {
+			if (!result) {
+				thing = false
+				break
+			}
+		}
+		if (thing) {
+			return thing
 		}
 	}
 	return false
+
 }
 
 func RequestWithPath(path string) HttpRequestPredicate {
 	return HttpRequestPredicate(func(request *http.Request) bool {
-		return request.URL.Path == path
+		result := request.URL.Path == path
+		if !result {
+			log.Println(fmt.Sprintf("path does not equal %s it equals %s", path, request.URL.Path))
+		}
+		return result
+	})
+}
+
+func RequestWithMethod(method string) HttpRequestPredicate{
+	return HttpRequestPredicate(func(request *http.Request) bool {
+		result := request.Method == method
+		if !result {
+			log.Println("request method does not equal " + method)
+		}
+		return result
 	})
 }

@@ -1,7 +1,6 @@
-package main_test
+package main
 
 import (
-	. "github.com/reaandrew/code-named-something"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 

@@ -26,52 +26,55 @@ func TestMain(m *testing.M) {
 	server.Stop()
 }
 
+func CreateList(lines string) *os.File {
+	file, err := ioutil.TempFile(os.TempDir(), "prefix")
+	if err != nil {
+		panic(err)
+	}
+	file.WriteString(lines)
+	return file
+}
+
 var _ = Describe("Main", func() {
 
+	var (
+		exePath string
+		err     error
+	)
+
 	BeforeEach(func() {
+		exePath, err = filepath.Abs("./code-named-something")
+		if err != nil {
+			panic(err)
+		}
 		server.Clear()
 	})
 
-	It("Makes a http POST request", func() {
-		list := `http://127.0.0.1:8000/A -X POST`
+	supportedMethods := []string{"GET", "POST", "PUT", "DELETE"}
+	for _, method := range supportedMethods {
+		It(fmt.Sprintf("Makes a http %s request", method), func() {
+			list := fmt.Sprintf(`http://127.0.0.1:8000/A -X %s`, method)
+			file := CreateList(list)
+			defer os.Remove(file.Name())
+			cmd := exec.Command(exePath, "-f", file.Name())
+			output, err := cmd.CombinedOutput()
+			fmt.Println(string(output))
+			Expect(err).To(BeNil())
+			Expect(server.Contains(RequestWithPath("/A"), RequestWithMethod(method))).To(Equal(true))
+		})
 
-		file, err := ioutil.TempFile(os.TempDir(), "prefix")
-		if err != nil {
-			panic(err)
-		}
-		file.WriteString(list)
-		defer os.Remove(file.Name())
-
-		exePath, err := filepath.Abs("./code-named-something")
-		if err != nil {
-			panic(err)
-		}
-		cmd := exec.Command(exePath, "-f", file.Name())
-		output, err := cmd.CombinedOutput()
-
-		fmt.Println(string(output))
-
-		Expect(err).To(BeNil())
-		Expect(server.Contains(RequestWithPath("/A"), RequestWithMethod("POST"))).To(Equal(true))
-	})
+	}
 
 	It("Makes a http get request to each url in a file", func() {
 		list := `http://127.0.0.1:8000/A
 			http://127.0.0.1:8000/B
 			http://127.0.0.1:8000/C`
-		file, err := ioutil.TempFile(os.TempDir(), "prefix")
-		if err != nil {
-			panic(err)
-		}
-		file.WriteString(list)
+		file := CreateList(list)
 		defer os.Remove(file.Name())
 
-		exePath, err := filepath.Abs("./code-named-something")
-		if err != nil {
-			panic(err)
-		}
 		cmd := exec.Command(exePath, "-f", file.Name())
-		_, _ = cmd.CombinedOutput()
+		output, err := cmd.CombinedOutput()
+		fmt.Println(string(output))
 
 		Expect(err).To(BeNil())
 		Expect(server.Contains(RequestWithPath("/A"))).To(Equal(true))

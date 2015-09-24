@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/REAANDREW/code-named-something.svg?branch=master)](https://travis-ci.org/REAANDREW/code-named-something)
+[![Build Status](https://travis-ci.org/guzzlerio/code-named-something.svg?branch=develop)](https://travis-ci.org/guzzlerio/code-named-something)
 
 # Code-named-something
 

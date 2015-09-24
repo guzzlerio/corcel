@@ -18,7 +18,7 @@ var _ = Describe("Command Line Lexer", func() {
 			method := "GET"
 			applicationJson := "Content-type:application/json"
 			applicationSoapXml := "Content-type:application/soap+xml"
-			line := fmt.Sprintf(`http://127.0.0.1:8000/A -X %s -H "%s" -H "%s"`, method, applicationJson, applicationSoapXml)
+			line := fmt.Sprintf("http://127.0.0.1:8000/A -X %s -H \"%s\" -H \"%s\"", method, applicationJson, applicationSoapXml)
 
 		result := lexer.Lex(line)
 		Expect(result).To(Equal([]string{"http://127.0.0.1:8000/A", "-X", method, "-H", applicationJson, "-H", applicationSoapXml}))
@@ -34,27 +34,27 @@ var _ = Describe("Command Line Lexer", func() {
 	})
 
 	It("Lex a flag value which contains a space", func(){
-		result := lexer.Lex(`-H "Content-type: application/json" -H "Accept: text/xml"`)
+		result := lexer.Lex("-H \"Content-type: application/json\" -H \"Accept: text/xml\"")
 		Expect(result).To(Equal([]string{"-H", "Content-type: application/json","-H","Accept: text/xml"}))
 	})
 
 	It("Lex a flag value which is inside single quotes", func(){
-		result := lexer.Lex(`-H 'Content-type: application/json' -H 'Accept: text/xml'`)
+		result := lexer.Lex("-H 'Content-type: application/json' -H 'Accept: text/xml'")
 		Expect(result).To(Equal([]string{"-H", "Content-type: application/json","-H","Accept: text/xml"}))
 	})
 
 	It("Lex a flag value which contains a non-flag at beginning", func(){
-		result := lexer.Lex(` A -H "Content-type: application/json"`)
+		result := lexer.Lex(" A -H \"Content-type: application/json\"")
 		Expect(result).To(Equal([]string{"A", "-H", "Content-type: application/json"}))
 	})
 
 	It("Lex a flag value with double quotes inside single quotes",func(){
-		result := lexer.Lex(`-d '{"name":"bob"}'`)
+		result := lexer.Lex("-d '{\"name\":\"bob\"}'")
 		Expect(result).To(Equal([]string{"-d", "{\"name\":\"bob\"}"}))
 	})
 
 	It("Lex a flag value with single quotes inside double quotes",func(){
-		result := lexer.Lex(`-d "{'name':'bob'}"`)
+		result := lexer.Lex("-d \"{'name':'bob'}\"")
 		Expect(result).To(Equal([]string{"-d", "{'name':'bob'}"}))
 	})
 

@@ -41,7 +41,7 @@ func (instance *RequestRecordingServer) Clear() {
 	instance.requests = []*http.Request{}
 }
 
-func (instance *RequestRecordingServer) Contains(predicates ...HttpRequestPredicate) bool {
+func (instance *RequestRecordingServer) Find(predicates ...HttpRequestPredicate) bool {
 
 	for _, request := range instance.requests {
 		results := make([]bool, len(predicates))
@@ -73,11 +73,21 @@ func RequestWithPath(path string) HttpRequestPredicate {
 	})
 }
 
-func RequestWithMethod(method string) HttpRequestPredicate{
+func RequestWithMethod(method string) HttpRequestPredicate {
 	return HttpRequestPredicate(func(request *http.Request) bool {
 		result := request.Method == method
 		if !result {
 			log.Println("request method does not equal " + method)
+		}
+		return result
+	})
+}
+
+func RequestWithHeader(key string, value string) HttpRequestPredicate {
+	return HttpRequestPredicate(func(request *http.Request) bool {
+		result := request.Header.Get(key) == value
+		if !result {
+			log.Println(fmt.Sprintf("request method does not contain header with key %s and value %s actual %s", key, value, request.Header.Get(key)))
 		}
 		return result
 	})

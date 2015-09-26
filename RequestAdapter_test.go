@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	. "github.com/onsi/ginkgo"
@@ -36,6 +38,38 @@ var _ = Describe("RequestAdapter", func() {
 
 	It("Parses Header", func(){
 		Expect(req.Header.Get("Content-type")).To(Equal("application/json"))
+	})
+
+	Describe("Parses Body", func(){
+
+		It("For GET request is inside the querystring", func(){
+			data := "a=1&b=2"
+			line = url
+			line += " -X GET"
+			line += fmt.Sprintf(` -d "%s"`,data)
+			adapter = NewRequestAdapter()
+			req, err = adapter.Create(line)
+			Expect(err).To(BeNil())
+			Expect(req.URL.RawQuery).To(Equal(data))
+		})
+
+		for _, method := range HTTP_METHODS_WITH_REQUEST_BODY {
+			It(fmt.Sprintf("For %s request is in he actual request body", method), func(){
+				data := "a=1&b=2"
+				line = url
+				line += fmt.Sprintf(" -X %s", method)
+				line += fmt.Sprintf(` -d "%s"`,data)
+				adapter = NewRequestAdapter()
+				req, err = adapter.Create(line)
+				Expect(err).To(BeNil())
+				body, err := ioutil.ReadAll(req.Body)
+				if err != nil{
+					panic(err)
+				}
+				Expect(string(body)).To(Equal(data))
+			})
+		}
+
 	})
 
 	It("Parses URLs with leading whitespace", func() {

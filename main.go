@@ -3,11 +3,18 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 
 	"gopkg.in/alecthomas/kingpin.v2"
+)
+
+var (
+	logEnabled = false
+	Log        *log.Logger
 )
 
 func check(err error) {
@@ -17,9 +24,24 @@ func check(err error) {
 	}
 }
 
+func configureLogging() {
+	//TODO: refine this to work with levels or replace
+	//with a package which already handles this
+	flags := log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile
+	prefix := "cns: "
+	if logEnabled {
+		Log = log.New(os.Stdout, prefix, flags)
+	} else {
+		//Send all the output to dev null
+		Log = log.New(ioutil.Discard, prefix, flags)
+	}
+}
+
 func main() {
 	filePath := kingpin.Flag("file", "Urls file").Short('f').String()
 	kingpin.Parse()
+
+	configureLogging()
 
 	absolutePath, err := filepath.Abs(*filePath)
 	check(err)

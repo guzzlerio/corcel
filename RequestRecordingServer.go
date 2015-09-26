@@ -2,31 +2,43 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
-	"log"
 )
 
-type HttpRequestPredicate func(request *http.Request) bool
+
+type RecordedRequest struct {
+	request *http.Request
+	body    string
+}
+type HttpRequestPredicate func(request RecordedRequest) bool
 
 type RequestRecordingServer struct {
-	requests []*http.Request
+	requests []RecordedRequest
 	port     int
 	server   *httptest.Server
 }
 
 func CreateRequestRecordingServer(port int) *RequestRecordingServer {
 	return &RequestRecordingServer{
-		requests: []*http.Request{},
+		requests: []RecordedRequest{},
 		port:     port,
 	}
 }
 
 func (instance *RequestRecordingServer) Start() {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		instance.requests = append(instance.requests, r)
+		body,err := ioutil.ReadAll(r.Body)
+		if err != nil{
+			panic(err)
+		}
+		instance.requests = append(instance.requests, RecordedRequest{
+			request : r,
+			body : string(body),
+		})
 	})
 	instance.server = httptest.NewUnstartedServer(handler)
 	instance.server.Listener, _ = net.Listen("tcp", ":"+strconv.Itoa(instance.port))
@@ -38,7 +50,7 @@ func (instance *RequestRecordingServer) Stop() {
 }
 
 func (instance *RequestRecordingServer) Clear() {
-	instance.requests = []*http.Request{}
+	instance.requests = []RecordedRequest{}
 }
 
 func (instance *RequestRecordingServer) Find(predicates ...HttpRequestPredicate) bool {
@@ -50,12 +62,12 @@ func (instance *RequestRecordingServer) Find(predicates ...HttpRequestPredicate)
 		}
 		thing := true
 		for _, result := range results {
-			if (!result) {
+			if !result {
 				thing = false
 				break
 			}
 		}
-		if (thing) {
+		if thing {
 			return thing
 		}
 	}
@@ -64,30 +76,50 @@ func (instance *RequestRecordingServer) Find(predicates ...HttpRequestPredicate)
 }
 
 func RequestWithPath(path string) HttpRequestPredicate {
-	return HttpRequestPredicate(func(request *http.Request) bool {
-		result := request.URL.Path == path
+	return HttpRequestPredicate(func(r RecordedRequest) bool {
+		result := r.request.URL.Path == path
 		if !result {
-			log.Println(fmt.Sprintf("path does not equal %s it equals %s", path, request.URL.Path))
+			Log.Println(fmt.Sprintf("path does not equal %s it equals %s", path, r.request.URL.Path))
 		}
 		return result
 	})
 }
 
 func RequestWithMethod(method string) HttpRequestPredicate {
-	return HttpRequestPredicate(func(request *http.Request) bool {
-		result := request.Method == method
+	return HttpRequestPredicate(func(r RecordedRequest) bool {
+		result := r.request.Method == method
 		if !result {
-			log.Println("request method does not equal " + method)
+			Log.Println("request method does not equal " + method)
 		}
 		return result
 	})
 }
 
 func RequestWithHeader(key string, value string) HttpRequestPredicate {
-	return HttpRequestPredicate(func(request *http.Request) bool {
-		result := request.Header.Get(key) == value
+	return HttpRequestPredicate(func(r RecordedRequest) bool {
+		result := r.request.Header.Get(key) == value
 		if !result {
-			log.Println(fmt.Sprintf("request method does not contain header with key %s and value %s actual %s", key, value, request.Header.Get(key)))
+			Log.Println(fmt.Sprintf("request method does not contain header with key %s and value %s actual %s", key, value, r.request.Header.Get(key)))
+		}
+		return result
+	})
+}
+
+func RequestWithBody(value string) HttpRequestPredicate {
+	return HttpRequestPredicate(func(r RecordedRequest) bool {
+		result := string(r.body) == value
+		if !result {
+			Log.Println(fmt.Sprintf("request body does not equal %s it equals %s", value, r.body))
+		}
+		return result
+	})
+}
+
+func RequestWithQuerystring(value string) HttpRequestPredicate {
+	return HttpRequestPredicate(func(r RecordedRequest) bool {
+		result := r.request.URL.RawQuery == value
+		if !result {
+			Log.Println("request query does not equal " + value + " | it equals " + r.request.URL.RawQuery)
 		}
 		return result
 	})

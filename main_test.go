@@ -7,7 +7,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,29 +28,6 @@ func TestMain(m *testing.M) {
 	server.Stop()
 }
 
-func CreateList(lines []string) *os.File {
-	file, err := ioutil.TempFile(os.TempDir(), "prefix")
-	if err != nil {
-		panic(err)
-	}
-	for _, line := range lines {
-		file.WriteString(fmt.Sprintf("%s\n", line))
-	}
-	file.Sync()
-	return file
-}
-
-func PathExists(value string) bool {
-	path, pathErr := filepath.Abs(value)
-	if pathErr != nil{
-		panic(pathErr)
-	}
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return false
-	}
-	return true
-}
-
 var _ = Describe("Main", func() {
 
 	var (
@@ -67,7 +43,7 @@ var _ = Describe("Main", func() {
 		server.Clear()
 	})
 
-	FIt("Generate statistics of data from the execution", func() {
+	It("Generate statistics of data from the execution", func() {
 		list := []string{
 			`http://127.0.0.1:8000/A -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`,
 			`http://127.0.0.1:8000/A -X PUT -H "Content-type:application/json" -d '{"name":"talula"}'`,
@@ -75,7 +51,7 @@ var _ = Describe("Main", func() {
 			`http://127.0.0.1:8000/A -X GET`,
 		}
 
-		file := CreateList(list)
+		file := CreateFileFromLines(list)
 		defer os.Remove(file.Name())
 		cmd := exec.Command(exePath, "-f", file.Name())
 		output, err := cmd.CombinedOutput()
@@ -91,7 +67,7 @@ var _ = Describe("Main", func() {
 			It(fmt.Sprintf("in the body for verb %s", method), func() {
 				data := "a=1&b=2&c=3"
 				list := []string{fmt.Sprintf(`http://127.0.0.1:8000/A -X %s -d %s`, method, data)}
-				file := CreateList(list)
+				file := CreateFileFromLines(list)
 				defer os.Remove(file.Name())
 				cmd := exec.Command(exePath, "-f", file.Name())
 				output, err := cmd.CombinedOutput()
@@ -110,7 +86,7 @@ var _ = Describe("Main", func() {
 			method := "GET"
 			data := "a=1&b=2&c=3"
 			list := []string{fmt.Sprintf(`http://127.0.0.1:8000/A -X %s -d %s"`, method, data)}
-			file := CreateList(list)
+			file := CreateFileFromLines(list)
 			defer os.Remove(file.Name())
 			cmd := exec.Command(exePath, "-f", file.Name())
 			output, err := cmd.CombinedOutput()
@@ -130,7 +106,7 @@ var _ = Describe("Main", func() {
 			applicationJson := "Content-Type:application/json"
 			applicationSoapXml := "Accept:application/soap+xml"
 			list := []string{fmt.Sprintf(`http://127.0.0.1:8000/A -X %s -H "%s" -H "%s"`, method, applicationJson, applicationSoapXml)}
-			file := CreateList(list)
+			file := CreateFileFromLines(list)
 			defer os.Remove(file.Name())
 			cmd := exec.Command(exePath, "-f", file.Name())
 			output, err := cmd.CombinedOutput()
@@ -149,7 +125,7 @@ var _ = Describe("Main", func() {
 	for _, method := range SUPPORTED_HTTP_METHODS {
 		It(fmt.Sprintf("Makes a http %s request", method), func() {
 			list := []string{fmt.Sprintf(`http://127.0.0.1:8000/A -X %s`, method)}
-			file := CreateList(list)
+			file := CreateFileFromLines(list)
 			defer os.Remove(file.Name())
 			cmd := exec.Command(exePath, "-f", file.Name())
 			output, err := cmd.CombinedOutput()
@@ -163,7 +139,7 @@ var _ = Describe("Main", func() {
 		list := []string{"http://127.0.0.1:8000/A",
 			"http://127.0.0.1:8000/B",
 			"http://127.0.0.1:8000/C"}
-		file := CreateList(list)
+		file := CreateFileFromLines(list)
 		defer os.Remove(file.Name())
 
 		cmd := exec.Command(exePath, "-f", file.Name())

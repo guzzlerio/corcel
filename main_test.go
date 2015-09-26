@@ -41,6 +41,17 @@ func CreateList(lines []string) *os.File {
 	return file
 }
 
+func PathExists(value string) bool {
+	path, pathErr := filepath.Abs(value)
+	if pathErr != nil{
+		panic(pathErr)
+	}
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
 var _ = Describe("Main", func() {
 
 	var (
@@ -54,6 +65,25 @@ var _ = Describe("Main", func() {
 			panic(err)
 		}
 		server.Clear()
+	})
+
+	FIt("Generate statistics of data from the execution", func() {
+		list := []string{
+			`http://127.0.0.1:8000/A -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`,
+			`http://127.0.0.1:8000/A -X PUT -H "Content-type:application/json" -d '{"name":"talula"}'`,
+			`http://127.0.0.1:8000/A -X DELETE -H "Content-type:application/json" -d '{"name":"talula"}'`,
+			`http://127.0.0.1:8000/A -X GET`,
+		}
+
+		file := CreateList(list)
+		defer os.Remove(file.Name())
+		cmd := exec.Command(exePath, "-f", file.Name())
+		output, err := cmd.CombinedOutput()
+		fmt.Println(string(output))
+		Expect(err).To(BeNil())
+
+		Expect(PathExists("./output.json")).To(Equal(true))
+
 	})
 
 	Describe("Support sending data with http request", func() {

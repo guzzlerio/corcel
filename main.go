@@ -61,4 +61,14 @@ func main() {
 		}
 		_, _ = client.Do(req)
 	}
+
+	summaryPath, err := filepath.Abs("./output.json")
+	if err != nil{
+		panic(err)
+	}
+	err = ioutil.WriteFile(summaryPath, []byte(""), 0644)
+
+	if err != nil{
+		panic(err)
+	}
 }

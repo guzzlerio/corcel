@@ -1,5 +1,5 @@
 [![Stories in Ready](https://badge.waffle.io/guzzlerio/code-named-something.svg?label=ready&title=Ready)](http://waffle.io/guzzlerio/code-named-something)
-[![Stories in Progress](https://badge.waffle.io/guzzlerio/code-named-something.svg?label=progress&title=Progress)](http://waffle.io/guzzlerio/code-named-something)
+[![Stories in Progress](https://badge.waffle.io/guzzlerio/code-named-something.svg?label=in progress&title=Progress)](http://waffle.io/guzzlerio/code-named-something)
 [![Build Status](https://travis-ci.org/guzzlerio/code-named-something.svg?branch=develop)](https://travis-ci.org/guzzlerio/code-named-something)
 
 # Code-named-something

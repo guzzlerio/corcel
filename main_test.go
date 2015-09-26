@@ -58,8 +58,13 @@ var _ = Describe("Main", func() {
 		fmt.Println(string(output))
 		Expect(err).To(BeNil())
 
-		Expect(PathExists("./output.json")).To(Equal(true))
+		Expect(PathExists("./output.yml")).To(Equal(true))
 
+		var executionOutput ExecutionOutput
+
+		UnmarshalYamlFromFile("./output.yml", &executionOutput)
+
+		Expect(executionOutput.Summary.TotalBytesSent).To(Equal(uint64(1)))
 	})
 
 	Describe("Support sending data with http request", func() {

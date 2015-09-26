@@ -1,8 +1,9 @@
 package main
 
 import (
-	"io/ioutil"
 	"fmt"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -28,4 +29,19 @@ func PathExists(value string) bool {
 		return false
 	}
 	return true
+}
+
+func UnmarshalYamlFromFile(path string, output interface{}) {
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		panic(err)
+	}
+	data, err := ioutil.ReadFile(absPath)
+	if err != nil {
+		panic(err)
+	}
+	err = yaml.Unmarshal(data, output)
+	if err != nil {
+		panic(err)
+	}
 }

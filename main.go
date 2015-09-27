@@ -95,6 +95,7 @@ func main() {
 					P99 : hBytesSent.Percentile(99),
 					StdDev : hBytesSent.StdDev(),
 					Var : hBytesSent.Variance(),
+					Rate : mBytesSent.RateMean(),
 				},
 				Received : BytesStats {
 					Sum : hBytesReceived.Sum(),
@@ -107,6 +108,7 @@ func main() {
 					P99 : hBytesReceived.Percentile(99),
 					StdDev : hBytesReceived.StdDev(),
 					Var : hBytesReceived.Variance(),
+					Rate : mBytesReceived.RateMean(),
 				},
 			},
 		},

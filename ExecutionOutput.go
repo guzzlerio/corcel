@@ -11,6 +11,7 @@ type BytesStats struct {
 	P99    float64 `yaml:"p99"`
 	StdDev float64 `yaml:"stddev"`
 	Var    float64 `yaml:"var"`
+	Rate   float64 `yaml:"rate"`
 }
 
 type BytesSummary struct {

@@ -89,6 +89,7 @@ var _ = Describe("Main", func() {
 		Expect(executionOutput.Summary.Bytes.Sent.P99).To(BeNumerically(">", 0))
 		Expect(executionOutput.Summary.Bytes.Sent.StdDev).To(BeNumerically(">", 0))
 		Expect(executionOutput.Summary.Bytes.Sent.Var).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.Bytes.Sent.Rate).To(BeNumerically(">", 0))
 
 		Expect(executionOutput.Summary.Bytes.Received.Sum).To(BeNumerically(">", 0))
 		Expect(executionOutput.Summary.Bytes.Received.Max).To(BeNumerically(">", 0))
@@ -100,6 +101,7 @@ var _ = Describe("Main", func() {
 		Expect(executionOutput.Summary.Bytes.Received.P99).To(BeNumerically(">", 0))
 		Expect(executionOutput.Summary.Bytes.Received.StdDev).To(BeNumerically(">", 0))
 		Expect(executionOutput.Summary.Bytes.Received.Var).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.Bytes.Received.Rate).To(BeNumerically(">", 0))
 	})
 
 	Describe("Support sending data with http request", func() {

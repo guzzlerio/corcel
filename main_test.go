@@ -23,6 +23,12 @@ func sutUrl(path string) string{
 
 var _ = BeforeSuite(func() {
 	configureLogging()
+	server = CreateRequestRecordingServer(TEST_PORT)
+	server.Start()
+})
+
+var _ = AfterSuite(func(){
+	server.Stop()
 })
 
 var _ = Describe("Main", func() {
@@ -37,13 +43,10 @@ var _ = Describe("Main", func() {
 		if err != nil {
 			panic(err)
 		}
-		server = CreateRequestRecordingServer(TEST_PORT)
-		server.Start()
 	})
 
 	AfterEach(func() {
 		server.Clear()
-		server.Stop()
 	})
 
 	It("Generate statistics of data from the execution", func() {

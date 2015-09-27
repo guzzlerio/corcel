@@ -1,8 +1,6 @@
 package main
 
 import (
-	"testing"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -16,17 +14,18 @@ var (
 	SUPPORTED_HTTP_METHODS         = []string{"GET", "POST", "PUT", "DELETE"}
 	HTTP_METHODS_WITH_REQUEST_BODY = []string{"POST", "PUT", "DELETE"}
 	server                         *RequestRecordingServer
-	port                           int
+	TEST_PORT                      = 8000
 )
 
-func TestMain(m *testing.M) {
-	configureLogging()
-	port = 8000
-	server = CreateRequestRecordingServer(port)
-	server.Start()
-	os.Exit(m.Run())
-	server.Stop()
+/*
+func sutUrl(path string) string{
+	return fmt.Sprintf("
 }
+*/
+
+var _ = BeforeSuite(func() {
+	configureLogging()
+})
 
 var _ = Describe("Main", func() {
 
@@ -40,7 +39,13 @@ var _ = Describe("Main", func() {
 		if err != nil {
 			panic(err)
 		}
+		server = CreateRequestRecordingServer(TEST_PORT)
+		server.Start()
+	})
+
+	AfterEach(func() {
 		server.Clear()
+		server.Stop()
 	})
 
 	It("Generate statistics of data from the execution", func() {

@@ -17,11 +17,9 @@ var (
 	TEST_PORT                      = 8000
 )
 
-/*
 func sutUrl(path string) string{
-	return fmt.Sprintf("
+	return fmt.Sprintf("http://localhost:%d%s",TEST_PORT,path)
 }
-*/
 
 var _ = BeforeSuite(func() {
 	configureLogging()
@@ -50,10 +48,10 @@ var _ = Describe("Main", func() {
 
 	It("Generate statistics of data from the execution", func() {
 		list := []string{
-			`http://127.0.0.1:8000/A -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`,
-			`http://127.0.0.1:8000/A -X PUT -H "Content-type:application/json" -d '{"name":"talula"}'`,
-			`http://127.0.0.1:8000/A -X DELETE -H "Content-type:application/json" -d '{"name":"talula"}'`,
-			`http://127.0.0.1:8000/A -X GET`,
+			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`,sutUrl("/A")),
+			fmt.Sprintf(`%s -X PUT -H "Content-type:application/json" -d '{"name":"talula"}'`,sutUrl("/A")),
+			fmt.Sprintf(`%s -X DELETE -H "Content-type:application/json" -d '{"name":"talula"}'`,sutUrl("/A")),
+			fmt.Sprintf(`%s -X GET`,sutUrl("/A")),
 		}
 
 		file := CreateFileFromLines(list)

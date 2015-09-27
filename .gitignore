@@ -30,3 +30,4 @@ travis.log
 # Test files including generated ones
 *.json
 *.yml
+*.gz

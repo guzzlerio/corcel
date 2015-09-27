@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"time"
 )
 
 var (
@@ -25,7 +26,7 @@ func UrlForTestServer(path string) string {
 }
 
 var _ = BeforeSuite(func() {
-	configureLogging()
+	ConfigureLogging()
 	TestServer = CreateRequestRecordingServer(TEST_PORT)
 	TestServer.Start()
 })
@@ -42,6 +43,7 @@ var _ = Describe("Main", func() {
 	)
 
 	BeforeEach(func() {
+		os.Remove("./output.yml")
 		exePath, err = filepath.Abs("./code-named-something")
 		if err != nil {
 			panic(err)
@@ -50,6 +52,45 @@ var _ = Describe("Main", func() {
 
 	AfterEach(func() {
 		TestServer.Clear()
+	})
+
+	It("Generate statistics on timings", func() {
+		secondsToSleepPerRequest := time.Duration(20 * time.Millisecond)
+		list := []string{
+			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+		}
+
+		TestServer.Use(HttpResponseFactory(func(w http.ResponseWriter) {
+			time.Sleep(secondsToSleepPerRequest)
+		}))
+
+		file := CreateFileFromLines(list)
+		defer os.Remove(file.Name())
+		cmd := exec.Command(exePath, "-f", file.Name())
+		output, err := cmd.CombinedOutput()
+		fmt.Println(string(output))
+		Expect(err).To(BeNil())
+
+		var executionOutput ExecutionOutput
+
+		UnmarshalYamlFromFile("./output.yml", &executionOutput)
+
+		Expect(executionOutput.Summary.ResponseTime.Sum).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.ResponseTime.Max).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.ResponseTime.Mean).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.ResponseTime.Min).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.ResponseTime.P50).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.ResponseTime.P75).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.ResponseTime.P95).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.ResponseTime.P99).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.ResponseTime.StdDev).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.ResponseTime.Var).To(BeNumerically(">", 0))
+
+		Expect(executionOutput.Summary.RunningTime).To(BeNumerically(">", 0))
 	})
 
 	It("Generate statistics of data from the execution", func() {
@@ -62,7 +103,7 @@ var _ = Describe("Main", func() {
 
 		responseBody := "-"
 		TestServer.Use(HttpResponseFactory(func(w http.ResponseWriter) {
-			io.WriteString(w, fmt.Sprintf("%s",responseBody))
+			io.WriteString(w, fmt.Sprintf("%s", responseBody))
 			responseBody = responseBody + "-"
 		}))
 

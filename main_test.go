@@ -74,7 +74,7 @@ var _ = Describe("Main", func() {
 		for _, method := range HTTP_METHODS_WITH_REQUEST_BODY {
 			It(fmt.Sprintf("in the body for verb %s", method), func() {
 				data := "a=1&b=2&c=3"
-				list := []string{fmt.Sprintf(`http://127.0.0.1:8000/A -X %s -d %s`, method, data)}
+				list := []string{fmt.Sprintf(`%s -X %s -d %s`,sutUrl("/A"), method, data)}
 				file := CreateFileFromLines(list)
 				defer os.Remove(file.Name())
 				cmd := exec.Command(exePath, "-f", file.Name())
@@ -93,7 +93,7 @@ var _ = Describe("Main", func() {
 		It("in the querystring for verb GET", func() {
 			method := "GET"
 			data := "a=1&b=2&c=3"
-			list := []string{fmt.Sprintf(`http://127.0.0.1:8000/A -X %s -d %s"`, method, data)}
+			list := []string{fmt.Sprintf(`%s -X %s -d %s"`,sutUrl("/A"), method, data)}
 			file := CreateFileFromLines(list)
 			defer os.Remove(file.Name())
 			cmd := exec.Command(exePath, "-f", file.Name())
@@ -113,7 +113,7 @@ var _ = Describe("Main", func() {
 		It(fmt.Sprintf("Makes a http %s request with http headers", method), func() {
 			applicationJson := "Content-Type:application/json"
 			applicationSoapXml := "Accept:application/soap+xml"
-			list := []string{fmt.Sprintf(`http://127.0.0.1:8000/A -X %s -H "%s" -H "%s"`, method, applicationJson, applicationSoapXml)}
+			list := []string{fmt.Sprintf(`%s -X %s -H "%s" -H "%s"`,sutUrl("/A"), method, applicationJson, applicationSoapXml)}
 			file := CreateFileFromLines(list)
 			defer os.Remove(file.Name())
 			cmd := exec.Command(exePath, "-f", file.Name())
@@ -132,7 +132,7 @@ var _ = Describe("Main", func() {
 
 	for _, method := range SUPPORTED_HTTP_METHODS {
 		It(fmt.Sprintf("Makes a http %s request", method), func() {
-			list := []string{fmt.Sprintf(`http://127.0.0.1:8000/A -X %s`, method)}
+			list := []string{fmt.Sprintf(`%s -X %s`,sutUrl("/A"), method)}
 			file := CreateFileFromLines(list)
 			defer os.Remove(file.Name())
 			cmd := exec.Command(exePath, "-f", file.Name())
@@ -144,9 +144,11 @@ var _ = Describe("Main", func() {
 	}
 
 	It("Makes a http get request to each url in a file", func() {
-		list := []string{"http://127.0.0.1:8000/A",
-			"http://127.0.0.1:8000/B",
-			"http://127.0.0.1:8000/C"}
+		list := []string{
+			sutUrl("/A"),
+			sutUrl("/B"),
+			sutUrl("/C"),
+		}
 		file := CreateFileFromLines(list)
 		defer os.Remove(file.Name())
 

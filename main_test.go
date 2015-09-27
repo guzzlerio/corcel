@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"time"
 	"fmt"
 	"os"
 	"os/exec"
@@ -50,6 +51,43 @@ var _ = Describe("Main", func() {
 
 	AfterEach(func() {
 		TestServer.Clear()
+	})
+
+	FIt("Generate statistics on timings", func(){
+		secondsToSleepPerRequest := time.Duration(20 * time.Millisecond)
+		list := []string{
+			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+		}
+
+		TestServer.Use(HttpResponseFactory(func(w http.ResponseWriter) {
+			time.Sleep(secondsToSleepPerRequest)
+		}))
+
+		file := CreateFileFromLines(list)
+		defer os.Remove(file.Name())
+		cmd := exec.Command(exePath, "-f", file.Name())
+		output, err := cmd.CombinedOutput()
+		fmt.Println(string(output))
+		Expect(err).To(BeNil())
+
+		var executionOutput ExecutionOutput
+
+		UnmarshalYamlFromFile("./output.yml", &executionOutput)
+
+		Expect(executionOutput.Summary.ResponseTime.Sum).To(BeNumerically(">", 1))
+		Expect(executionOutput.Summary.ResponseTime.Max).To(BeNumerically(">", 1))
+		Expect(executionOutput.Summary.ResponseTime.Mean).To(BeNumerically(">", 1))
+		Expect(executionOutput.Summary.ResponseTime.Min).To(BeNumerically(">", 1))
+		Expect(executionOutput.Summary.ResponseTime.P50).To(BeNumerically(">", 1))
+		Expect(executionOutput.Summary.ResponseTime.P75).To(BeNumerically(">", 1))
+		Expect(executionOutput.Summary.ResponseTime.P95).To(BeNumerically(">", 1))
+		Expect(executionOutput.Summary.ResponseTime.P99).To(BeNumerically(">", 1))
+		Expect(executionOutput.Summary.ResponseTime.StdDev).To(BeNumerically(">", 1))
+		Expect(executionOutput.Summary.ResponseTime.Var).To(BeNumerically(">", 1))
 	})
 
 	It("Generate statistics of data from the execution", func() {

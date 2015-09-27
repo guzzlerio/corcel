@@ -8,6 +8,7 @@ import (
 	"net/http/httputil"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/rcrowley/go-metrics"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -55,8 +56,10 @@ func main() {
 	client := &http.Client{}
 	requestAdapter := NewRequestAdapter()
 
-	hBytesSent := metrics.NewHistogram(metrics.NewUniformSample(1024))
-	hBytesReceived := metrics.NewHistogram(metrics.NewUniformSample(1024))
+	sampleSize := 1024
+	hBytesSent := metrics.NewHistogram(metrics.NewUniformSample(sampleSize))
+	hBytesReceived := metrics.NewHistogram(metrics.NewUniformSample(sampleSize))
+	hResponseTime :=  metrics.NewHistogram(metrics.NewUniformSample(sampleSize))
 	mBytesSent := metrics.NewMeter()
 	mBytesReceived := metrics.NewMeter()
 
@@ -64,7 +67,9 @@ func main() {
 		line := scanner.Text()
 		request, err := requestAdapter.Create(line)
 		check(err)
+		start := time.Now()
 		response, err := client.Do(request)
+		duration := time.Since(start) / time.Millisecond
 		check(err)
 		requestBytes, _ := httputil.DumpRequest(request, true)
 		responseBytes, _ := httputil.DumpResponse(response, true)
@@ -74,6 +79,8 @@ func main() {
 
 		mBytesSent.Mark(int64(len(requestBytes)))
 		mBytesReceived.Mark(int64(len(responseBytes)))
+
+		hResponseTime.Update(int64(duration))
 	}
 
 	summaryPath, err := filepath.Abs("./output.yml")
@@ -81,6 +88,18 @@ func main() {
 
 	output := ExecutionOutput{
 		Summary: ExecutionSummary{
+			ResponseTime: ResponseTimeStats{
+				Sum:    hResponseTime.Sum(),
+				Max:    hResponseTime.Max(),
+				Mean:   hResponseTime.Mean(),
+				Min:    hResponseTime.Min(),
+				P50:    hResponseTime.Percentile(50),
+				P75:    hResponseTime.Percentile(75),
+				P95:    hResponseTime.Percentile(95),
+				P99:    hResponseTime.Percentile(99),
+				StdDev: hResponseTime.StdDev(),
+				Var:    hResponseTime.Variance(),
+			},
 			Bytes: BytesSummary{
 				Sent: BytesStats{
 					Sum:    hBytesSent.Sum(),

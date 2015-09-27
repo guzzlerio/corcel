@@ -35,6 +35,7 @@ type BytesSummary struct {
 type ExecutionSummary struct {
 	Bytes BytesSummary `yaml:"bytes"`
 	ResponseTime ResponseTimeStats `yaml:"responseTime"`
+	RunningTime float64 `yaml:"runningTime"`
 }
 
 type ExecutionOutput struct {

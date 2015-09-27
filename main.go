@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/rcrowley/go-metrics"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
 )
@@ -26,7 +25,7 @@ func check(err error) {
 	}
 }
 
-func configureLogging() {
+func ConfigureLogging() {
 	//TODO: refine this to work with levels or replace
 	//with a package which already handles this
 	flags := log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile
@@ -39,29 +38,12 @@ func configureLogging() {
 	}
 }
 
-func main() {
-	filePath := kingpin.Flag("file", "Urls file").Short('f').String()
-	kingpin.Parse()
-
-	configureLogging()
-
-	absolutePath, err := filepath.Abs(*filePath)
-	check(err)
-	file, err := os.Open(absolutePath)
-	check(err)
-
+func Execute(file *os.File, stats *Statistics) {
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 
 	client := &http.Client{}
 	requestAdapter := NewRequestAdapter()
-
-	sampleSize := 1024
-	hBytesSent := metrics.NewHistogram(metrics.NewUniformSample(sampleSize))
-	hBytesReceived := metrics.NewHistogram(metrics.NewUniformSample(sampleSize))
-	hResponseTime :=  metrics.NewHistogram(metrics.NewUniformSample(sampleSize))
-	mBytesSent := metrics.NewMeter()
-	mBytesReceived := metrics.NewMeter()
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -74,65 +56,37 @@ func main() {
 		requestBytes, _ := httputil.DumpRequest(request, true)
 		responseBytes, _ := httputil.DumpResponse(response, true)
 
-		hBytesSent.Update(int64(len(requestBytes)))
-		hBytesReceived.Update(int64(len(responseBytes)))
-
-		mBytesSent.Mark(int64(len(requestBytes)))
-		mBytesReceived.Mark(int64(len(responseBytes)))
-
-		hResponseTime.Update(int64(duration))
+		stats.BytesReceived(int64(len(responseBytes)))
+		stats.BytesSent(int64(len(requestBytes)))
+		stats.ResponseTime(int64(duration))
 	}
+}
 
-	summaryPath, err := filepath.Abs("./output.yml")
-	check(err)
-
-	output := ExecutionOutput{
-		Summary: ExecutionSummary{
-			ResponseTime: ResponseTimeStats{
-				Sum:    hResponseTime.Sum(),
-				Max:    hResponseTime.Max(),
-				Mean:   hResponseTime.Mean(),
-				Min:    hResponseTime.Min(),
-				P50:    hResponseTime.Percentile(50),
-				P75:    hResponseTime.Percentile(75),
-				P95:    hResponseTime.Percentile(95),
-				P99:    hResponseTime.Percentile(99),
-				StdDev: hResponseTime.StdDev(),
-				Var:    hResponseTime.Variance(),
-			},
-			Bytes: BytesSummary{
-				Sent: BytesStats{
-					Sum:    hBytesSent.Sum(),
-					Max:    hBytesSent.Max(),
-					Mean:   hBytesSent.Mean(),
-					Min:    hBytesSent.Min(),
-					P50:    hBytesSent.Percentile(50),
-					P75:    hBytesSent.Percentile(75),
-					P95:    hBytesSent.Percentile(95),
-					P99:    hBytesSent.Percentile(99),
-					StdDev: hBytesSent.StdDev(),
-					Var:    hBytesSent.Variance(),
-					Rate:   mBytesSent.RateMean(),
-				},
-				Received: BytesStats{
-					Sum:    hBytesReceived.Sum(),
-					Max:    hBytesReceived.Max(),
-					Mean:   hBytesReceived.Mean(),
-					Min:    hBytesReceived.Min(),
-					P50:    hBytesReceived.Percentile(50),
-					P75:    hBytesReceived.Percentile(75),
-					P95:    hBytesReceived.Percentile(95),
-					P99:    hBytesReceived.Percentile(99),
-					StdDev: hBytesReceived.StdDev(),
-					Var:    hBytesReceived.Variance(),
-					Rate:   mBytesReceived.RateMean(),
-				},
-			},
-		},
-	}
-
+func GenerateExecutionOutput(outputPath string, stats *Statistics) {
+	output := stats.ExecutionOutput()
 	yamlOutput, err := yaml.Marshal(&output)
 	check(err)
-	err = ioutil.WriteFile(summaryPath, yamlOutput, 0644)
+	err = ioutil.WriteFile(outputPath, yamlOutput, 0644)
 	check(err)
+}
+
+func main() {
+	filePath := kingpin.Flag("file", "Urls file").Short('f').String()
+	kingpin.Parse()
+
+	ConfigureLogging()
+
+	absolutePath, err := filepath.Abs(*filePath)
+	check(err)
+	file, err := os.Open(absolutePath)
+	check(err)
+
+	stats := CreateStatistics()
+	stats.Start()
+
+	Execute(file, stats)
+
+	outputPath, err := filepath.Abs("./output.yml")
+	check(err)
+	GenerateExecutionOutput(outputPath, stats)
 }

@@ -26,7 +26,7 @@ var _ = Describe("RequestRecordingServer", func() {
 
 			BeforeEach(func() {
 				data = "a=1&b=2"
-				sampleUrl = "http://localhost:80/Fubar?" + data
+				sampleUrl = UrlForTestServer("/Fubar?" + data)
 				request, _ = http.NewRequest("GET", sampleUrl, bytes.NewBuffer([]byte(data)))
 				request.Header.Set("Content-type", "application/json")
 				TestServer.requests = append(TestServer.requests, RecordedRequest{
@@ -72,7 +72,7 @@ var _ = Describe("RequestRecordingServer", func() {
 
 		Describe("Multiple Requests", func() {
 			BeforeEach(func() {
-				sampleUrl = "http://localhost:80/Fubar"
+				sampleUrl = UrlForTestServer("/Fubar")
 				request, _ := http.NewRequest("GET", sampleUrl, nil)
 				request.Header.Set("Content-type", "application/json")
 				TestServer.requests = append(TestServer.requests, RecordedRequest{

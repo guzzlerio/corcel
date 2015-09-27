@@ -17,7 +17,7 @@ var (
 	TEST_PORT                      = 8000
 )
 
-func sutUrl(path string) string {
+func UrlForTestServer(path string) string {
 	return fmt.Sprintf("http://localhost:%d%s", TEST_PORT, path)
 }
 
@@ -51,10 +51,10 @@ var _ = Describe("Main", func() {
 
 	It("Generate statistics of data from the execution", func() {
 		list := []string{
-			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, sutUrl("/A")),
-			fmt.Sprintf(`%s -X PUT -H "Content-type:application/json" -d '{"name":"talula"}'`, sutUrl("/A")),
-			fmt.Sprintf(`%s -X DELETE -H "Content-type:application/json" -d '{"name":"talula"}'`, sutUrl("/A")),
-			fmt.Sprintf(`%s -X GET`, sutUrl("/A")),
+			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+			fmt.Sprintf(`%s -X PUT -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+			fmt.Sprintf(`%s -X DELETE -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+			fmt.Sprintf(`%s -X GET`, UrlForTestServer("/A")),
 		}
 
 		file := CreateFileFromLines(list)
@@ -77,7 +77,7 @@ var _ = Describe("Main", func() {
 		for _, method := range HTTP_METHODS_WITH_REQUEST_BODY {
 			It(fmt.Sprintf("in the body for verb %s", method), func() {
 				data := "a=1&b=2&c=3"
-				list := []string{fmt.Sprintf(`%s -X %s -d %s`, sutUrl("/A"), method, data)}
+				list := []string{fmt.Sprintf(`%s -X %s -d %s`, UrlForTestServer("/A"), method, data)}
 				file := CreateFileFromLines(list)
 				defer os.Remove(file.Name())
 				cmd := exec.Command(exePath, "-f", file.Name())
@@ -96,7 +96,7 @@ var _ = Describe("Main", func() {
 		It("in the querystring for verb GET", func() {
 			method := "GET"
 			data := "a=1&b=2&c=3"
-			list := []string{fmt.Sprintf(`%s -X %s -d %s"`, sutUrl("/A"), method, data)}
+			list := []string{fmt.Sprintf(`%s -X %s -d %s"`, UrlForTestServer("/A"), method, data)}
 			file := CreateFileFromLines(list)
 			defer os.Remove(file.Name())
 			cmd := exec.Command(exePath, "-f", file.Name())
@@ -116,7 +116,7 @@ var _ = Describe("Main", func() {
 		It(fmt.Sprintf("Makes a http %s request with http headers", method), func() {
 			applicationJson := "Content-Type:application/json"
 			applicationSoapXml := "Accept:application/soap+xml"
-			list := []string{fmt.Sprintf(`%s -X %s -H "%s" -H "%s"`, sutUrl("/A"), method, applicationJson, applicationSoapXml)}
+			list := []string{fmt.Sprintf(`%s -X %s -H "%s" -H "%s"`, UrlForTestServer("/A"), method, applicationJson, applicationSoapXml)}
 			file := CreateFileFromLines(list)
 			defer os.Remove(file.Name())
 			cmd := exec.Command(exePath, "-f", file.Name())
@@ -135,7 +135,7 @@ var _ = Describe("Main", func() {
 
 	for _, method := range SUPPORTED_HTTP_METHODS {
 		It(fmt.Sprintf("Makes a http %s request", method), func() {
-			list := []string{fmt.Sprintf(`%s -X %s`, sutUrl("/A"), method)}
+			list := []string{fmt.Sprintf(`%s -X %s`, UrlForTestServer("/A"), method)}
 			file := CreateFileFromLines(list)
 			defer os.Remove(file.Name())
 			cmd := exec.Command(exePath, "-f", file.Name())
@@ -148,9 +148,9 @@ var _ = Describe("Main", func() {
 
 	It("Makes a http get request to each url in a file", func() {
 		list := []string{
-			sutUrl("/A"),
-			sutUrl("/B"),
-			sutUrl("/C"),
+			UrlForTestServer("/A"),
+			UrlForTestServer("/B"),
+			UrlForTestServer("/C"),
 		}
 		file := CreateFileFromLines(list)
 		defer os.Remove(file.Name())

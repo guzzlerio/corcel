@@ -24,3 +24,9 @@ _testmain.go
 *.prof
 code-named-something
 travis.log
+
+*.swp
+
+# Test files including generated ones
+*.json
+*.yml

@@ -7,38 +7,65 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strconv"
+	"time"
 )
-
 
 type RecordedRequest struct {
 	request *http.Request
 	body    string
 }
+
 type HttpRequestPredicate func(request RecordedRequest) bool
+type HttpResponseFactory func(writer http.ResponseWriter)
+
+type UseWithPredicates struct {
+	ResponseFactory   HttpResponseFactory
+	RequestPredicates []HttpRequestPredicate
+}
 
 type RequestRecordingServer struct {
 	requests []RecordedRequest
 	port     int
 	server   *httptest.Server
+	use      []UseWithPredicates
 }
 
 func CreateRequestRecordingServer(port int) *RequestRecordingServer {
 	return &RequestRecordingServer{
 		requests: []RecordedRequest{},
 		port:     port,
+		use:      []UseWithPredicates{},
 	}
 }
 
 func (instance *RequestRecordingServer) Start() {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body,err := ioutil.ReadAll(r.Body)
-		if err != nil{
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
 			panic(err)
 		}
-		instance.requests = append(instance.requests, RecordedRequest{
-			request : r,
-			body : string(body),
-		})
+		recordedRequest := RecordedRequest{
+			request: r,
+			body:    string(body),
+		}
+		instance.requests = append(instance.requests,recordedRequest)
+		if instance.use != nil {
+			for _, item := range instance.use {
+				if item.RequestPredicates != nil {
+					result := instance.Evaluate(recordedRequest, item.RequestPredicates...)
+					if (result){
+						item.ResponseFactory(w)
+						return
+					}
+				}else{
+					item.ResponseFactory(w)
+					return
+				}
+			}
+			w.WriteHeader(http.StatusOK)
+		} else {
+			w.WriteHeader(http.StatusOK)
+		}
 	})
 	instance.server = httptest.NewUnstartedServer(handler)
 	instance.server.Listener, _ = net.Listen("tcp", ":"+strconv.Itoa(instance.port))
@@ -47,15 +74,15 @@ func (instance *RequestRecordingServer) Start() {
 
 func (instance *RequestRecordingServer) Stop() {
 	instance.server.Close()
+	time.Sleep(1 * time.Microsecond)
 }
 
 func (instance *RequestRecordingServer) Clear() {
 	instance.requests = []RecordedRequest{}
+	instance.use = []UseWithPredicates{}
 }
 
-func (instance *RequestRecordingServer) Find(predicates ...HttpRequestPredicate) bool {
-
-	for _, request := range instance.requests {
+func (instance *RequestRecordingServer) Evaluate(request RecordedRequest, predicates ...HttpRequestPredicate) bool{
 		results := make([]bool, len(predicates))
 		for index, predicate := range predicates {
 			results[index] = predicate(request)
@@ -67,12 +94,31 @@ func (instance *RequestRecordingServer) Find(predicates ...HttpRequestPredicate)
 				break
 			}
 		}
-		if thing {
-			return thing
+		return thing
+}
+
+func (instance *RequestRecordingServer) Find(predicates ...HttpRequestPredicate) bool {
+	for _, request := range instance.requests {
+		if instance.Evaluate(request) {
+			return true
 		}
 	}
 	return false
+}
 
+func (instance *RequestRecordingServer) Use(factory HttpResponseFactory) *RequestRecordingServer{
+	instance.use = append(instance.use, UseWithPredicates{
+		ResponseFactory : factory,
+		RequestPredicates : []HttpRequestPredicate{},
+	})
+	return instance
+}
+
+func (instance *RequestRecordingServer) For(predicates ...HttpRequestPredicate){
+	index := len(instance.use) - 1
+	for _, item := range predicates {
+		instance.use[index].RequestPredicates = append(instance.use[index].RequestPredicates, item)
+	}
 }
 
 func RequestWithPath(path string) HttpRequestPredicate {

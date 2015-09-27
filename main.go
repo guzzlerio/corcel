@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -19,8 +18,7 @@ var (
 
 func check(err error) {
 	if err != nil {
-		fmt.Errorf("%v", err)
-		panic(err.Error())
+		Log.Panic(err)
 	}
 }
 

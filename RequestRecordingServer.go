@@ -74,7 +74,7 @@ func (instance *RequestRecordingServer) Start() {
 
 func (instance *RequestRecordingServer) Stop() {
 	instance.server.Close()
-	time.Sleep(1)
+	time.Sleep(1 * time.Microsecond)
 }
 
 func (instance *RequestRecordingServer) Clear() {

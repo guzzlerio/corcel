@@ -1,6 +1,9 @@
 package main
 
 import (
+	"io"
+	"net/http"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -57,6 +60,12 @@ var _ = Describe("Main", func() {
 			fmt.Sprintf(`%s -X GET`, UrlForTestServer("/A")),
 		}
 
+		responseBody := "-"
+		TestServer.Use(HttpResponseFactory(func(w http.ResponseWriter) {
+			io.WriteString(w, fmt.Sprintf("%s",responseBody))
+			responseBody = responseBody + "-"
+		}))
+
 		file := CreateFileFromLines(list)
 		defer os.Remove(file.Name())
 		cmd := exec.Command(exePath, "-f", file.Name())
@@ -70,7 +79,27 @@ var _ = Describe("Main", func() {
 
 		UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
-		Expect(executionOutput.Summary.TotalBytesSent).To(Equal(uint64(1)))
+		Expect(executionOutput.Summary.Bytes.Sent.Sum).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.Bytes.Sent.Max).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.Bytes.Sent.Mean).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.Bytes.Sent.Min).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.Bytes.Sent.P50).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.Bytes.Sent.P75).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.Bytes.Sent.P95).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.Bytes.Sent.P99).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.Bytes.Sent.StdDev).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.Bytes.Sent.Var).To(BeNumerically(">", 0))
+
+		Expect(executionOutput.Summary.Bytes.Received.Sum).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.Bytes.Received.Max).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.Bytes.Received.Mean).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.Bytes.Received.Min).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.Bytes.Received.P50).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.Bytes.Received.P75).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.Bytes.Received.P95).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.Bytes.Received.P99).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.Bytes.Received.StdDev).To(BeNumerically(">", 0))
+		Expect(executionOutput.Summary.Bytes.Received.Var).To(BeNumerically(">", 0))
 	})
 
 	Describe("Support sending data with http request", func() {

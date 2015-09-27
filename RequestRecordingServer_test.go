@@ -17,7 +17,6 @@ var _ = Describe("RequestRecordingServer", func() {
 	})
 
 	Describe("Find", func() {
-
 		var sampleUrl string
 		var data string
 
@@ -111,7 +110,6 @@ var _ = Describe("RequestRecordingServer", func() {
 				Expect(TestServer.Find(RequestWithPath(expectedPath), RequestWithMethod(expectedMethod))).To(Equal(true))
 			})
 		})
-
 	})
 
 	Describe("Response factory", func() {

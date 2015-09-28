@@ -82,6 +82,7 @@ func OutputSummary(stats *Statistics){
 	output := stats.ExecutionOutput()
 	fmt.Println(fmt.Sprintf("Running Time: %v seconds",output.Summary.RunningTime / 1000))
 	fmt.Println(fmt.Sprintf("Total Requests: %v",output.Summary.Requests.Total))
+	fmt.Println(fmt.Sprintf("Number of Errors: %v",output.Summary.Requests.Errors))
 }
 
 func main() {

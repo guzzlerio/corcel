@@ -90,6 +90,7 @@ var _ = Describe("Main", func() {
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Running Time: %v seconds",executionOutput.Summary.RunningTime / 1000)))
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Total Requests: %v",executionOutput.Summary.Requests.Total)))
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Number of Errors: %v",executionOutput.Summary.Requests.Errors)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Availability: %v%%",executionOutput.Summary.Requests.Availability*100)))
 	})
 
 	Describe("Generate statistics on throughput", func() {

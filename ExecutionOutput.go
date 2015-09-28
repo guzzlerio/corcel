@@ -33,7 +33,8 @@ type BytesSummary struct {
 }
 
 type RequestsSummary struct {
-	Rate float64  `yaml:"rate"`
+	Rate float64 `yaml:"rate"`
+	Errors int64 `yaml:"errors"`
 }
 
 type ExecutionSummary struct {

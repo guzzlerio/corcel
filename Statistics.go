@@ -14,6 +14,7 @@ type Statistics struct {
 	mBytesReceived metrics.Meter
 	start          time.Time
 	mRequests      metrics.Meter
+	cErrors        metrics.Counter
 }
 
 func CreateStatistics() *Statistics {
@@ -24,7 +25,8 @@ func CreateStatistics() *Statistics {
 		hResponseTime:  metrics.NewHistogram(metrics.NewUniformSample(sampleSize)),
 		mBytesSent:     metrics.NewMeter(),
 		mBytesReceived: metrics.NewMeter(),
-		mRequests: metrics.NewMeter(),
+		mRequests:      metrics.NewMeter(),
+		cErrors:        metrics.NewCounter(),
 	}
 }
 
@@ -32,8 +34,11 @@ func (instance *Statistics) Start() {
 	instance.start = time.Now()
 }
 
-func (instance *Statistics) Request() {
+func (instance *Statistics) Request(err error) {
 	instance.mRequests.Mark(1)
+	if err != nil{
+		instance.cErrors.Inc(1)
+	}
 }
 
 func (instance *Statistics) BytesReceived(value int64) {
@@ -53,8 +58,9 @@ func (instance *Statistics) ResponseTime(value int64) {
 func (instance *Statistics) ExecutionOutput() ExecutionOutput {
 	output := ExecutionOutput{
 		Summary: ExecutionSummary{
-			Requests : RequestsSummary{
-				Rate : instance.mRequests.RateMean(),
+			Requests: RequestsSummary{
+				Rate: instance.mRequests.RateMean(),
+				Errors : instance.cErrors.Count(),
 			},
 			RunningTime: float64(time.Since(instance.start) / time.Millisecond),
 			ResponseTime: ResponseTimeStats{

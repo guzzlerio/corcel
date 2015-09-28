@@ -55,14 +55,23 @@ var _ = Describe("Main", func() {
 	})
 
 	Describe("Generate statistics on throughput", func() {
-		It("Requests per second", func() {
-			list := []string{
+		var list []string
+
+		BeforeEach(func(){
+			list = []string{
 				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
 				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
 				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
 				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
 				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
 			}
+		})
+
+		It("Records error for HTTP 500 response code range", func(){
+			TestServer.Use(HttpResponseFactory(func(w http.ResponseWriter) {
+				w.WriteHeader(http.StatusInternalServerError)
+			}))
+
 			file := CreateFileFromLines(list)
 			defer os.Remove(file.Name())
 			cmd := exec.Command(exePath, "-f", file.Name())
@@ -71,9 +80,20 @@ var _ = Describe("Main", func() {
 			Expect(err).To(BeNil())
 
 			var executionOutput ExecutionOutput
-
 			UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			Expect(executionOutput.Summary.Requests.Errors).To(Equal(int64(len(list))))
+		})
 
+		It("Requests per second", func() {
+			file := CreateFileFromLines(list)
+			defer os.Remove(file.Name())
+			cmd := exec.Command(exePath, "-f", file.Name())
+			output, err := cmd.CombinedOutput()
+			fmt.Println(string(output))
+			Expect(err).To(BeNil())
+
+			var executionOutput ExecutionOutput
+			UnmarshalYamlFromFile("./output.yml", &executionOutput)
 			Expect(executionOutput.Summary.Requests.Rate).To(BeNumerically(">", 0))
 		})
 	})

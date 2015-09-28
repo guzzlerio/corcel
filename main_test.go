@@ -37,7 +37,7 @@ var _ = AfterSuite(func() {
 	TestServer.Stop()
 })
 
-func SutExecute(list []string, args ...string) {
+func SutExecute(list []string, args ...string) []byte{
 	exePath, err := filepath.Abs("./code-named-something")
 	check(err)
 	file := CreateFileFromLines(list)
@@ -46,6 +46,7 @@ func SutExecute(list []string, args ...string) {
 	output, err := cmd.CombinedOutput()
 	Log.Println(output)
 	Expect(err).To(BeNil())
+	return output
 }
 
 var _ = Describe("Main", func() {
@@ -67,6 +68,36 @@ var _ = Describe("Main", func() {
 		TestServer.Clear()
 	})
 
+	It("Outputs a summary to STDOUT", func(){
+		list := []string{
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+		}
+
+		TestServer.Use(HttpResponseFactory(func(w http.ResponseWriter) {
+			w.WriteHeader(500)
+		})).For(RequestWithPath("/error"))
+
+		output := SutExecute(list, "--summary")
+
+		var executionOutput ExecutionOutput
+		UnmarshalYamlFromFile("./output.yml", &executionOutput)
+
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Running Time: %v s",executionOutput.Summary.RunningTime / 1000)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Total Requests: %v",executionOutput.Summary.Requests.Total)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Number of Errors: %v",executionOutput.Summary.Requests.Errors)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Availability: %v%%",executionOutput.Summary.Requests.Availability*100)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Bytes Sent: %v",executionOutput.Summary.Bytes.Sent.Sum)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Bytes Received: %v",executionOutput.Summary.Bytes.Received.Sum)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Mean Response Time: %.4v",executionOutput.Summary.ResponseTime.Mean)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Min Response Time: %v ms",executionOutput.Summary.ResponseTime.Min)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Max Response Time: %v ms",executionOutput.Summary.ResponseTime.Max)))
+	})
+
 	Describe("Generate statistics on throughput", func() {
 		var list []string
 
@@ -79,7 +110,6 @@ var _ = Describe("Main", func() {
 				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
 			}
 		})
-
 
 		It("Records the availability", func() {
 			count := 0

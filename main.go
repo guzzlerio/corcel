@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+	"errors"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
@@ -59,6 +60,12 @@ func Execute(file *os.File, stats *Statistics) {
 		stats.BytesReceived(int64(len(responseBytes)))
 		stats.BytesSent(int64(len(requestBytes)))
 		stats.ResponseTime(int64(duration))
+
+		var responseError error = nil
+		if (response.StatusCode >= 400 && response.StatusCode < 600) {
+			responseError = errors.New("5XX Response Code")
+		}
+		stats.Request(responseError)
 	}
 }
 

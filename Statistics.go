@@ -2,6 +2,7 @@ package main
 
 import (
 	"time"
+
 	"github.com/rcrowley/go-metrics"
 )
 
@@ -11,7 +12,10 @@ type Statistics struct {
 	hResponseTime  metrics.Histogram
 	mBytesSent     metrics.Meter
 	mBytesReceived metrics.Meter
-	start time.Time
+	start          time.Time
+	mRequests      metrics.Meter
+	cErrors        metrics.Counter
+	cTotal         metrics.Counter
 }
 
 func CreateStatistics() *Statistics {
@@ -22,30 +26,47 @@ func CreateStatistics() *Statistics {
 		hResponseTime:  metrics.NewHistogram(metrics.NewUniformSample(sampleSize)),
 		mBytesSent:     metrics.NewMeter(),
 		mBytesReceived: metrics.NewMeter(),
+		mRequests:      metrics.NewMeter(),
+		cErrors:        metrics.NewCounter(),
+		cTotal:         metrics.NewCounter(),
 	}
 }
 
-func (instance *Statistics) Start(){
+func (instance *Statistics) Start() {
 	instance.start = time.Now()
 }
 
-func (instance *Statistics) BytesReceived(value int64){
+func (instance *Statistics) Request(err error) {
+	instance.mRequests.Mark(1)
+	if err != nil {
+		instance.cErrors.Inc(1)
+	}
+	instance.cTotal.Inc(1)
+}
+
+func (instance *Statistics) BytesReceived(value int64) {
 	instance.hBytesReceived.Update(value)
 	instance.mBytesReceived.Mark(value)
 }
 
-func (instance *Statistics) BytesSent(value int64){
+func (instance *Statistics) BytesSent(value int64) {
 	instance.hBytesSent.Update(value)
 	instance.mBytesSent.Mark(value)
 }
 
-func (instance *Statistics) ResponseTime(value int64){
+func (instance *Statistics) ResponseTime(value int64) {
 	instance.hResponseTime.Update(value)
 }
 
-func (instance *Statistics) ExecutionOutput() ExecutionOutput{
+func (instance *Statistics) ExecutionOutput() ExecutionOutput {
 	output := ExecutionOutput{
 		Summary: ExecutionSummary{
+			Requests: RequestsSummary{
+				Rate:   instance.mRequests.RateMean(),
+				Errors: instance.cErrors.Count(),
+				Total: instance.cTotal.Count(),
+				Availability: 1-(float64(instance.cErrors.Count())/float64(instance.cTotal.Count())),
+			},
 			RunningTime: float64(time.Since(instance.start) / time.Millisecond),
 			ResponseTime: ResponseTimeStats{
 				Sum:    instance.hResponseTime.Sum(),

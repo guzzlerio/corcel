@@ -19,6 +19,8 @@ var (
 	HTTP_METHODS_WITH_REQUEST_BODY = []string{"POST", "PUT", "DELETE"}
 	TestServer                     *RequestRecordingServer
 	TEST_PORT                      = 8000
+	RESPONSE_CODES_400             = []int{400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418}
+	RESPONSE_CODES_500             = []int{500, 501, 502, 503, 504, 505}
 )
 
 func UrlForTestServer(path string) string {
@@ -34,6 +36,17 @@ var _ = BeforeSuite(func() {
 var _ = AfterSuite(func() {
 	TestServer.Stop()
 })
+
+func SutExecute(list []string, args ...string) {
+	exePath, err := filepath.Abs("./code-named-something")
+	check(err)
+	file := CreateFileFromLines(list)
+	defer os.Remove(file.Name())
+	cmd := exec.Command(exePath, append([]string{"-f", file.Name()},args...)...)
+	output, err := cmd.CombinedOutput()
+	Log.Println(output)
+	Expect(err).To(BeNil())
+}
 
 var _ = Describe("Main", func() {
 
@@ -54,8 +67,67 @@ var _ = Describe("Main", func() {
 		TestServer.Clear()
 	})
 
+	Describe("Generate statistics on throughput", func() {
+		var list []string
+
+		BeforeEach(func() {
+			list = []string{
+				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+			}
+		})
+
+
+		It("Records the availability", func() {
+			count := 0
+			TestServer.Use(HttpResponseFactory(func(w http.ResponseWriter) {
+				count++
+				if count%2 == 0 {
+					w.WriteHeader(500)
+				} else {
+					w.WriteHeader(200)
+				}
+			}))
+
+			SutExecute(list)
+
+			var executionOutput ExecutionOutput
+			UnmarshalYamlFromFile("./output.yml", &executionOutput)
+
+			expectedAvailability := 1 - (float64(executionOutput.Summary.Requests.Errors) / float64(executionOutput.Summary.Requests.Total))
+			Expect(executionOutput.Summary.Requests.Availability).To(Equal(expectedAvailability))
+		})
+
+		for _, code := range append(RESPONSE_CODES_500, RESPONSE_CODES_400...) {
+			It(fmt.Sprintf("Records error for HTTP %v response code range", code), func() {
+				TestServer.Use(HttpResponseFactory(func(w http.ResponseWriter) {
+					w.WriteHeader(code)
+				}))
+
+				SutExecute(list)
+
+				var executionOutput ExecutionOutput
+				UnmarshalYamlFromFile("./output.yml", &executionOutput)
+
+				Expect(executionOutput.Summary.Requests.Errors).To(Equal(int64(len(list))))
+				Expect(executionOutput.Summary.Requests.Total).To(Equal(int64(len(list))))
+			})
+		}
+
+		It("Requests per second", func() {
+			SutExecute(list)
+
+			var executionOutput ExecutionOutput
+			UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			Expect(executionOutput.Summary.Requests.Rate).To(BeNumerically(">", 0))
+			Expect(executionOutput.Summary.Requests.Total).To(Equal(int64(len(list))))
+		})
+	})
+
 	It("Generate statistics on timings", func() {
-		secondsToSleepPerRequest := time.Duration(20 * time.Millisecond)
 		list := []string{
 			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
 			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
@@ -64,16 +136,13 @@ var _ = Describe("Main", func() {
 			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
 		}
 
+		count := 1
 		TestServer.Use(HttpResponseFactory(func(w http.ResponseWriter) {
-			time.Sleep(secondsToSleepPerRequest)
+			time.Sleep(time.Duration(count) * time.Millisecond)
+			count++
 		}))
 
-		file := CreateFileFromLines(list)
-		defer os.Remove(file.Name())
-		cmd := exec.Command(exePath, "-f", file.Name())
-		output, err := cmd.CombinedOutput()
-		fmt.Println(string(output))
-		Expect(err).To(BeNil())
+		SutExecute(list)
 
 		var executionOutput ExecutionOutput
 
@@ -107,12 +176,7 @@ var _ = Describe("Main", func() {
 			responseBody = responseBody + "-"
 		}))
 
-		file := CreateFileFromLines(list)
-		defer os.Remove(file.Name())
-		cmd := exec.Command(exePath, "-f", file.Name())
-		output, err := cmd.CombinedOutput()
-		fmt.Println(string(output))
-		Expect(err).To(BeNil())
+		SutExecute(list)
 
 		Expect(PathExists("./output.yml")).To(Equal(true))
 
@@ -150,12 +214,7 @@ var _ = Describe("Main", func() {
 			It(fmt.Sprintf("in the body for verb %s", method), func() {
 				data := "a=1&b=2&c=3"
 				list := []string{fmt.Sprintf(`%s -X %s -d %s`, UrlForTestServer("/A"), method, data)}
-				file := CreateFileFromLines(list)
-				defer os.Remove(file.Name())
-				cmd := exec.Command(exePath, "-f", file.Name())
-				output, err := cmd.CombinedOutput()
-				fmt.Println(string(output))
-				Expect(err).To(BeNil())
+				SutExecute(list)
 
 				predicates := []HttpRequestPredicate{}
 				predicates = append(predicates, RequestWithPath("/A"))
@@ -169,12 +228,7 @@ var _ = Describe("Main", func() {
 			method := "GET"
 			data := "a=1&b=2&c=3"
 			list := []string{fmt.Sprintf(`%s -X %s -d %s"`, UrlForTestServer("/A"), method, data)}
-			file := CreateFileFromLines(list)
-			defer os.Remove(file.Name())
-			cmd := exec.Command(exePath, "-f", file.Name())
-			output, err := cmd.CombinedOutput()
-			fmt.Println(string(output))
-			Expect(err).To(BeNil())
+			SutExecute(list)
 
 			predicates := []HttpRequestPredicate{}
 			predicates = append(predicates, RequestWithPath("/A"))
@@ -189,12 +243,7 @@ var _ = Describe("Main", func() {
 			applicationJson := "Content-Type:application/json"
 			applicationSoapXml := "Accept:application/soap+xml"
 			list := []string{fmt.Sprintf(`%s -X %s -H "%s" -H "%s"`, UrlForTestServer("/A"), method, applicationJson, applicationSoapXml)}
-			file := CreateFileFromLines(list)
-			defer os.Remove(file.Name())
-			cmd := exec.Command(exePath, "-f", file.Name())
-			output, err := cmd.CombinedOutput()
-			fmt.Println(string(output))
-			Expect(err).To(BeNil())
+			SutExecute(list)
 
 			predicates := []HttpRequestPredicate{}
 			predicates = append(predicates, RequestWithPath("/A"))
@@ -208,12 +257,7 @@ var _ = Describe("Main", func() {
 	for _, method := range SUPPORTED_HTTP_METHODS {
 		It(fmt.Sprintf("Makes a http %s request", method), func() {
 			list := []string{fmt.Sprintf(`%s -X %s`, UrlForTestServer("/A"), method)}
-			file := CreateFileFromLines(list)
-			defer os.Remove(file.Name())
-			cmd := exec.Command(exePath, "-f", file.Name())
-			output, err := cmd.CombinedOutput()
-			fmt.Println(string(output))
-			Expect(err).To(BeNil())
+			SutExecute(list)
 			Expect(TestServer.Find(RequestWithPath("/A"), RequestWithMethod(method))).To(Equal(true))
 		})
 	}
@@ -224,14 +268,9 @@ var _ = Describe("Main", func() {
 			UrlForTestServer("/B"),
 			UrlForTestServer("/C"),
 		}
-		file := CreateFileFromLines(list)
-		defer os.Remove(file.Name())
 
-		cmd := exec.Command(exePath, "-f", file.Name())
-		output, err := cmd.CombinedOutput()
-		fmt.Println(string(output))
+		SutExecute(list)
 
-		Expect(err).To(BeNil())
 		Expect(TestServer.Find(RequestWithPath("/A"))).To(Equal(true))
 		Expect(TestServer.Find(RequestWithPath("/B"))).To(Equal(true))
 		Expect(TestServer.Find(RequestWithPath("/C"))).To(Equal(true))

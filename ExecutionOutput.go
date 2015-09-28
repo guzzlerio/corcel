@@ -32,10 +32,18 @@ type BytesSummary struct {
 	Received BytesStats `yaml:"received"`
 }
 
+type RequestsSummary struct {
+	Rate float64 `yaml:"rate"`
+	Errors int64 `yaml:"errors"`
+	Total int64 `yaml:"total"`
+	Availability float64 `yaml:"availability"`
+}
+
 type ExecutionSummary struct {
 	Bytes BytesSummary `yaml:"bytes"`
 	ResponseTime ResponseTimeStats `yaml:"responseTime"`
 	RunningTime float64 `yaml:"runningTime"`
+	Requests RequestsSummary `yaml:"requests"`
 }
 
 type ExecutionOutput struct {

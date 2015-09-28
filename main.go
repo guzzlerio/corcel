@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"bufio"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -10,7 +11,6 @@ import (
 	"os"
 	"path/filepath"
 	"time"
-	"errors"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
@@ -63,7 +63,7 @@ func Execute(file *os.File, stats *Statistics) {
 		stats.ResponseTime(int64(duration))
 
 		var responseError error = nil
-		if (response.StatusCode >= 400 && response.StatusCode < 600) {
+		if response.StatusCode >= 400 && response.StatusCode < 600 {
 			responseError = errors.New("5XX Response Code")
 		}
 		stats.Request(responseError)
@@ -78,12 +78,21 @@ func GenerateExecutionOutput(outputPath string, stats *Statistics) {
 	check(err)
 }
 
-func OutputSummary(stats *Statistics){
+func OutputSummary(stats *Statistics) {
 	output := stats.ExecutionOutput()
-	fmt.Println(fmt.Sprintf("Running Time: %v seconds",output.Summary.RunningTime / 1000))
-	fmt.Println(fmt.Sprintf("Total Requests: %v",output.Summary.Requests.Total))
-	fmt.Println(fmt.Sprintf("Number of Errors: %v",output.Summary.Requests.Errors))
-	fmt.Println(fmt.Sprintf("Availability: %v%%",output.Summary.Requests.Availability * 100))
+	fmt.Println(fmt.Sprintf("Running Time: %v s", output.Summary.RunningTime/1000))
+	fmt.Println(fmt.Sprintf("Total Requests: %v", output.Summary.Requests.Total))
+	fmt.Println(fmt.Sprintf("Number of Errors: %v", output.Summary.Requests.Errors))
+	fmt.Println(fmt.Sprintf("Availability: %v%%", output.Summary.Requests.Availability*100))
+	fmt.Println(fmt.Sprintf("Bytes Sent: %v", output.Summary.Bytes.Sent.Sum))
+	fmt.Println(fmt.Sprintf("Bytes Received: %v", output.Summary.Bytes.Received.Sum))
+	if output.Summary.ResponseTime.Mean > 0 {
+		fmt.Println(fmt.Sprintf("Mean Response Time: %.4v ms", output.Summary.ResponseTime.Mean))
+	} else {
+		fmt.Println(fmt.Sprintf("Mean Response Time: %v ms", output.Summary.ResponseTime.Mean))
+	}
+
+	fmt.Println(fmt.Sprintf("Min Response Time: %v ms", output.Summary.ResponseTime.Min))
 }
 
 func main() {

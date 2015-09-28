@@ -87,10 +87,14 @@ var _ = Describe("Main", func() {
 		var executionOutput ExecutionOutput
 		UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Running Time: %v seconds",executionOutput.Summary.RunningTime / 1000)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Running Time: %v s",executionOutput.Summary.RunningTime / 1000)))
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Total Requests: %v",executionOutput.Summary.Requests.Total)))
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Number of Errors: %v",executionOutput.Summary.Requests.Errors)))
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Availability: %v%%",executionOutput.Summary.Requests.Availability*100)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Bytes Sent: %v",executionOutput.Summary.Bytes.Sent.Sum)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Bytes Received: %v",executionOutput.Summary.Bytes.Received.Sum)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Mean Response Time: %.4v",executionOutput.Summary.ResponseTime.Mean)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Min Response Time: %v",executionOutput.Summary.ResponseTime.Min)))
 	})
 
 	Describe("Generate statistics on throughput", func() {

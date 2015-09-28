@@ -93,6 +93,7 @@ func OutputSummary(stats *Statistics) {
 	}
 
 	fmt.Println(fmt.Sprintf("Min Response Time: %v ms", output.Summary.ResponseTime.Min))
+	fmt.Println(fmt.Sprintf("Max Response Time: %v ms", output.Summary.ResponseTime.Max))
 }
 
 func main() {

@@ -68,7 +68,7 @@ var _ = Describe("Main", func() {
 		TestServer.Clear()
 	})
 
-	FIt("Outputs a summary to STDOUT", func(){
+	It("Outputs a summary to STDOUT", func(){
 		list := []string{
 			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
 			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
@@ -94,7 +94,8 @@ var _ = Describe("Main", func() {
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Bytes Sent: %v",executionOutput.Summary.Bytes.Sent.Sum)))
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Bytes Received: %v",executionOutput.Summary.Bytes.Received.Sum)))
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Mean Response Time: %.4v",executionOutput.Summary.ResponseTime.Mean)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Min Response Time: %v",executionOutput.Summary.ResponseTime.Min)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Min Response Time: %v ms",executionOutput.Summary.ResponseTime.Min)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Max Response Time: %v ms",executionOutput.Summary.ResponseTime.Max)))
 	})
 
 	Describe("Generate statistics on throughput", func() {

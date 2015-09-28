@@ -62,7 +62,7 @@ func Execute(file *os.File, stats *Statistics) {
 		stats.ResponseTime(int64(duration))
 
 		var responseError error = nil
-		if response.StatusCode >= 500 && response.StatusCode < 506 {
+		if (response.StatusCode >= 400 && response.StatusCode < 600) {
 			responseError = errors.New("5XX Response Code")
 		}
 		stats.Request(responseError)

@@ -15,6 +15,7 @@ type Statistics struct {
 	start          time.Time
 	mRequests      metrics.Meter
 	cErrors        metrics.Counter
+	cTotal         metrics.Counter
 }
 
 func CreateStatistics() *Statistics {
@@ -27,6 +28,7 @@ func CreateStatistics() *Statistics {
 		mBytesReceived: metrics.NewMeter(),
 		mRequests:      metrics.NewMeter(),
 		cErrors:        metrics.NewCounter(),
+		cTotal:         metrics.NewCounter(),
 	}
 }
 
@@ -36,9 +38,10 @@ func (instance *Statistics) Start() {
 
 func (instance *Statistics) Request(err error) {
 	instance.mRequests.Mark(1)
-	if err != nil{
+	if err != nil {
 		instance.cErrors.Inc(1)
 	}
+	instance.cTotal.Inc(1)
 }
 
 func (instance *Statistics) BytesReceived(value int64) {
@@ -59,8 +62,10 @@ func (instance *Statistics) ExecutionOutput() ExecutionOutput {
 	output := ExecutionOutput{
 		Summary: ExecutionSummary{
 			Requests: RequestsSummary{
-				Rate: instance.mRequests.RateMean(),
-				Errors : instance.cErrors.Count(),
+				Rate:   instance.mRequests.RateMean(),
+				Errors: instance.cErrors.Count(),
+				Total: instance.cTotal.Count(),
+				Availability: 1-(float64(instance.cErrors.Count())/float64(instance.cTotal.Count())),
 			},
 			RunningTime: float64(time.Since(instance.start) / time.Millisecond),
 			ResponseTime: ResponseTimeStats{

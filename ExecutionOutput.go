@@ -35,6 +35,8 @@ type BytesSummary struct {
 type RequestsSummary struct {
 	Rate float64 `yaml:"rate"`
 	Errors int64 `yaml:"errors"`
+	Total int64 `yaml:"total"`
+	Availability float64 `yaml:"availability"`
 }
 
 type ExecutionSummary struct {

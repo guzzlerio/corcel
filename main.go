@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"bufio"
 	"io/ioutil"
 	"log"
@@ -77,8 +78,14 @@ func GenerateExecutionOutput(outputPath string, stats *Statistics) {
 	check(err)
 }
 
+func OutputSummary(stats *Statistics){
+	output := stats.ExecutionOutput()
+	fmt.Println(fmt.Sprintf("Running Time: %v seconds",output.Summary.RunningTime / 1000))
+}
+
 func main() {
 	filePath := kingpin.Flag("file", "Urls file").Short('f').String()
+	summary := kingpin.Flag("summary", "Output summary to STDOUT").Bool()
 	kingpin.Parse()
 
 	ConfigureLogging()
@@ -96,4 +103,8 @@ func main() {
 	outputPath, err := filepath.Abs("./output.yml")
 	check(err)
 	GenerateExecutionOutput(outputPath, stats)
+
+	if *summary {
+		OutputSummary(stats)
+	}
 }

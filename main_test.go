@@ -37,7 +37,7 @@ var _ = AfterSuite(func() {
 	TestServer.Stop()
 })
 
-func SutExecute(list []string, args ...string) {
+func SutExecute(list []string, args ...string) []byte{
 	exePath, err := filepath.Abs("./code-named-something")
 	check(err)
 	file := CreateFileFromLines(list)
@@ -46,6 +46,7 @@ func SutExecute(list []string, args ...string) {
 	output, err := cmd.CombinedOutput()
 	Log.Println(output)
 	Expect(err).To(BeNil())
+	return output
 }
 
 var _ = Describe("Main", func() {
@@ -67,6 +68,28 @@ var _ = Describe("Main", func() {
 		TestServer.Clear()
 	})
 
+	It("Outputs a summary to STDOUT", func(){
+		list := []string{
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+		}
+
+		TestServer.Use(HttpResponseFactory(func(w http.ResponseWriter) {
+			w.WriteHeader(500)
+		})).For(RequestWithPath("/error"))
+
+		output := SutExecute(list, "--summary")
+
+		var executionOutput ExecutionOutput
+		UnmarshalYamlFromFile("./output.yml", &executionOutput)
+
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Running Time: %v seconds",executionOutput.Summary.RunningTime / 1000)))
+	})
+
 	Describe("Generate statistics on throughput", func() {
 		var list []string
 
@@ -79,7 +102,6 @@ var _ = Describe("Main", func() {
 				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
 			}
 		})
-
 
 		It("Records the availability", func() {
 			count := 0

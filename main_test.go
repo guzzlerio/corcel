@@ -128,7 +128,6 @@ var _ = Describe("Main", func() {
 	})
 
 	It("Generate statistics on timings", func() {
-		secondsToSleepPerRequest := time.Duration(20 * time.Millisecond)
 		list := []string{
 			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
 			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
@@ -137,8 +136,10 @@ var _ = Describe("Main", func() {
 			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
 		}
 
+		count := 1
 		TestServer.Use(HttpResponseFactory(func(w http.ResponseWriter) {
-			time.Sleep(secondsToSleepPerRequest)
+			time.Sleep(time.Duration(count) * time.Millisecond)
+			count++
 		}))
 
 		SutExecute(list)

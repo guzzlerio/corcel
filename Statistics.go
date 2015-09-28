@@ -2,6 +2,7 @@ package main
 
 import (
 	"time"
+
 	"github.com/rcrowley/go-metrics"
 )
 
@@ -11,7 +12,8 @@ type Statistics struct {
 	hResponseTime  metrics.Histogram
 	mBytesSent     metrics.Meter
 	mBytesReceived metrics.Meter
-	start time.Time
+	start          time.Time
+	mRequests      metrics.Meter
 }
 
 func CreateStatistics() *Statistics {
@@ -22,30 +24,38 @@ func CreateStatistics() *Statistics {
 		hResponseTime:  metrics.NewHistogram(metrics.NewUniformSample(sampleSize)),
 		mBytesSent:     metrics.NewMeter(),
 		mBytesReceived: metrics.NewMeter(),
+		mRequests: metrics.NewMeter(),
 	}
 }
 
-func (instance *Statistics) Start(){
+func (instance *Statistics) Start() {
 	instance.start = time.Now()
 }
 
-func (instance *Statistics) BytesReceived(value int64){
+func (instance *Statistics) Request() {
+	instance.mRequests.Mark(1)
+}
+
+func (instance *Statistics) BytesReceived(value int64) {
 	instance.hBytesReceived.Update(value)
 	instance.mBytesReceived.Mark(value)
 }
 
-func (instance *Statistics) BytesSent(value int64){
+func (instance *Statistics) BytesSent(value int64) {
 	instance.hBytesSent.Update(value)
 	instance.mBytesSent.Mark(value)
 }
 
-func (instance *Statistics) ResponseTime(value int64){
+func (instance *Statistics) ResponseTime(value int64) {
 	instance.hResponseTime.Update(value)
 }
 
-func (instance *Statistics) ExecutionOutput() ExecutionOutput{
+func (instance *Statistics) ExecutionOutput() ExecutionOutput {
 	output := ExecutionOutput{
 		Summary: ExecutionSummary{
+			Requests : RequestsSummary{
+				Rate : instance.mRequests.RateMean(),
+			},
 			RunningTime: float64(time.Since(instance.start) / time.Millisecond),
 			ResponseTime: ResponseTimeStats{
 				Sum:    instance.hResponseTime.Sum(),

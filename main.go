@@ -59,6 +59,7 @@ func Execute(file *os.File, stats *Statistics) {
 		stats.BytesReceived(int64(len(responseBytes)))
 		stats.BytesSent(int64(len(requestBytes)))
 		stats.ResponseTime(int64(duration))
+		stats.Request()
 	}
 }
 

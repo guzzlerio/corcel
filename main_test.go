@@ -54,6 +54,30 @@ var _ = Describe("Main", func() {
 		TestServer.Clear()
 	})
 
+	Describe("Generate statistics on throughput", func() {
+		It("Requests per second", func() {
+			list := []string{
+				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+			}
+			file := CreateFileFromLines(list)
+			defer os.Remove(file.Name())
+			cmd := exec.Command(exePath, "-f", file.Name())
+			output, err := cmd.CombinedOutput()
+			fmt.Println(string(output))
+			Expect(err).To(BeNil())
+
+			var executionOutput ExecutionOutput
+
+			UnmarshalYamlFromFile("./output.yml", &executionOutput)
+
+			Expect(executionOutput.Summary.Requests.Rate).To(BeNumerically(">", 0))
+		})
+	})
+
 	It("Generate statistics on timings", func() {
 		secondsToSleepPerRequest := time.Duration(20 * time.Millisecond)
 		list := []string{

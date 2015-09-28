@@ -13,6 +13,7 @@ type Statistics struct {
 	mBytesSent     metrics.Meter
 	mBytesReceived metrics.Meter
 	start          time.Time
+	end			   time.Time
 	mRequests      metrics.Meter
 	cErrors        metrics.Counter
 	cTotal         metrics.Counter
@@ -34,6 +35,10 @@ func CreateStatistics() *Statistics {
 
 func (instance *Statistics) Start() {
 	instance.start = time.Now()
+}
+
+func (instance *Statistics) Stop(){
+	instance.end = time.Now()
 }
 
 func (instance *Statistics) Request(err error) {
@@ -67,7 +72,7 @@ func (instance *Statistics) ExecutionOutput() ExecutionOutput {
 				Total: instance.cTotal.Count(),
 				Availability: 1-(float64(instance.cErrors.Count())/float64(instance.cTotal.Count())),
 			},
-			RunningTime: float64(time.Since(instance.start) / time.Millisecond),
+			RunningTime: float64(instance.end.Sub(instance.start) / time.Millisecond),
 			ResponseTime: ResponseTimeStats{
 				Sum:    instance.hResponseTime.Sum(),
 				Max:    instance.hResponseTime.Max(),

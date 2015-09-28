@@ -81,6 +81,7 @@ func GenerateExecutionOutput(outputPath string, stats *Statistics) {
 func OutputSummary(stats *Statistics){
 	output := stats.ExecutionOutput()
 	fmt.Println(fmt.Sprintf("Running Time: %v seconds",output.Summary.RunningTime / 1000))
+	fmt.Println(fmt.Sprintf("Total Requests: %v",output.Summary.Requests.Total))
 }
 
 func main() {
@@ -99,6 +100,8 @@ func main() {
 	stats.Start()
 
 	Execute(file, stats)
+
+	stats.Stop()
 
 	outputPath, err := filepath.Abs("./output.yml")
 	check(err)

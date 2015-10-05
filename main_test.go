@@ -21,6 +21,7 @@ var (
 	TEST_PORT                      = 8000
 	RESPONSE_CODES_400             = []int{400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418}
 	RESPONSE_CODES_500             = []int{500, 501, 502, 503, 504, 505}
+    WAIT_TIME_TESTS                = []string{"1ms","2ms","4ms","8ms","16ms","32ms","64ms", "128ms"}
 )
 
 func UrlForTestServer(path string) string {
@@ -44,7 +45,7 @@ func SutExecute(list []string, args ...string) []byte{
 	defer os.Remove(file.Name())
 	cmd := exec.Command(exePath, append([]string{"-f", file.Name()},args...)...)
 	output, err := cmd.CombinedOutput()
-	Log.Println(output)
+	Log.Println(string(output))
 	Expect(err).To(BeNil())
 	return output
 }
@@ -67,6 +68,31 @@ var _ = Describe("Main", func() {
 	AfterEach(func() {
 		TestServer.Clear()
 	})
+
+    for _,waitTime := range(WAIT_TIME_TESTS) {
+        It(fmt.Sprintf("Support wait time of %v between each execution in the list", waitTime), func(){
+            waitTimeTolerance:= 0.25
+
+            list := []string{
+                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
+                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
+                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
+                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+            }
+            start := time.Now()
+            SutExecute(list, "--wait-time", waitTime)
+            duration := time.Since(start)
+
+            waitTimeValue, _ := time.ParseDuration(waitTime)
+            expected := int64(len(list)) * int64(waitTimeValue)
+            maximum := float64(expected) * (1 + waitTimeTolerance)
+
+            Expect(int64(duration)).To(BeNumerically(">=", int64(expected)))
+            Expect(int64(duration)).To(BeNumerically("<", int64(maximum)))
+        })
+    }
 
 	It("Outputs a summary to STDOUT", func(){
 		list := []string{

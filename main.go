@@ -40,7 +40,7 @@ func ConfigureLogging() {
 	}
 }
 
-func Execute(file *os.File, stats *Statistics) {
+func Execute(file *os.File, stats *Statistics, waitTime time.Duration) {
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 
@@ -67,6 +67,8 @@ func Execute(file *os.File, stats *Statistics) {
 			responseError = errors.New("5XX Response Code")
 		}
 		stats.Request(responseError)
+
+        time.Sleep(waitTime)
 	}
 }
 
@@ -99,7 +101,16 @@ func OutputSummary(stats *Statistics) {
 func main() {
 	filePath := kingpin.Flag("file", "Urls file").Short('f').String()
 	summary := kingpin.Flag("summary", "Output summary to STDOUT").Bool()
+	waitTimeArg := kingpin.Flag("wait-time", "Time to wait between each execution").Default("0s").String()
+
+
 	kingpin.Parse()
+
+    waitTime, err := time.ParseDuration(*waitTimeArg)
+    if err != nil{
+        Log.Printf("error parsing --wait-time : %v", err)
+        panic("Cannot parse the time specified for --wait-time")
+    }
 
 	ConfigureLogging()
 
@@ -111,7 +122,7 @@ func main() {
 	stats := CreateStatistics()
 	stats.Start()
 
-	Execute(file, stats)
+	Execute(file, stats, waitTime)
 
 	stats.Stop()
 

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bufio"
+	//	"bufio"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -41,38 +41,46 @@ func ConfigureLogging() {
 	}
 }
 
+func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Request) {
+	start := time.Now()
+	response, responseError := client.Do(request)
+	duration := time.Since(start) / time.Millisecond
+	if responseError == nil {
+		defer response.Body.Close()
+		responseBytes, _ := httputil.DumpResponse(response, true)
+		stats.BytesReceived(int64(len(responseBytes)))
+		if response.StatusCode >= 400 && response.StatusCode < 600 {
+			responseError = errors.New("5XX Response Code")
+		}
+	} else {
+		fmt.Printf("Error: %v", responseError)
+	}
+
+	stats.ResponseTime(int64(duration))
+	requestBytes, _ := httputil.DumpRequest(request, true)
+	stats.BytesSent(int64(len(requestBytes)))
+	stats.Request(responseError)
+}
+
 func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers int) {
 	defer file.Close()
 	var waitGroup sync.WaitGroup
-	scanner := bufio.NewScanner(file)
+
+	reader := NewRequestReader(file.Name())
 
 	for i := 0; i < workers; i++ {
-		Log.Printf("Worker %v", i+1)
 		waitGroup.Add(1)
 		go func() {
-			client := &http.Client{}
-			requestAdapter := NewRequestAdapter()
-			for scanner.Scan() {
-				line := scanner.Text()
-				request, err := requestAdapter.Create(line)
-				check(err)
-				start := time.Now()
-				response, err := client.Do(request)
-				duration := time.Since(start) / time.Millisecond
-				check(err)
-				requestBytes, _ := httputil.DumpRequest(request, true)
-				responseBytes, _ := httputil.DumpResponse(response, true)
+			client := &http.Client{
+				Transport: &http.Transport{
+					MaxIdleConnsPerHost: 50,
+				},
+			}
+			stream := reader.NewSequentialStream()
+			for request := range stream.Read() {
 
-				stats.BytesReceived(int64(len(responseBytes)))
-				stats.BytesSent(int64(len(requestBytes)))
-				stats.ResponseTime(int64(duration))
+				ExecuteRequest(client, stats, request)
 
-				var responseError error = nil
-				if response.StatusCode >= 400 && response.StatusCode < 600 {
-					responseError = errors.New("5XX Response Code")
-				}
-				stats.Request(responseError)
-				Log.Printf("Worker %v made a request", i)
 				time.Sleep(waitTime)
 			}
 			waitGroup.Done()
@@ -128,7 +136,7 @@ func main() {
 	absolutePath, err := filepath.Abs(*filePath)
 	check(err)
 	file, err := os.Open(absolutePath)
-    defer file.Close()
+	defer file.Close()
 	check(err)
 
 	stats := CreateStatistics()

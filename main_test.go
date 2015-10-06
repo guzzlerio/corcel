@@ -11,8 +11,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"time"
-    "strconv"
 )
 
 var (
@@ -23,7 +23,7 @@ var (
 	RESPONSE_CODES_400             = []int{400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418}
 	RESPONSE_CODES_500             = []int{500, 501, 502, 503, 504, 505}
 	WAIT_TIME_TESTS                = []string{"1ms", "2ms", "4ms", "8ms", "16ms", "32ms", "64ms", "128ms"}
-    NUMBER_OF_WORKERS_TO_TEST      = []int{1,2,4,8,16,32,64,128,256}
+	NUMBER_OF_WORKERS_TO_TEST      = []int{1, 2, 4, 8, 16, 32, 64, 128, 256}
 )
 
 func UrlForTestServer(path string) string {
@@ -71,25 +71,27 @@ var _ = Describe("Main", func() {
 		TestServer.Clear()
 	})
 
-	PIt("Support multiple workers", func() {
-        numberOfWorkers := 10
-		list := []string{
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-		}
+	for _, numberOfWorkers := range NUMBER_OF_WORKERS_TO_TEST {
+		It(fmt.Sprintf("Support %v workers", numberOfWorkers), func() {
+			list := []string{
+				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+			}
 
-		SutExecute(list, "--workers", strconv.Itoa(numberOfWorkers))
+			SutExecute(list, "--workers", strconv.Itoa(numberOfWorkers))
 
-		var executionOutput ExecutionOutput
-		UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var executionOutput ExecutionOutput
+			UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
-        Expect(executionOutput.Summary.Requests.Total).To(Equal(int64(len(list) * numberOfWorkers)))
+			Expect(executionOutput.Summary.Requests.Total).To(Equal(int64(len(list) * numberOfWorkers)))
+			Expect(executionOutput.Summary.Requests.Errors).To(Equal(int64(0)))
 
-	})
+		})
+	}
 
 	for _, waitTime := range WAIT_TIME_TESTS {
 		It(fmt.Sprintf("Support wait time of %v between each execution in the list", waitTime), func() {

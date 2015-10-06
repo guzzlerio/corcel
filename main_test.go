@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"time"
+    "strconv"
 )
 
 var (
@@ -21,7 +22,7 @@ var (
 	TEST_PORT                      = 8000
 	RESPONSE_CODES_400             = []int{400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418}
 	RESPONSE_CODES_500             = []int{500, 501, 502, 503, 504, 505}
-    WAIT_TIME_TESTS                = []string{"1ms","2ms","4ms","8ms","16ms","32ms","64ms", "128ms"}
+	WAIT_TIME_TESTS                = []string{"1ms", "2ms", "4ms", "8ms", "16ms", "32ms", "64ms", "128ms"}
 )
 
 func UrlForTestServer(path string) string {
@@ -38,12 +39,12 @@ var _ = AfterSuite(func() {
 	TestServer.Stop()
 })
 
-func SutExecute(list []string, args ...string) []byte{
+func SutExecute(list []string, args ...string) []byte {
 	exePath, err := filepath.Abs("./code-named-something")
 	check(err)
 	file := CreateFileFromLines(list)
 	defer os.Remove(file.Name())
-	cmd := exec.Command(exePath, append([]string{"-f", file.Name()},args...)...)
+	cmd := exec.Command(exePath, append([]string{"-f", file.Name()}, args...)...)
 	output, err := cmd.CombinedOutput()
 	Log.Println(string(output))
 	Expect(err).To(BeNil())
@@ -69,32 +70,52 @@ var _ = Describe("Main", func() {
 		TestServer.Clear()
 	})
 
-    for _,waitTime := range(WAIT_TIME_TESTS) {
-        It(fmt.Sprintf("Support wait time of %v between each execution in the list", waitTime), func(){
-            waitTimeTolerance:= 0.25
+	PIt("Support multiple workers", func() {
+        numberOfWorkers := 10
+		list := []string{
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+		}
 
-            list := []string{
-                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
-                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
-                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
-                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-            }
-            start := time.Now()
-            SutExecute(list, "--wait-time", waitTime)
-            duration := time.Since(start)
+		SutExecute(list, "--workers", strconv.Itoa(numberOfWorkers))
 
-            waitTimeValue, _ := time.ParseDuration(waitTime)
-            expected := int64(len(list)) * int64(waitTimeValue)
-            maximum := float64(expected) * (1 + waitTimeTolerance)
+		var executionOutput ExecutionOutput
+		UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
-            Expect(int64(duration)).To(BeNumerically(">=", int64(expected)))
-            Expect(int64(duration)).To(BeNumerically("<", int64(maximum)))
-        })
-    }
+        Expect(executionOutput.Summary.Requests.Total).To(Equal(int64(len(list) * numberOfWorkers)))
 
-	It("Outputs a summary to STDOUT", func(){
+	})
+
+	for _, waitTime := range WAIT_TIME_TESTS {
+		It(fmt.Sprintf("Support wait time of %v between each execution in the list", waitTime), func() {
+			waitTimeTolerance := 0.25
+
+			list := []string{
+				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
+				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
+				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
+				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+			}
+			start := time.Now()
+			SutExecute(list, "--wait-time", waitTime)
+			duration := time.Since(start)
+
+			waitTimeValue, _ := time.ParseDuration(waitTime)
+			expected := int64(len(list)) * int64(waitTimeValue)
+			maximum := float64(expected) * (1 + waitTimeTolerance)
+
+			Expect(int64(duration)).To(BeNumerically(">=", int64(expected)))
+			Expect(int64(duration)).To(BeNumerically("<", int64(maximum)))
+		})
+	}
+
+	It("Outputs a summary to STDOUT", func() {
 		list := []string{
 			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
 			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
@@ -113,15 +134,15 @@ var _ = Describe("Main", func() {
 		var executionOutput ExecutionOutput
 		UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Running Time: %v s",executionOutput.Summary.RunningTime / 1000)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Total Requests: %v",executionOutput.Summary.Requests.Total)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Number of Errors: %v",executionOutput.Summary.Requests.Errors)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Availability: %v%%",executionOutput.Summary.Requests.Availability*100)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Bytes Sent: %v",executionOutput.Summary.Bytes.Sent.Sum)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Bytes Received: %v",executionOutput.Summary.Bytes.Received.Sum)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Mean Response Time: %.4v",executionOutput.Summary.ResponseTime.Mean)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Min Response Time: %v ms",executionOutput.Summary.ResponseTime.Min)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Max Response Time: %v ms",executionOutput.Summary.ResponseTime.Max)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Running Time: %v s", executionOutput.Summary.RunningTime/1000)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Total Requests: %v", executionOutput.Summary.Requests.Total)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Number of Errors: %v", executionOutput.Summary.Requests.Errors)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Availability: %v%%", executionOutput.Summary.Requests.Availability*100)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Bytes Sent: %v", executionOutput.Summary.Bytes.Sent.Sum)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Bytes Received: %v", executionOutput.Summary.Bytes.Received.Sum)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Mean Response Time: %.4v", executionOutput.Summary.ResponseTime.Mean)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Min Response Time: %v ms", executionOutput.Summary.ResponseTime.Min)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Max Response Time: %v ms", executionOutput.Summary.ResponseTime.Max)))
 	})
 
 	Describe("Generate statistics on throughput", func() {

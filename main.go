@@ -10,6 +10,7 @@ import (
 	"net/http/httputil"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -40,36 +41,46 @@ func ConfigureLogging() {
 	}
 }
 
-func Execute(file *os.File, stats *Statistics, waitTime time.Duration) {
+func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers int) {
 	defer file.Close()
+	var waitGroup sync.WaitGroup
 	scanner := bufio.NewScanner(file)
 
-	client := &http.Client{}
-	requestAdapter := NewRequestAdapter()
+	for i := 0; i < workers; i++ {
+		Log.Printf("Worker %v", i+1)
+		waitGroup.Add(1)
+		go func() {
+			client := &http.Client{}
+			requestAdapter := NewRequestAdapter()
+			for scanner.Scan() {
+				line := scanner.Text()
+				request, err := requestAdapter.Create(line)
+				check(err)
+				start := time.Now()
+				response, err := client.Do(request)
+				duration := time.Since(start) / time.Millisecond
+				check(err)
+				requestBytes, _ := httputil.DumpRequest(request, true)
+				responseBytes, _ := httputil.DumpResponse(response, true)
 
-	for scanner.Scan() {
-		line := scanner.Text()
-		request, err := requestAdapter.Create(line)
-		check(err)
-		start := time.Now()
-		response, err := client.Do(request)
-		duration := time.Since(start) / time.Millisecond
-		check(err)
-		requestBytes, _ := httputil.DumpRequest(request, true)
-		responseBytes, _ := httputil.DumpResponse(response, true)
+				stats.BytesReceived(int64(len(responseBytes)))
+				stats.BytesSent(int64(len(requestBytes)))
+				stats.ResponseTime(int64(duration))
 
-		stats.BytesReceived(int64(len(responseBytes)))
-		stats.BytesSent(int64(len(requestBytes)))
-		stats.ResponseTime(int64(duration))
-
-		var responseError error = nil
-		if response.StatusCode >= 400 && response.StatusCode < 600 {
-			responseError = errors.New("5XX Response Code")
-		}
-		stats.Request(responseError)
-
-        time.Sleep(waitTime)
+				var responseError error = nil
+				if response.StatusCode >= 400 && response.StatusCode < 600 {
+					responseError = errors.New("5XX Response Code")
+				}
+				stats.Request(responseError)
+				Log.Printf("Worker %v made a request", i)
+				time.Sleep(waitTime)
+			}
+			waitGroup.Done()
+		}()
 	}
+
+	waitGroup.Wait()
+
 }
 
 func GenerateExecutionOutput(outputPath string, stats *Statistics) {
@@ -102,27 +113,28 @@ func main() {
 	filePath := kingpin.Flag("file", "Urls file").Short('f').String()
 	summary := kingpin.Flag("summary", "Output summary to STDOUT").Bool()
 	waitTimeArg := kingpin.Flag("wait-time", "Time to wait between each execution").Default("0s").String()
-
+	workers := kingpin.Flag("workers", "The number of workers to execute the requests").Default("1").Int()
 
 	kingpin.Parse()
 
-    waitTime, err := time.ParseDuration(*waitTimeArg)
-    if err != nil{
-        Log.Printf("error parsing --wait-time : %v", err)
-        panic("Cannot parse the time specified for --wait-time")
-    }
+	waitTime, err := time.ParseDuration(*waitTimeArg)
+	if err != nil {
+		Log.Printf("error parsing --wait-time : %v", err)
+		panic("Cannot parse the time specified for --wait-time")
+	}
 
 	ConfigureLogging()
 
 	absolutePath, err := filepath.Abs(*filePath)
 	check(err)
 	file, err := os.Open(absolutePath)
+    defer file.Close()
 	check(err)
 
 	stats := CreateStatistics()
 	stats.Start()
 
-	Execute(file, stats, waitTime)
+	Execute(file, stats, waitTime, *workers)
 
 	stats.Stop()
 

@@ -38,19 +38,19 @@ I can't say yet but I am going to use the core aims at the top of this README an
 
 This example will use *enanos* which is another tool under guzzlerio which is simply a multi functional test http server.  To install:
 
-```
+```shell
 go get github.com/guzzlerio/enanos
 ```
 
 Next, start the enanos server as a background process or in another shell.
 
-```
+```shell
 enanos -p 5000
 ```
 
 Next, create a list of urls which you want to use.  Each line will be addressed to `http://127.0.0.1:5000/` which is the *enanos* server.  
 
-```
+```shell
 echo http://127.0.0.1:5000/success > my-urls-to-test.txt
 echo http://127.0.0.1:5000/server_error >> my-urls-to-test.txt
 echo http://127.0.0.1:5000/server_error >> my-urls-to-test.txt
@@ -64,13 +64,13 @@ You can see there is a mixture of `success` and `server_error` in the list, whic
 
 Next, make sure the source is built and yu have the *code-named-something* executable and then invoke with the following arguments:
 
-```
+```shell
 ./code-named-something -f ./my-urls-to-test.txt --summary --workers 100
 ```
 
 Once it has finished you will then see console output similar to the following:
 
-```
+```shell
 Running Time: 0.049 s
 Throughput: 14020 req/s
 Total Requests: 700

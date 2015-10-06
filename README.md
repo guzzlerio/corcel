@@ -34,6 +34,55 @@ Each differ from the number of features, the number of supported protocols and o
 
 I can't say yet but I am going to use the core aims at the top of this README and user feedback to keep me on track.
 
+## Example
+
+This example will use *enanos* which is another tool under guzzlerio which is simply a multi functional test http server.  To install:
+
+```
+go get github.com/guzzlerio/enanos
+```
+
+Next, start the enanos server as a background process or in another shell.
+
+```
+enanos -p 5000
+```
+
+Next, create a list of urls which you want to use.  Each line will be addressed to `http://127.0.0.1:5000/` which is the *enanos* server.  
+
+```
+echo http://127.0.0.1:5000/success > my-urls-to-test.txt
+echo http://127.0.0.1:5000/server_error >> my-urls-to-test.txt
+echo http://127.0.0.1:5000/server_error >> my-urls-to-test.txt
+echo http://127.0.0.1:5000/server_error >> my-urls-to-test.txt
+echo http://127.0.0.1:5000/success >> my-urls-to-test.txt
+echo http://127.0.0.1:5000/success >> my-urls-to-test.txt
+echo http://127.0.0.1:5000/success >> my-urls-to-test.txt
+```
+
+You can see there is a mixture of `success` and `server_error` in the list, which is how you can use *enanos* as it has specific endpoints which return the different ranges of http response codes.  The above will produce 200 and a random selection of the 5XX response range.
+
+Next, make sure the source is built and yu have the *code-named-something* executable and then invoke with the following arguments:
+
+```
+./code-named-something -f ./my-urls-to-test.txt --summary --workers 100
+```
+
+Once it has finished you will then see console output similar to the following:
+
+```
+Running Time: 0.049 s
+Throughput: 14020 req/s
+Total Requests: 700
+Number of Errors: 300
+Availability: 57.14285714285714%
+Bytes Sent: 35100
+Bytes Received: 89900
+Mean Response Time: 2.157 ms
+Min Response Time: 0 ms
+Max Response Time: 17 ms
+```
+
 ## Git branching and release strategy
 
  - All issues to be worked on inside a feature file

@@ -138,6 +138,7 @@ var _ = Describe("Main", func() {
 		UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Running Time: %v s", executionOutput.Summary.RunningTime/1000)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Throughput: %v req/s", int(executionOutput.Summary.Requests.Rate))))
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Total Requests: %v", executionOutput.Summary.Requests.Total)))
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Number of Errors: %v", executionOutput.Summary.Requests.Errors)))
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Availability: %v%%", executionOutput.Summary.Requests.Availability*100)))

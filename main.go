@@ -102,6 +102,7 @@ func GenerateExecutionOutput(outputPath string, stats *Statistics) {
 func OutputSummary(stats *Statistics) {
 	output := stats.ExecutionOutput()
 	fmt.Println(fmt.Sprintf("Running Time: %v s", output.Summary.RunningTime/1000))
+	fmt.Println(fmt.Sprintf("Throughput: %v req/s", int64(output.Summary.Requests.Rate)))
 	fmt.Println(fmt.Sprintf("Total Requests: %v", output.Summary.Requests.Total))
 	fmt.Println(fmt.Sprintf("Number of Errors: %v", output.Summary.Requests.Errors))
 	fmt.Println(fmt.Sprintf("Availability: %v%%", output.Summary.Requests.Availability*100))

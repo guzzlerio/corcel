@@ -65,22 +65,22 @@ You can see there is a mixture of `success` and `server_error` in the list, whic
 Next, make sure the source is built and yu have the *code-named-something* executable and then invoke with the following arguments:
 
 ```shell
-./code-named-something -f ./my-urls-to-test.txt --summary --workers 100
+./code-named-something -f ./my-urls-to-test.txt --summary --workers 10
 ```
 
 Once it has finished you will then see console output similar to the following:
 
 ```shell
-Running Time: 0.049 s
-Throughput: 14020 req/s
-Total Requests: 700
-Number of Errors: 300
+Running Time: 0.007 s
+Throughput: 9381 req/s
+Total Requests: 70
+Number of Errors: 30
 Availability: 57.14285714285714%
-Bytes Sent: 35100
-Bytes Received: 89900
-Mean Response Time: 2.157 ms
+Bytes Sent: 3510
+Bytes Received: 8990
+Mean Response Time: 0.1429 ms
 Min Response Time: 0 ms
-Max Response Time: 17 ms
+Max Response Time: 1 ms
 ```
 
 ## Git branching and release strategy

@@ -17,17 +17,39 @@ var _ = Describe("RequestReader", func() {
 
 	BeforeEach(func() {
 		list = []string{
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/1")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/2")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/3")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/4")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/5")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/6")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/7")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/8")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/9")),
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/10")),
 		}
 		file := CreateFileFromLines(list)
 		file.Close()
 		reader = NewRequestReader(file.Name())
 	})
+
+    Describe("RandomStream", func(){
+        It("Reads randomly", func(){
+		    requestSet1 := []*http.Request{}
+            requestSet2 := []*http.Request{}
+
+            stream1 := reader.NewRandomStream()
+            for request := range stream1.Read() {
+                requestSet1 = append(requestSet1, request)
+            }
+
+            stream2 := reader.NewRandomStream()
+            for request := range stream2.Read() {
+                requestSet2 = append(requestSet2, request)
+            }
+            Expect(ConcatRequestPaths(requestSet1)).ToNot(Equal(ConcatRequestPaths(requestSet2)))
+        })
+    })
 
 	It("Single reader iterates over lines in a file", func() {
 		requests := []*http.Request{}

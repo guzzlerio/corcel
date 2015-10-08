@@ -12,14 +12,17 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+    "math/rand"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
 )
 
 var (
-	logEnabled = false
-	Log        *log.Logger
+	logEnabled   = false
+	Log          *log.Logger
+	RandomSource = rand.NewSource(time.Now().UnixNano())
+	Random       = rand.New(RandomSource)
 )
 
 func check(err error) {
@@ -62,7 +65,7 @@ func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Reques
 	stats.Request(responseError)
 }
 
-func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers int) {
+func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers int, random bool) {
 	defer file.Close()
 	var waitGroup sync.WaitGroup
 
@@ -76,7 +79,13 @@ func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers i
 					MaxIdleConnsPerHost: 50,
 				},
 			}
-			stream := reader.NewSequentialStream()
+			var stream RequestStream
+
+			if random {
+				stream = reader.NewRandomStream()
+			} else {
+				stream = reader.NewSequentialStream()
+			}
 			for request := range stream.Read() {
 
 				ExecuteRequest(client, stats, request)
@@ -123,6 +132,7 @@ func main() {
 	summary := kingpin.Flag("summary", "Output summary to STDOUT").Bool()
 	waitTimeArg := kingpin.Flag("wait-time", "Time to wait between each execution").Default("0s").String()
 	workers := kingpin.Flag("workers", "The number of workers to execute the requests").Default("1").Int()
+	random := kingpin.Flag("random", "Select the url at random for each execution").Bool()
 
 	kingpin.Parse()
 
@@ -130,6 +140,10 @@ func main() {
 	if err != nil {
 		Log.Printf("error parsing --wait-time : %v", err)
 		panic("Cannot parse the time specified for --wait-time")
+	}
+
+	if *random {
+		waitTime = time.Duration(1)
 	}
 
 	ConfigureLogging()
@@ -143,7 +157,7 @@ func main() {
 	stats := CreateStatistics()
 	stats.Start()
 
-	Execute(file, stats, waitTime, *workers)
+	Execute(file, stats, waitTime, *workers, *random)
 
 	stats.Stop()
 

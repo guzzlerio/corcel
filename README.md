@@ -1,8 +1,4 @@
-[![Stories in Ready](https://badge.waffle.io/guzzlerio/code-named-something.svg?label=ready&title=Ready)](http://waffle.io/guzzlerio/code-named-something)
-[![Stories in Progress](https://badge.waffle.io/guzzlerio/code-named-something.svg?label=in progress&title=Progress)](http://waffle.io/guzzlerio/code-named-something)
-[![Build Status](https://travis-ci.org/guzzlerio/code-named-something.svg?branch=develop)](https://travis-ci.org/guzzlerio/code-named-something)
-
-# Code-named-something
+# Corcel
 
 ## What is it and what will it be?
 
@@ -93,5 +89,3 @@ Max Response Time: 1 ms
  - Following any hot-fixes to the release candidate the `HEAD` of the `release` branch will be merged into the `master` branch.
 	- The repository will be tagged at this stage with the next version for the release artefacts.  (Need to confirm the order and possibly update the CI release build script to ensure it is sync'd)
 
-# Progress
-[![Throughput Graph](https://graphs.waffle.io/guzzlerio/code-named-something/throughput.svg)](https://waffle.io/guzzlerio/code-named-something/metrics)

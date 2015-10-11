@@ -41,7 +41,7 @@ var _ = AfterSuite(func() {
 })
 
 func SutExecute(list []string, args ...string) []byte {
-    exePath, err := filepath.Abs("./code-named-something")
+    exePath, err := filepath.Abs("./corcel")
     check(err)
     file := CreateFileFromLines(list)
     defer os.Remove(file.Name())
@@ -78,7 +78,7 @@ var _ = Describe("Main", func() {
 
     BeforeEach(func() {
         os.Remove("./output.yml")
-        exePath, err = filepath.Abs("./code-named-something")
+        exePath, err = filepath.Abs("./corcel")
         if err != nil {
             panic(err)
         }

@@ -1,18 +1,17 @@
 package main
 
 import (
-	//	"bufio"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/http/httputil"
 	"os"
 	"path/filepath"
 	"sync"
 	"time"
-    "math/rand"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
@@ -65,7 +64,7 @@ func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Reques
 	stats.Request(responseError)
 }
 
-func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers int, random bool) {
+func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers int, random bool, duration time.Duration) {
 	defer file.Close()
 	var waitGroup sync.WaitGroup
 
@@ -82,13 +81,16 @@ func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers i
 			var stream RequestStream
 
 			if random {
-				stream = reader.NewRandomStream()
+				stream = NewRandomRequestStream(reader)
 			} else {
-				stream = reader.NewSequentialStream()
+				stream = NewSequentialRequestStream(reader)
 			}
-			for request := range stream.Read() {
+            if duration > 0 {
+               stream = NewTimeBasedRequestStream(stream, duration)
+            }
+			for stream.HasNext() {
 
-				ExecuteRequest(client, stats, request)
+				ExecuteRequest(client, stats, stream.Next())
 
 				time.Sleep(waitTime)
 			}
@@ -133,6 +135,7 @@ func main() {
 	waitTimeArg := kingpin.Flag("wait-time", "Time to wait between each execution").Default("0s").String()
 	workers := kingpin.Flag("workers", "The number of workers to execute the requests").Default("1").Int()
 	random := kingpin.Flag("random", "Select the url at random for each execution").Bool()
+	durationArg := kingpin.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").String()
 
 	kingpin.Parse()
 
@@ -140,6 +143,15 @@ func main() {
 	if err != nil {
 		Log.Printf("error parsing --wait-time : %v", err)
 		panic("Cannot parse the time specified for --wait-time")
+	}
+
+    var duration time.Duration = time.Duration(0)
+	if *durationArg != "" {
+		duration, err = time.ParseDuration(*durationArg)
+		if err != nil {
+			Log.Printf("error parsing --duration : %v", err)
+			panic("Cannot parse the value specified for --duration")
+		}
 	}
 
 	if *random {
@@ -157,7 +169,7 @@ func main() {
 	stats := CreateStatistics()
 	stats.Start()
 
-	Execute(file, stats, waitTime, *workers, *random)
+	Execute(file, stats, waitTime, *workers, *random, duration)
 
 	stats.Stop()
 

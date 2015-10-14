@@ -1,7 +1,4 @@
-[![Stories in Ready](https://badge.waffle.io/REAANDREW/code-named-something.png?label=ready&title=Ready)](https://waffle.io/REAANDREW/code-named-something)
-[![Build Status](https://travis-ci.org/REAANDREW/code-named-something.svg?branch=master)](https://travis-ci.org/REAANDREW/code-named-something)
-
-# Code-named-something
+# Corcel
 
 ## What is it and what will it be?
 
@@ -32,3 +29,63 @@ Each differ from the number of features, the number of supported protocols and o
 ## Why will this one be different?
 
 I can't say yet but I am going to use the core aims at the top of this README and user feedback to keep me on track.
+
+## Example
+
+This example will use *enanos* which is another tool under guzzlerio which is simply a multi functional test http server.  To install:
+
+```shell
+go get github.com/guzzlerio/enanos
+```
+
+Next, start the enanos server as a background process or in another shell.
+
+```shell
+enanos -p 5000
+```
+
+Next, create a list of urls which you want to use.  Each line will be addressed to `http://127.0.0.1:5000/` which is the *enanos* server.  
+
+```shell
+echo http://127.0.0.1:5000/success > my-urls-to-test.txt
+echo http://127.0.0.1:5000/server_error >> my-urls-to-test.txt
+echo http://127.0.0.1:5000/server_error >> my-urls-to-test.txt
+echo http://127.0.0.1:5000/server_error >> my-urls-to-test.txt
+echo http://127.0.0.1:5000/success >> my-urls-to-test.txt
+echo http://127.0.0.1:5000/success >> my-urls-to-test.txt
+echo http://127.0.0.1:5000/success >> my-urls-to-test.txt
+```
+
+You can see there is a mixture of `success` and `server_error` in the list, which is how you can use *enanos* as it has specific endpoints which return the different ranges of http response codes.  The above will produce 200 and a random selection of the 5XX response range.
+
+Next, make sure the source is built and yu have the *code-named-something* executable and then invoke with the following arguments:
+
+```shell
+./code-named-something -f ./my-urls-to-test.txt --summary --workers 10
+```
+
+Once it has finished you will then see console output similar to the following:
+
+```shell
+Running Time: 0.007 s
+Throughput: 9381 req/s
+Total Requests: 70
+Number of Errors: 30
+Availability: 57.14285714285714%
+Bytes Sent: 3510
+Bytes Received: 8990
+Mean Response Time: 0.1429 ms
+Min Response Time: 0 ms
+Max Response Time: 1 ms
+```
+
+## Git branching and release strategy
+
+ - All issues to be worked on inside a feature file
+ - All issues completed to merged into the develop branch
+	- Binaries are generated for all platforms as a pre-release set of artefacts under the label `latest`
+ - Upon a code freeze (when a release candidate is to be made) the `HEAD` of the `develop` branch will be merged into the `release` branch.
+	- Binaries are generated for all platforms as a pre-release set of artefacts under the label `pre-release`
+ - Following any hot-fixes to the release candidate the `HEAD` of the `release` branch will be merged into the `master` branch.
+	- The repository will be tagged at this stage with the next version for the release artefacts.  (Need to confirm the order and possibly update the CI release build script to ensure it is sync'd)
+

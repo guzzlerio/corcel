@@ -1,0 +1,12 @@
+FROM golang:1.5.1
+RUN mkdir -p /tmp/build/go/src/bitbucket.org/guzzler/corcel 
+ENV GOPATH /tmp/build/go
+ENV PATH /tmp/build/go/bin:$PATH
+RUN go get github.com/mitchellh/gox
+ADD *.go /tmp/build/go/src/bitbucket.org/guzzler/corcel/
+WORKDIR  /tmp/build/go/src/bitbucket.org/guzzler/corcel/
+RUN go get -t 
+RUN go build  
+RUN go test  
+RUN gox -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
+CMD tar -czf corcel.tar.gz dist/

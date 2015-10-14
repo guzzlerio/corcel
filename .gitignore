@@ -23,4 +23,12 @@ _testmain.go
 *.test
 *.prof
 code-named-something
+corcel
 travis.log
+
+*.swp
+
+# Test files including generated ones
+*.json
+*.yml
+*.gz

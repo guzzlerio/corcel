@@ -130,7 +130,7 @@ func OutputSummary(stats *Statistics) {
 }
 
 func main() {
-	filePath := kingpin.Flag("file", "Urls file").Short('f').String()
+    filePath := kingpin.Arg("file", "Urls file").Required().String()
 	summary := kingpin.Flag("summary", "Output summary to STDOUT").Bool()
 	waitTimeArg := kingpin.Flag("wait-time", "Time to wait between each execution").Default("0s").String()
 	workers := kingpin.Flag("workers", "The number of workers to execute the requests").Default("1").Int()

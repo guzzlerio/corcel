@@ -45,7 +45,7 @@ func SutExecute(list []string, args ...string) []byte {
 	check(err)
 	file := CreateFileFromLines(list)
 	defer os.Remove(file.Name())
-	cmd := exec.Command(exePath, append([]string{"-f", file.Name()}, args...)...)
+	cmd := exec.Command(exePath, append(args,file.Name())...)
 	output, err := cmd.CombinedOutput()
 	if len(output) > 0 {
 		Log.Println(string(output))

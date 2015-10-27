@@ -17,18 +17,22 @@ var _ = Describe("Configuration", func() {
 
 	Describe("When no config file is found and no command line args are provided", func() {
 		Describe("Loading a default configuration", func() {
-            It("sets random", func() {
+            It("sets random (--random)", func() {
 				Expect(configuration.random).To(Equal(false))
             })
-            It("sets summary", func() {
+            It("sets summary (--summary)", func() {
 				Expect(configuration.summary).To(Equal(false))
             })
-			It("sets workers", func() {
+			It("sets workers (--workers)", func() {
 				Expect(configuration.workers).To(Equal(1))
 			})
             It("sets wait-time (--wait-time)", func() {
-                defaultWaitTime, _ := time.ParseDuration("0s")
+                defaultWaitTime := time.Duration(0)
                 Expect(configuration.waitTime).To(Equal(defaultWaitTime))
+            })
+            It("sets duration (--duration)", func() {
+                defaultDuration := time.Duration(0)
+                Expect(configuration.waitTime).To(Equal(defaultDuration))
             })
 		})
 	})

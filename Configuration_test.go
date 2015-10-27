@@ -24,6 +24,9 @@ var _ = Describe("Configuration", func() {
                 defaultWaitTime, _ := time.ParseDuration("0s")
                 Expect(configuration.waitTime).To(Equal(defaultWaitTime))
             })
+            It("sets random", func() {
+				Expect(configuration.random).To(Equal(false))
+            })
 		})
 	})
 

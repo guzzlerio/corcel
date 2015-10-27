@@ -3,14 +3,20 @@ package main
 import "time"
 
 type Configuration struct {
-	workers int
+    random bool
+    workers int
     waitTime time.Duration
 }
 
 func ParseConfiguration() *Configuration {
-	return defaultConfig()
+    return defaultConfig()
 }
 
 func defaultConfig() *Configuration {
-	return &Configuration{workers: 1}
+    waitTime, _ := time.ParseDuration("0s")
+    return &Configuration{
+        random: false,
+        workers: 1,
+        waitTime: waitTime,
+    }
 }

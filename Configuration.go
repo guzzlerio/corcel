@@ -1,6 +1,10 @@
 package main
 
-import "time"
+import (
+    "time"
+
+    "github.com/imdario/mergo"
+)
 
 type Configuration struct {
     duration time.Duration
@@ -11,7 +15,18 @@ type Configuration struct {
 }
 
 func ParseConfiguration() *Configuration {
-    return defaultConfig()
+    result := defaultConfig()
+    mergo.Merge(result, pwdConfig)
+    mergo.Merge(result, userDirConfig)
+    return result
+}
+
+func pwdConfig() *Configuration {
+    return &Configuration{}
+}
+
+func userDirConfig() *Configuration {
+    return &Configuration{}
 }
 
 func defaultConfig() *Configuration {

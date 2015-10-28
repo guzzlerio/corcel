@@ -27,32 +27,32 @@ func ParseConfiguration(args []string) *Configuration {
 }
 
 func cmdConfig(args []string) Configuration {
-    fmt.Println(args)
-    CommandLine := kingpin.New("name", "")
-    //filePath := CommandLine.Arg("file", "Urls file").Required().String()
+	fmt.Println(args)
+	CommandLine := kingpin.New("name", "")
+	//filePath := CommandLine.Arg("file", "Urls file").Required().String()
 	//summary := CommandLine.Flag("summary", "Output summary to STDOUT").Bool()
 	waitTimeArg := CommandLine.Flag("wait-time", "Time to wait between each execution").Default("0s").String()
 	workers := CommandLine.Flag("workers", "The number of workers to execute the requests").Default("1").Int64()
 	//random := CommandLine.Flag("random", "Select the url at random for each execution").Bool()
-	//durationArg := CommandLine.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").String()
+	durationArg := CommandLine.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").String()
 
-    cmd,err := CommandLine.Parse(args)
+	cmd, err := CommandLine.Parse(args)
 
-    if err != nil {
-        fmt.Println(err)
-        fmt.Println(cmd)
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println(cmd)
 		panic(err)
-    }
+	}
 	waitTime, _ := time.ParseDuration(*waitTimeArg)
-	//duration := time.Duration(durationArg)
+	duration, _ := time.ParseDuration(*durationArg)
 
 	return Configuration{
-		//Duration: duration,
+		Duration: duration,
 		//Random:   random,
 		//Summary:  summary,
 		Workers:  *workers,
 		WaitTime: waitTime,
-    }
+	}
 }
 
 func pwdConfig() Configuration {

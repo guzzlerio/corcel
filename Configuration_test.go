@@ -50,6 +50,16 @@ var _ = Describe("Configuration", func() {
 
 	Describe("When commandline args are provided", func() {
 		Describe("overriding the default configuration", func() {
+			Describe("for duration (--duration)", func() {
+				BeforeEach(func() {
+					args = []string{"--duration", "3s"}
+					configuration = ParseConfiguration(args)
+				})
+				It("sets the value", func() {
+					duration, _ := time.ParseDuration("3s")
+					Expect(configuration.Duration).To(Equal(duration))
+				})
+			})
 			Describe("for workers (--workers)", func() {
 				BeforeEach(func() {
 					args = []string{"--workers", "3"}

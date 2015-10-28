@@ -30,7 +30,7 @@ var _ = Describe("Configuration", func() {
 				Expect(configuration.Summary).To(Equal(false))
 			})
 			It("sets workers (--workers)", func() {
-				Expect(configuration.Workers).To(Equal(int64(1)))
+				Expect(configuration.Workers).To(Equal(1))
 			})
 			It("sets wait-time (--wait-time)", func() {
 				defaultWaitTime := time.Duration(0)
@@ -98,7 +98,7 @@ var _ = Describe("Configuration", func() {
 					configuration = ParseConfiguration(args)
 				})
 				It("sets the value", func() {
-					Expect(configuration.Workers).To(Equal(int64(3)))
+					Expect(configuration.Workers).To(Equal(3))
 				})
 			})
 
@@ -114,14 +114,4 @@ var _ = Describe("Configuration", func() {
 			})
 		})
 	})
-
-	/*
-		It("Lex a line twice", func() {
-			result := lexer.Lex(line)
-			Expect(result).To(Equal([]string{"http://127.0.0.1:8000/A", "-X", method, "-H", applicationJson, "-H", applicationSoapXml}))
-
-			result = lexer.Lex(line)
-			Expect(result).To(Equal([]string{"http://127.0.0.1:8000/A", "-X", method, "-H", applicationJson, "-H", applicationSoapXml}))
-		})
-	*/
 })

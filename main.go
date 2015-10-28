@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"gopkg.in/alecthomas/kingpin.v2"
+	//"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
 )
 
@@ -99,7 +99,6 @@ func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers i
 	}
 
 	waitGroup.Wait()
-
 }
 
 func GenerateExecutionOutput(outputPath string, stats *Statistics) {
@@ -130,15 +129,9 @@ func OutputSummary(stats *Statistics) {
 }
 
 func main() {
-    filePath := kingpin.Arg("file", "Urls file").Required().String()
-	summary := kingpin.Flag("summary", "Output summary to STDOUT").Bool()
-	waitTimeArg := kingpin.Flag("wait-time", "Time to wait between each execution").Default("0s").String()
-	workers := kingpin.Flag("workers", "The number of workers to execute the requests").Default("1").Int()
-	random := kingpin.Flag("random", "Select the url at random for each execution").Bool()
-	durationArg := kingpin.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").String()
-
-	kingpin.Parse()
-
+    config := ParseConfiguration(os.Args[1:])
+    fmt.Printf("config: %+v", config)
+    /*
 	waitTime, err := time.ParseDuration(*waitTimeArg)
 	if err != nil {
 		Log.Printf("error parsing --wait-time : %v", err)
@@ -157,10 +150,11 @@ func main() {
 	if *random {
 		waitTime = time.Duration(1)
 	}
+    */
 
 	ConfigureLogging()
 
-	absolutePath, err := filepath.Abs(*filePath)
+	absolutePath, err := filepath.Abs(config.FilePath)
 	check(err)
 	file, err := os.Open(absolutePath)
 	defer file.Close()
@@ -169,7 +163,7 @@ func main() {
 	stats := CreateStatistics()
 	stats.Start()
 
-	Execute(file, stats, waitTime, *workers, *random, duration)
+	Execute(file, stats, config.WaitTime, config.Workers, config.Random, config.Duration)
 
 	stats.Stop()
 
@@ -177,7 +171,7 @@ func main() {
 	check(err)
 	GenerateExecutionOutput(outputPath, stats)
 
-	if *summary {
+	if config.Summary {
 		OutputSummary(stats)
 	}
 }

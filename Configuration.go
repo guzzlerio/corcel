@@ -14,7 +14,7 @@ type Configuration struct {
     FilePath string
 	Random   bool
 	Summary  bool
-	Workers  int64
+	Workers  int
 	WaitTime time.Duration
 }
 
@@ -23,7 +23,7 @@ func ParseConfiguration(args []string) *Configuration {
 	mergo.Merge(&config, pwdConfig())
 	mergo.Merge(&config, userDirConfig())
 	mergo.Merge(&config, defaultConfig())
-	fmt.Printf("\nconfig:  %+v\n", config)
+	//fmt.Printf("\nconfig:  %+v\n", config)
 	return &config
 }
 
@@ -32,7 +32,7 @@ func cmdConfig(args []string) Configuration {
 	filePath := CommandLine.Arg("file", "Urls file").Required().String()
 	summary := CommandLine.Flag("summary", "Output summary to STDOUT").Bool()
 	waitTimeArg := CommandLine.Flag("wait-time", "Time to wait between each execution").Default("0s").String()
-	workers := CommandLine.Flag("workers", "The number of workers to execute the requests").Default("1").Int64()
+	workers := CommandLine.Flag("workers", "The number of workers to execute the requests").Default("1").Int()
 	random := CommandLine.Flag("random", "Select the url at random for each execution").Bool()
 	durationArg := CommandLine.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").String()
 
@@ -71,7 +71,7 @@ func defaultConfig() Configuration {
 		Duration: duration,
 		Random:   false,
 		Summary:  false,
-		Workers:  int64(1),
+		Workers:  1,
 		WaitTime: waitTime,
 	}
 }

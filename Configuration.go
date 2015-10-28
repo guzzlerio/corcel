@@ -11,6 +11,7 @@ import (
 
 type Configuration struct {
 	Duration time.Duration
+    FilePath string
 	Random   bool
 	Summary  bool
 	Workers  int64
@@ -27,13 +28,12 @@ func ParseConfiguration(args []string) *Configuration {
 }
 
 func cmdConfig(args []string) Configuration {
-	fmt.Println(args)
 	CommandLine := kingpin.New("name", "")
-	//filePath := CommandLine.Arg("file", "Urls file").Required().String()
+	filePath := CommandLine.Arg("file", "Urls file").Required().String()
 	summary := CommandLine.Flag("summary", "Output summary to STDOUT").Bool()
 	waitTimeArg := CommandLine.Flag("wait-time", "Time to wait between each execution").Default("0s").String()
 	workers := CommandLine.Flag("workers", "The number of workers to execute the requests").Default("1").Int64()
-	//random := CommandLine.Flag("random", "Select the url at random for each execution").Bool()
+	random := CommandLine.Flag("random", "Select the url at random for each execution").Bool()
 	durationArg := CommandLine.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").String()
 
 	cmd, err := CommandLine.Parse(args)
@@ -48,7 +48,8 @@ func cmdConfig(args []string) Configuration {
 
 	return Configuration{
 		Duration: duration,
-		//Random:   random,
+        FilePath: *filePath,
+		Random:   *random,
 		Summary:  *summary,
 		Workers:  *workers,
 		WaitTime: waitTime,

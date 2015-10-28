@@ -13,11 +13,16 @@ var _ = Describe("Configuration", func() {
 	var args []string
 
 	BeforeEach(func() {
+        args = []string{"file-path.yml"}
 		configuration = ParseConfiguration(args)
 	})
 
 	Describe("When no config file is found and no command line args are provided", func() {
 		Describe("Loading a default configuration", func() {
+			It("sets duration (--duration)", func() {
+				defaultDuration := time.Duration(0)
+				Expect(configuration.WaitTime).To(Equal(defaultDuration))
+			})
 			It("sets random (--random)", func() {
 				Expect(configuration.Random).To(Equal(false))
 			})
@@ -30,10 +35,6 @@ var _ = Describe("Configuration", func() {
 			It("sets wait-time (--wait-time)", func() {
 				defaultWaitTime := time.Duration(0)
 				Expect(configuration.WaitTime).To(Equal(defaultWaitTime))
-			})
-			It("sets duration (--duration)", func() {
-				defaultDuration := time.Duration(0)
-				Expect(configuration.WaitTime).To(Equal(defaultDuration))
 			})
 		})
 	})
@@ -52,7 +53,7 @@ var _ = Describe("Configuration", func() {
 		Describe("overriding the default configuration", func() {
 			Describe("for duration (--duration)", func() {
 				BeforeEach(func() {
-					args = []string{"--duration", "3s"}
+					args = []string{"--duration", "3s", "./path/to/file"}
 					configuration = ParseConfiguration(args)
 				})
 				It("sets the value", func() {
@@ -61,9 +62,29 @@ var _ = Describe("Configuration", func() {
 				})
 			})
 
+			Describe("for file", func() {
+				BeforeEach(func() {
+					args = []string{"./path/to/file"}
+					configuration = ParseConfiguration(args)
+				})
+				It("sets the value", func() {
+					Expect(configuration.FilePath).To(Equal("./path/to/file"))
+				})
+			})
+
+			Describe("for random (--random)", func() {
+				BeforeEach(func() {
+					args = []string{"--random", "./path/to/file"}
+					configuration = ParseConfiguration(args)
+				})
+				It("sets the value", func() {
+					Expect(configuration.Random).To(Equal(true))
+				})
+			})
+
 			Describe("for summary (--summary)", func() {
 				BeforeEach(func() {
-					args = []string{"--summary"}
+					args = []string{"--summary", "./path/to/file"}
 					configuration = ParseConfiguration(args)
 				})
 				It("sets the value", func() {
@@ -73,7 +94,7 @@ var _ = Describe("Configuration", func() {
 
 			Describe("for workers (--workers)", func() {
 				BeforeEach(func() {
-					args = []string{"--workers", "3"}
+					args = []string{"--workers", "3", "./path/to/file"}
 					configuration = ParseConfiguration(args)
 				})
 				It("sets the value", func() {
@@ -83,7 +104,7 @@ var _ = Describe("Configuration", func() {
 
 			Describe("for wait-time (--wait-time)", func() {
 				BeforeEach(func() {
-					args = []string{"--wait-time", "3s"}
+					args = []string{"--wait-time", "3s", "./path/to/file"}
 					configuration = ParseConfiguration(args)
 				})
 				It("sets the value", func() {

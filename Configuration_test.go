@@ -60,6 +60,17 @@ var _ = Describe("Configuration", func() {
 					Expect(configuration.Duration).To(Equal(duration))
 				})
 			})
+
+			Describe("for summary (--summary)", func() {
+				BeforeEach(func() {
+					args = []string{"--summary"}
+					configuration = ParseConfiguration(args)
+				})
+				It("sets the value", func() {
+					Expect(configuration.Summary).To(Equal(true))
+				})
+			})
+
 			Describe("for workers (--workers)", func() {
 				BeforeEach(func() {
 					args = []string{"--workers", "3"}

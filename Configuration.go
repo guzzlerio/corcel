@@ -30,7 +30,7 @@ func cmdConfig(args []string) Configuration {
 	fmt.Println(args)
 	CommandLine := kingpin.New("name", "")
 	//filePath := CommandLine.Arg("file", "Urls file").Required().String()
-	//summary := CommandLine.Flag("summary", "Output summary to STDOUT").Bool()
+	summary := CommandLine.Flag("summary", "Output summary to STDOUT").Bool()
 	waitTimeArg := CommandLine.Flag("wait-time", "Time to wait between each execution").Default("0s").String()
 	workers := CommandLine.Flag("workers", "The number of workers to execute the requests").Default("1").Int64()
 	//random := CommandLine.Flag("random", "Select the url at random for each execution").Bool()
@@ -49,7 +49,7 @@ func cmdConfig(args []string) Configuration {
 	return Configuration{
 		Duration: duration,
 		//Random:   random,
-		//Summary:  summary,
+		Summary:  *summary,
 		Workers:  *workers,
 		WaitTime: waitTime,
 	}

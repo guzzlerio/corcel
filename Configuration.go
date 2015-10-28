@@ -1,42 +1,50 @@
 package main
 
 import (
-    "time"
+	"fmt"
+	//"log"
+	"time"
 
-    "github.com/imdario/mergo"
+	"github.com/imdario/mergo"
 )
 
 type Configuration struct {
-    duration time.Duration
-    random bool
-    summary bool
-    workers int
-    waitTime time.Duration
+	Duration time.Duration
+	Random   bool
+	Summary  bool
+	Workers  int64
+	WaitTime time.Duration
 }
 
 func ParseConfiguration() *Configuration {
-    result := defaultConfig()
-    mergo.Merge(result, pwdConfig)
-    mergo.Merge(result, userDirConfig)
-    return result
+	config := cmdConfig()
+	mergo.Merge(&config, pwdConfig())
+	mergo.Merge(&config, userDirConfig())
+	mergo.Merge(&config, defaultConfig())
+	fmt.Printf("\nconfig:  %+v\n", config)
+	return &config
 }
 
-func pwdConfig() *Configuration {
-    return &Configuration{}
+func cmdConfig() Configuration {
+	return Configuration{}
 }
 
-func userDirConfig() *Configuration {
-    return &Configuration{}
+func pwdConfig() Configuration {
+	return Configuration{}
 }
 
-func defaultConfig() *Configuration {
-    waitTime, _ := time.ParseDuration("0s")
-    duration := time.Duration(0)
-    return &Configuration{
-        duration: duration,
-        random: false,
-        summary: false,
-        workers: 1,
-        waitTime: waitTime,
-    }
+func userDirConfig() Configuration {
+	return Configuration{}
+}
+
+func defaultConfig() Configuration {
+	waitTime, _ := time.ParseDuration("0s")
+	duration := time.Duration(0)
+	return Configuration{
+		Duration: duration,
+		Random:   false,
+		Summary:  false,
+		Workers:  int64(1),
+		WaitTime: waitTime,
+	}
 }

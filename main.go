@@ -129,7 +129,8 @@ func OutputSummary(stats *Statistics) {
 }
 
 func main() {
-    config := ParseConfiguration(os.Args[1:])
+    config, err := ParseConfiguration(os.Args[1:])
+    check(err)
     fmt.Printf("config: %+v", config)
     /*
 	waitTime, err := time.ParseDuration(*waitTimeArg)

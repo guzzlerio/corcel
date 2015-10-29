@@ -11,23 +11,32 @@ import (
 
 type Configuration struct {
 	Duration time.Duration
-    FilePath string
+	FilePath string
 	Random   bool
 	Summary  bool
 	Workers  int
 	WaitTime time.Duration
 }
 
-func ParseConfiguration(args []string) *Configuration {
-	config := cmdConfig(args)
-	mergo.Merge(&config, pwdConfig())
-	mergo.Merge(&config, userDirConfig())
-	mergo.Merge(&config, defaultConfig())
+func ParseConfiguration(args []string) (*Configuration, error) {
+	config, err := cmdConfig(args)
+	if err != nil {
+		return nil, err
+	}
+	if err := mergo.Merge(&config, pwdConfig()); err != nil {
+		return nil, err
+	}
+	if err := mergo.Merge(&config, userDirConfig()); err != nil {
+		return nil, err
+	}
+	if err := mergo.Merge(&config, defaultConfig()); err != nil {
+		return nil, err
+	}
 	//fmt.Printf("\nconfig:  %+v\n", config)
-	return &config
+	return &config, err
 }
 
-func cmdConfig(args []string) Configuration {
+func cmdConfig(args []string) (Configuration, error) {
 	CommandLine := kingpin.New("name", "")
 	filePath := CommandLine.Arg("file", "Urls file").Required().String()
 	summary := CommandLine.Flag("summary", "Output summary to STDOUT").Bool()
@@ -41,19 +50,26 @@ func cmdConfig(args []string) Configuration {
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println(cmd)
-		panic(err)
+		return Configuration{}, err
 	}
 	waitTime, _ := time.ParseDuration(*waitTimeArg)
-	duration, _ := time.ParseDuration(*durationArg)
+    var duration time.Duration
+    //remove this if when issue #17 is completed
+	if *durationArg != "" {
+		duration, err = time.ParseDuration(*durationArg)
+		if err != nil {
+            return Configuration{}, fmt.Errorf("Cannot parse the value specified for --duration: '%v'", *durationArg)
+		}
+	}
 
 	return Configuration{
 		Duration: duration,
-        FilePath: *filePath,
+		FilePath: *filePath,
 		Random:   *random,
 		Summary:  *summary,
 		Workers:  *workers,
 		WaitTime: waitTime,
-	}
+	}, err
 }
 
 func pwdConfig() Configuration {

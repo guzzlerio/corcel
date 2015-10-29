@@ -16,7 +16,7 @@ var _ = Describe("Configuration", func() {
 
 	BeforeEach(func() {
 		args = []string{"file-path.yml"}
-		configuration = ParseConfiguration(args)
+        configuration, _ = ParseConfiguration(args)
 	})
 
 	Describe("When no config file is found and no command line args are provided", func() {
@@ -54,7 +54,7 @@ var _ = Describe("Configuration", func() {
 			Describe("for duration (--duration)", func() {
 				BeforeEach(func() {
 					args = []string{"--duration", "3s", "./path/to/file"}
-					configuration = ParseConfiguration(args)
+                    configuration, _ = ParseConfiguration(args)
 				})
 				It("applies the override", func() {
 					duration, _ := time.ParseDuration("3s")
@@ -80,7 +80,7 @@ var _ = Describe("Configuration", func() {
 			Describe("for file", func() {
 				BeforeEach(func() {
 					args = []string{"./path/to/file"}
-					configuration = ParseConfiguration(args)
+                    configuration, _ = ParseConfiguration(args)
 				})
 				It("applies the override", func() {
 					Expect(configuration.FilePath).To(Equal("./path/to/file"))
@@ -108,7 +108,7 @@ var _ = Describe("Configuration", func() {
 			Describe("for random (--random)", func() {
 				BeforeEach(func() {
 					args = []string{"--random", "./path/to/file"}
-					configuration = ParseConfiguration(args)
+                    configuration, _ = ParseConfiguration(args)
 				})
 				It("applies the override", func() {
 					Expect(configuration.Random).To(Equal(true))
@@ -133,7 +133,7 @@ var _ = Describe("Configuration", func() {
 			Describe("for summary (--summary)", func() {
 				BeforeEach(func() {
 					args = []string{"--summary", "./path/to/file"}
-					configuration = ParseConfiguration(args)
+                    configuration, _ = ParseConfiguration(args)
 				})
 				It("applies the override", func() {
 					Expect(configuration.Summary).To(Equal(true))
@@ -158,7 +158,7 @@ var _ = Describe("Configuration", func() {
 			Describe("for workers (--workers)", func() {
 				BeforeEach(func() {
 					args = []string{"--workers", "3", "./path/to/file"}
-					configuration = ParseConfiguration(args)
+                    configuration, _ = ParseConfiguration(args)
 				})
 				It("applies the override", func() {
 					Expect(configuration.Workers).To(Equal(3))
@@ -183,7 +183,7 @@ var _ = Describe("Configuration", func() {
 			Describe("for wait-time (--wait-time)", func() {
 				BeforeEach(func() {
 					args = []string{"--wait-time", "3s", "./path/to/file"}
-					configuration = ParseConfiguration(args)
+                    configuration, _ = ParseConfiguration(args)
 				})
 				It("applies the override", func() {
 					waitTime, _ := time.ParseDuration("3s")
@@ -206,5 +206,15 @@ var _ = Describe("Configuration", func() {
 				})
 			})
 		})
+
+        Describe("with invalid arg values", func() {
+            Describe("for duration", func() {
+                It("panics", func() {
+					args = []string{"--duration", "xs", "./path/to/file"}
+                    _, err := ParseConfiguration(args)
+                    Expect(err).Should(MatchError("Cannot parse the value specified for --duration: 'xs'"))
+                })
+            })
+        })
 	})
 })

@@ -52,13 +52,16 @@ func cmdConfig(args []string) (Configuration, error) {
 		fmt.Println(cmd)
 		return Configuration{}, err
 	}
-	waitTime, _ := time.ParseDuration(*waitTimeArg)
-    var duration time.Duration
-    //remove this if when issue #17 is completed
+	waitTime, err := time.ParseDuration(*waitTimeArg)
+	if err != nil {
+		return Configuration{}, fmt.Errorf("Cannot parse the value specified for --wait-time: '%v'", *waitTimeArg)
+	}
+	var duration time.Duration
+	//remove this if when issue #17 is completed
 	if *durationArg != "" {
 		duration, err = time.ParseDuration(*durationArg)
 		if err != nil {
-            return Configuration{}, fmt.Errorf("Cannot parse the value specified for --duration: '%v'", *durationArg)
+			return Configuration{}, fmt.Errorf("Cannot parse the value specified for --duration: '%v'", *durationArg)
 		}
 	}
 

@@ -11,16 +11,17 @@ var _ = Describe("Configuration", func() {
 
 	var configuration *Configuration
 	var args []string
+	defaultWaitTime := time.Duration(0)
+	defaultDuration := time.Duration(0)
 
 	BeforeEach(func() {
-        args = []string{"file-path.yml"}
+		args = []string{"file-path.yml"}
 		configuration = ParseConfiguration(args)
 	})
 
 	Describe("When no config file is found and no command line args are provided", func() {
 		Describe("Loading a default configuration", func() {
 			It("sets duration (--duration)", func() {
-				defaultDuration := time.Duration(0)
 				Expect(configuration.WaitTime).To(Equal(defaultDuration))
 			})
 			It("sets random (--random)", func() {
@@ -33,7 +34,6 @@ var _ = Describe("Configuration", func() {
 				Expect(configuration.Workers).To(Equal(1))
 			})
 			It("sets wait-time (--wait-time)", func() {
-				defaultWaitTime := time.Duration(0)
 				Expect(configuration.WaitTime).To(Equal(defaultWaitTime))
 			})
 		})
@@ -56,9 +56,24 @@ var _ = Describe("Configuration", func() {
 					args = []string{"--duration", "3s", "./path/to/file"}
 					configuration = ParseConfiguration(args)
 				})
-				It("sets the value", func() {
+				It("applies the override", func() {
 					duration, _ := time.ParseDuration("3s")
 					Expect(configuration.Duration).To(Equal(duration))
+				})
+
+				Describe("leaves the default for", func() {
+					It("random", func() {
+						Expect(configuration.Random).To(Equal(false))
+					})
+					It("summary", func() {
+						Expect(configuration.Summary).To(Equal(false))
+					})
+					It("workers", func() {
+						Expect(configuration.Workers).To(Equal(1))
+					})
+					It("wait-time", func() {
+						Expect(configuration.WaitTime).To(Equal(defaultWaitTime))
+					})
 				})
 			})
 
@@ -67,8 +82,26 @@ var _ = Describe("Configuration", func() {
 					args = []string{"./path/to/file"}
 					configuration = ParseConfiguration(args)
 				})
-				It("sets the value", func() {
+				It("applies the override", func() {
 					Expect(configuration.FilePath).To(Equal("./path/to/file"))
+				})
+
+				Describe("leaves the default for", func() {
+					It("duration", func() {
+						Expect(configuration.Duration).To(Equal(defaultDuration))
+					})
+					It("random", func() {
+						Expect(configuration.Random).To(Equal(false))
+					})
+					It("summary", func() {
+						Expect(configuration.Summary).To(Equal(false))
+					})
+					It("workers", func() {
+						Expect(configuration.Workers).To(Equal(1))
+					})
+					It("wait-time", func() {
+						Expect(configuration.WaitTime).To(Equal(defaultWaitTime))
+					})
 				})
 			})
 
@@ -77,8 +110,23 @@ var _ = Describe("Configuration", func() {
 					args = []string{"--random", "./path/to/file"}
 					configuration = ParseConfiguration(args)
 				})
-				It("sets the value", func() {
+				It("applies the override", func() {
 					Expect(configuration.Random).To(Equal(true))
+				})
+
+				Describe("leaves the default for", func() {
+					It("duration", func() {
+						Expect(configuration.Duration).To(Equal(defaultDuration))
+					})
+					It("summary", func() {
+						Expect(configuration.Summary).To(Equal(false))
+					})
+					It("workers", func() {
+						Expect(configuration.Workers).To(Equal(1))
+					})
+					It("wait-time", func() {
+						Expect(configuration.WaitTime).To(Equal(defaultWaitTime))
+					})
 				})
 			})
 
@@ -87,8 +135,23 @@ var _ = Describe("Configuration", func() {
 					args = []string{"--summary", "./path/to/file"}
 					configuration = ParseConfiguration(args)
 				})
-				It("sets the value", func() {
+				It("applies the override", func() {
 					Expect(configuration.Summary).To(Equal(true))
+				})
+
+				Describe("leaves the default for", func() {
+					It("duration", func() {
+						Expect(configuration.Duration).To(Equal(defaultDuration))
+					})
+					It("random", func() {
+						Expect(configuration.Random).To(Equal(false))
+					})
+					It("workers", func() {
+						Expect(configuration.Workers).To(Equal(1))
+					})
+					It("wait-time", func() {
+						Expect(configuration.WaitTime).To(Equal(defaultWaitTime))
+					})
 				})
 			})
 
@@ -97,8 +160,23 @@ var _ = Describe("Configuration", func() {
 					args = []string{"--workers", "3", "./path/to/file"}
 					configuration = ParseConfiguration(args)
 				})
-				It("sets the value", func() {
+				It("applies the override", func() {
 					Expect(configuration.Workers).To(Equal(3))
+				})
+
+				Describe("leaves the default for", func() {
+					It("duration", func() {
+						Expect(configuration.Duration).To(Equal(defaultDuration))
+					})
+					It("random", func() {
+						Expect(configuration.Random).To(Equal(false))
+					})
+					It("summary", func() {
+						Expect(configuration.Summary).To(Equal(false))
+					})
+					It("wait-time", func() {
+						Expect(configuration.WaitTime).To(Equal(defaultWaitTime))
+					})
 				})
 			})
 
@@ -107,9 +185,24 @@ var _ = Describe("Configuration", func() {
 					args = []string{"--wait-time", "3s", "./path/to/file"}
 					configuration = ParseConfiguration(args)
 				})
-				It("sets the value", func() {
+				It("applies the override", func() {
 					waitTime, _ := time.ParseDuration("3s")
 					Expect(configuration.WaitTime).To(Equal(waitTime))
+				})
+
+				Describe("leaves the default for", func() {
+					It("duration", func() {
+						Expect(configuration.Duration).To(Equal(defaultDuration))
+					})
+					It("random", func() {
+						Expect(configuration.Random).To(Equal(false))
+					})
+					It("summary", func() {
+						Expect(configuration.Summary).To(Equal(false))
+					})
+					It("workers", func() {
+						Expect(configuration.Workers).To(Equal(1))
+					})
 				})
 			})
 		})

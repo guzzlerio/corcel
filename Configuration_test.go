@@ -208,6 +208,21 @@ var _ = Describe("Configuration", func() {
 		})
 
 		Describe("setting multiple command line args", func() {
+			BeforeEach(func() {
+				args = []string{"--summary", "--workers", "50", "--duration", "3s", "./path/to/file"}
+				configuration, _ = ParseConfiguration(args)
+			})
+			It("applies the overrides", func() {
+				duration, _ := time.ParseDuration("3s")
+				Expect(configuration.Duration).To(Equal(duration))
+				Expect(configuration.Summary).To(Equal(true))
+				Expect(configuration.Workers).To(Equal(50))
+			})
+
+			It("does not override the defaults for other args", func() {
+				Expect(configuration.Random).To(Equal(false))
+				Expect(configuration.WaitTime).To(Equal(defaultWaitTime))
+			})
 		})
 
 		Describe("with invalid arg values", func() {
@@ -223,7 +238,7 @@ var _ = Describe("Configuration", func() {
 				It("returns error", func() {
 					args = []string{"--workers", "xs", "./path/to/file"}
 					_, err := ParseConfiguration(args)
-                    Expect(err).Should(MatchError("strconv.ParseFloat: parsing \"xs\": invalid syntax"))
+					Expect(err).Should(MatchError("strconv.ParseFloat: parsing \"xs\": invalid syntax"))
 				})
 			})
 

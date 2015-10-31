@@ -32,3 +32,5 @@ travis.log
 *.json
 *.yml
 *.gz
+
+output/

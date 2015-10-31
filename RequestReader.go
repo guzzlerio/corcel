@@ -6,21 +6,23 @@ import (
 	"os"
 )
 
+type RequestFunc func() (*http.Request, error)
+
 type RequestReader struct {
-	Requests []*http.Request
+	Requests []RequestFunc
 }
 
 func NewRequestReader(filePath string) *RequestReader {
 	file, err := os.Open(filePath)
 	defer file.Close()
 	check(err)
-	requests := []*http.Request{}
+	requests := []RequestFunc{}
 	requestAdapter := NewRequestAdapter()
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		request, err := requestAdapter.Create(line)
-		requests = append(requests, request)
+		requestFunc := requestAdapter.Create(line)
+		requests = append(requests, requestFunc)
 		check(err)
 	}
 
@@ -33,6 +35,6 @@ func (instance *RequestReader) Size() int {
 	return len(instance.Requests)
 }
 
-func (instance *RequestReader) Read(index int) *http.Request {
+func (instance *RequestReader) Read(index int) RequestFunc {
 	return instance.Requests[index]
 }

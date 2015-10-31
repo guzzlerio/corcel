@@ -54,7 +54,14 @@ func (instance *RandomRequestStream) HasNext() bool {
 }
 
 func (instance *RandomRequestStream) Next() *http.Request {
-	randomIndex := Random.Intn(instance.reader.Size() - 1)
+    if instance.reader.Size() == 0 {
+        panic("The reader is empty")
+    }
+    max := instance.reader.Size() - 1
+    if max == 0 {
+        max = 1
+    }
+	randomIndex := Random.Intn(max)
 	element := instance.reader.Read(randomIndex)
 	instance.count++
 	return element

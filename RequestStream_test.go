@@ -75,4 +75,21 @@ var _ = Describe("RequestStream", func() {
 		Expect(DurationIsBetween(actual, duration, max)).To(Equal(true))
 	})
 
+    FIt("Random Request Stream from Reader with size of 1", func(){
+		list = []string{
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/1")),
+		}
+		file := CreateFileFromLines(list)
+		file.Close()
+		reader = NewRequestReader(file.Name())
+
+		requestSet := []*http.Request{}
+
+		stream := NewRandomRequestStream(reader)
+		for stream.HasNext() {
+			requestSet = append(requestSet, stream.Next())
+		}
+		Expect(len(requestSet)).To(Equal(len(list)))
+    })
+
 })

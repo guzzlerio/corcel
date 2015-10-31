@@ -48,7 +48,7 @@ func SutExecute(list []string, args ...string) []byte {
 	cmd := exec.Command(exePath, append(args,file.Name())...)
 	output, err := cmd.CombinedOutput()
 	if len(output) > 0 {
-		Log.Println(string(output))
+		Log.Println(fmt.Sprintf("%s", output))
 	}
 	Expect(err).To(BeNil())
 	return output

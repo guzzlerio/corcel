@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	logEnabled   = false
+	logEnabled   = true
 	Log          *log.Logger
 	RandomSource = rand.NewSource(time.Now().UnixNano())
 	Random       = rand.New(RandomSource)
@@ -55,7 +55,7 @@ func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Reques
 			responseError = errors.New("5XX Response Code")
 		}
 	} else {
-		fmt.Printf("Error: %v", responseError)
+		fmt.Println(fmt.Sprintf("Error: %v", responseError))
 	}
 
 	stats.ResponseTime(int64(duration))

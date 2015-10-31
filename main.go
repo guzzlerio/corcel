@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	logEnabled   = true
+	logEnabled   = false
 	Log          *log.Logger
 	RandomSource = rand.NewSource(time.Now().UnixNano())
 	Random       = rand.New(RandomSource)
@@ -55,7 +55,7 @@ func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Reques
 			responseError = errors.New("5XX Response Code")
 		}
 	} else {
-		fmt.Println(fmt.Sprintf("Error: %v", responseError))
+        Log.Panicln(fmt.Sprintf("Error: %v", responseError))
 	}
 
 	stats.ResponseTime(int64(duration))
@@ -89,8 +89,11 @@ func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers i
                stream = NewTimeBasedRequestStream(stream, duration)
             }
 			for stream.HasNext() {
-
-				ExecuteRequest(client, stats, stream.Next())
+                request, err := stream.Next()
+                if err != nil{
+                    panic(err)
+                }
+				ExecuteRequest(client, stats, request)
 
 				time.Sleep(waitTime)
 			}

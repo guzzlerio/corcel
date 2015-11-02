@@ -43,9 +43,13 @@ var _ = AfterSuite(func() {
 func SutExecute(list []string, args ...string) []byte {
 	exePath, err := filepath.Abs("./corcel")
 	check(err)
+	configFileReader = func(path string) ([]byte, error) {
+		fmt.Println("test filereader")
+		return []byte(""), nil
+	}
 	file := CreateFileFromLines(list)
 	defer os.Remove(file.Name())
-	cmd := exec.Command(exePath, append(args,file.Name())...)
+	cmd := exec.Command(exePath, append(args, file.Name())...)
 	output, err := cmd.CombinedOutput()
 	if len(output) > 0 {
 		Log.Println(string(output))

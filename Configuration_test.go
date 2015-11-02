@@ -1,10 +1,12 @@
 package main
 
 import (
-	//"fmt"
+	"fmt"
+    "runtime"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"time"
+	//"errors"
 )
 
 var _ = Describe("Configuration", func() {
@@ -13,9 +15,14 @@ var _ = Describe("Configuration", func() {
 	var args []string
 	defaultWaitTime := time.Duration(0)
 	defaultDuration := time.Duration(0)
+	_, filename, _, _ := runtime.Caller(1)
 
 	BeforeEach(func() {
-		args = []string{"file-path.yml"}
+		args = []string{filename}
+		configFileReader = func(path string) ([]byte, error) {
+			fmt.Println("test filereader")
+			return []byte(""), nil
+		}
 		configuration, _ = ParseConfiguration(args)
 	})
 
@@ -45,6 +52,23 @@ var _ = Describe("Configuration", func() {
 	})
 
 	Describe("When config file is found in pwd", func() {
+		It("returns error", func() {
+			/*
+				var t Configuration
+				yaml.Unmarshal([]byte("workers: 3"), &t)
+				fmt.Printf("%+v", t)
+				Expect(t.Workers).To(Equal(2))
+			*/
+			yaml := "workers: 3"
+
+			configFileReader = func(path string) ([]byte, error) {
+				return []byte(yaml), nil
+			}
+			configuration, err := ParseConfiguration(args)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(configuration.Workers).To(Equal(3))
+		})
+
 		Describe("and config file is found in user home", func() {
 		})
 	})
@@ -53,7 +77,7 @@ var _ = Describe("Configuration", func() {
 		Describe("overriding the default configuration", func() {
 			Describe("for duration (--duration)", func() {
 				BeforeEach(func() {
-					args = []string{"--duration", "3s", "./path/to/file"}
+					args = []string{"--duration", "3s", filename}
 					configuration, _ = ParseConfiguration(args)
 				})
 				It("applies the override", func() {
@@ -79,11 +103,10 @@ var _ = Describe("Configuration", func() {
 
 			Describe("for file", func() {
 				BeforeEach(func() {
-					args = []string{"./path/to/file"}
 					configuration, _ = ParseConfiguration(args)
 				})
 				It("applies the override", func() {
-					Expect(configuration.FilePath).To(Equal("./path/to/file"))
+					Expect(configuration.FilePath).To(Equal(filename))
 				})
 
 				Describe("leaves the default for", func() {
@@ -107,7 +130,7 @@ var _ = Describe("Configuration", func() {
 
 			Describe("for random (--random)", func() {
 				BeforeEach(func() {
-					args = []string{"--random", "./path/to/file"}
+					args = []string{"--random", filename}
 					configuration, _ = ParseConfiguration(args)
 				})
 				It("applies the override", func() {
@@ -132,7 +155,7 @@ var _ = Describe("Configuration", func() {
 
 			Describe("for summary (--summary)", func() {
 				BeforeEach(func() {
-					args = []string{"--summary", "./path/to/file"}
+					args = []string{"--summary", filename}
 					configuration, _ = ParseConfiguration(args)
 				})
 				It("applies the override", func() {
@@ -157,7 +180,7 @@ var _ = Describe("Configuration", func() {
 
 			Describe("for workers (--workers)", func() {
 				BeforeEach(func() {
-					args = []string{"--workers", "3", "./path/to/file"}
+					args = []string{"--workers", "3", filename}
 					configuration, _ = ParseConfiguration(args)
 				})
 				It("applies the override", func() {
@@ -182,7 +205,7 @@ var _ = Describe("Configuration", func() {
 
 			Describe("for wait-time (--wait-time)", func() {
 				BeforeEach(func() {
-					args = []string{"--wait-time", "3s", "./path/to/file"}
+					args = []string{"--wait-time", "3s", filename}
 					configuration, _ = ParseConfiguration(args)
 				})
 				It("applies the override", func() {
@@ -209,7 +232,7 @@ var _ = Describe("Configuration", func() {
 
 		Describe("setting multiple command line args", func() {
 			BeforeEach(func() {
-				args = []string{"--summary", "--workers", "50", "--duration", "3s", "./path/to/file"}
+				args = []string{"--summary", "--workers", "50", "--duration", "3s", filename}
 				configuration, _ = ParseConfiguration(args)
 			})
 			It("applies the overrides", func() {
@@ -228,7 +251,7 @@ var _ = Describe("Configuration", func() {
 		Describe("with invalid arg values", func() {
 			Describe("for duration", func() {
 				It("returns error", func() {
-					args = []string{"--duration", "xs", "./path/to/file"}
+					args = []string{"--duration", "xs", filename}
 					_, err := ParseConfiguration(args)
 					Expect(err).Should(MatchError("Cannot parse the value specified for --duration: 'xs'"))
 				})
@@ -236,7 +259,7 @@ var _ = Describe("Configuration", func() {
 
 			Describe("for workers", func() {
 				It("returns error", func() {
-					args = []string{"--workers", "xs", "./path/to/file"}
+					args = []string{"--workers", "xs", filename}
 					_, err := ParseConfiguration(args)
 					Expect(err).Should(MatchError("strconv.ParseFloat: parsing \"xs\": invalid syntax"))
 				})
@@ -244,7 +267,7 @@ var _ = Describe("Configuration", func() {
 
 			Describe("for wait-time", func() {
 				It("returns error", func() {
-					args = []string{"--wait-time", "xs", "./path/to/file"}
+					args = []string{"--wait-time", "xs", filename}
 					_, err := ParseConfiguration(args)
 					Expect(err).Should(MatchError("Cannot parse the value specified for --wait-time: 'xs'"))
 				})

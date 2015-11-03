@@ -9,21 +9,23 @@ import (
 	"time"
 
 	"github.com/imdario/mergo"
+	"github.com/mitchellh/go-homedir"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
 )
 
 type Configuration struct {
-	Duration time.Duration
+	Duration time.Duration `yaml:"duration"`
 	FilePath string
-	Random   bool
-	Summary  bool
-	Workers  int `yaml:"workers"`
-	WaitTime time.Duration
+	Random   bool          `yaml:"random"`
+	Summary  bool          `yaml:"summary"`
+	Workers  int           `yaml:"workers"`
+	WaitTime time.Duration `yaml:"wait-time"`
 }
 
 func ParseConfiguration(args []string) (*Configuration, error) {
-	config := defaultConfig()
+	config := Configuration{}
+	defaults := defaultConfig()
 	cmd, err := cmdConfig(args)
 	if err != nil {
 		return nil, err
@@ -31,21 +33,34 @@ func ParseConfiguration(args []string) (*Configuration, error) {
 
 	pwd, err := pwdConfig()
 	if err != nil {
-		fmt.Println("boom")
 		return nil, err
 	}
-	fmt.Printf("\ndefault:  %+v\n", config)
+	usr, err := userDirConfig()
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("\ndefault:  %+v\n", defaults)
 	fmt.Printf("\n    cmd:  %+v\n", cmd)
 	fmt.Printf("\n    pwd:  %+v\n", pwd)
-	//usr, err := userDirConfig()
+	fmt.Printf("\n    usr:  %+v\n", usr)
+	fmt.Println("*****************************")
 	if err := mergo.Merge(&config, &cmd); err != nil {
 		return nil, err
 	}
-	if err := mergo.Merge(&pwd, &config); err != nil {
+	fmt.Printf("\n config:  %+v\n", config)
+	if err := mergo.Merge(&config, &pwd); err != nil {
 		return nil, err
 	}
-	fmt.Printf("\n config:  %+v\n", pwd)
-	return &pwd, err
+	fmt.Printf("\n config:  %+v\n", config)
+	if err := mergo.Merge(&config, &usr); err != nil {
+		return nil, err
+	}
+	fmt.Printf("\n config:  %+v\n", config)
+	if err := mergo.Merge(&config, &defaults); err != nil {
+		return nil, err
+	}
+	fmt.Printf("\n config:  %+v\n", config)
+	return &config, err
 }
 
 /*
@@ -61,7 +76,7 @@ func cmdConfig(args []string) (Configuration, error) {
 	filePath := CommandLine.Arg("file", "Urls file").Required().ExistingFile()
 	summary := CommandLine.Flag("summary", "Output summary to STDOUT").Bool()
 	waitTimeArg := CommandLine.Flag("wait-time", "Time to wait between each execution").Default("0s").String()
-	workers := CommandLine.Flag("workers", "The number of workers to execute the requests").Default("1").Int()
+	workers := CommandLine.Flag("workers", "The number of workers to execute the requests").Int()
 	random := CommandLine.Flag("random", "Select the url at random for each execution").Bool()
 	durationArg := CommandLine.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").String()
 
@@ -106,7 +121,6 @@ func pwdConfig() (Configuration, error) {
 	if err != nil {
 		return Configuration{}, err
 	}
-	fmt.Println(contents)
 	var config Configuration
 	if err := config.Parse(contents); err != nil {
 		return Configuration{}, err
@@ -114,19 +128,34 @@ func pwdConfig() (Configuration, error) {
 	return config, nil
 }
 
-func userDirConfig() Configuration {
-	return Configuration{}
+func userDirConfig() (Configuration, error) {
+	dir, err := homedir.Dir()
+	if err != nil {
+		return Configuration{}, err
+	}
+	home, err := homedir.Expand(dir)
+	// can we get the application name programatically?
+	filename := path.Join(home, fmt.Sprintf(".%src", "corcel"))
+
+	contents, err := configFileReader(filename)
+	if err != nil {
+		return Configuration{}, err
+	}
+	var config Configuration
+	if err := config.Parse(contents); err != nil {
+		return Configuration{}, err
+	}
+	return config, nil
 }
 
 func defaultConfig() Configuration {
-	waitTime, _ := time.ParseDuration("0s")
+	waitTime := time.Duration(0)
 	duration := time.Duration(0)
 	return Configuration{
 		Duration: duration,
 		Random:   false,
 		Summary:  false,
-		//This seems a little odd, but the merge treats a non-zero value as being set
-		Workers:  0,
+		Workers:  1,
 		WaitTime: waitTime,
 	}
 }

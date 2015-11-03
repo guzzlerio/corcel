@@ -1,12 +1,15 @@
 package main
 
 import (
-	"fmt"
-    "runtime"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"time"
+
 	//"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
 )
 
 var _ = Describe("Configuration", func() {
@@ -15,7 +18,7 @@ var _ = Describe("Configuration", func() {
 	var args []string
 	defaultWaitTime := time.Duration(0)
 	defaultDuration := time.Duration(0)
-	_, filename, _, _ := runtime.Caller(1)
+	filename, _ := filepath.Abs(os.Args[0])
 
 	BeforeEach(func() {
 		args = []string{filename}
@@ -52,24 +55,81 @@ var _ = Describe("Configuration", func() {
 	})
 
 	Describe("When config file is found in pwd", func() {
-		It("returns error", func() {
-			/*
-				var t Configuration
-				yaml.Unmarshal([]byte("workers: 3"), &t)
-				fmt.Printf("%+v", t)
-				Expect(t.Workers).To(Equal(2))
-			*/
-			yaml := "workers: 3"
+		var (
+			pwdYaml       string
+			usrYaml       string
+			yaml          string
+			configuration *Configuration
+			err           error
+		)
 
+		BeforeEach(func() {
 			configFileReader = func(path string) ([]byte, error) {
+				pwd, _ := os.Getwd()
+				if strings.Contains(path, pwd) {
+					yaml = pwdYaml
+				} else {
+					yaml = usrYaml
+				}
 				return []byte(yaml), nil
 			}
-			configuration, err := ParseConfiguration(args)
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(configuration.Workers).To(Equal(3))
 		})
 
-		Describe("and config file is found in user home", func() {
+		Context("for workers", func() {
+			Context("set in pwd config file and not set in user home config", func() {
+				BeforeEach(func() {
+					pwdYaml = "workers: 3"
+					usrYaml = ""
+
+					configuration, err = ParseConfiguration(args)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				It("Parses the yaml and applies the config", func() {
+					Expect(configuration.Workers).To(Equal(3))
+				})
+			})
+
+			Context("set in pwd config and set in user home config", func() {
+				BeforeEach(func() {
+					pwdYaml = "workers: 3"
+                    usrYaml = "workers: 5"
+
+					configuration, err = ParseConfiguration(args)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				It("Parses the yaml and applies the config", func() {
+					Expect(configuration.Workers).To(Equal(3))
+				})
+			})
+
+			Context("not set in pwd config but set in user home config", func() {
+				BeforeEach(func() {
+					pwdYaml = ""
+                    usrYaml = "workers: 3"
+
+					configuration, err = ParseConfiguration(args)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				It("Parses the yaml and applies the config", func() {
+					Expect(configuration.Workers).To(Equal(3))
+				})
+			})
+			Context("not set in pwd config not set in user home config", func() {
+				BeforeEach(func() {
+					pwdYaml = ""
+                    usrYaml = ""
+
+					configuration, err = ParseConfiguration(args)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				It("Applies the default value", func() {
+					Expect(configuration.Workers).To(Equal(1))
+				})
+			})
 		})
 	})
 

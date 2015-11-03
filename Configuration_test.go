@@ -10,6 +10,9 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+    "github.com/oleiade/reflections"
+    "github.com/naoina/go-stringutil"
 )
 
 var _ = Describe("Configuration", func() {
@@ -56,81 +59,96 @@ var _ = Describe("Configuration", func() {
 
 	Describe("When config file is found in pwd", func() {
 		var (
-			pwdYaml       string
-			usrYaml       string
+			//pwdYaml       string
+			//usrYaml       string
 			yaml          string
 			configuration *Configuration
 			err           error
 		)
+        duration5m, _ := time.ParseDuration("5m")
 
-		BeforeEach(func() {
-			configFileReader = func(path string) ([]byte, error) {
-				pwd, _ := os.Getwd()
-				if strings.Contains(path, pwd) {
-					yaml = pwdYaml
-				} else {
-					yaml = usrYaml
+        //TODO Should the url file also be supported in the config files, thus removing it from being a required cmd arg, but required and valid once Configuration is built?
+		testFixtures := []configurationTestFixture{
+			{
+				context: "duration",
+				tests: []configurationTest{
+                    {"passed on cmd but not set in pwd config or user home config", []string{"--duration", "5m", filename}, "", "", duration5m},
+                    {"passed on cmd and set in pwd config and not set in user home config", []string{"--duration", "5m", filename}, "duration: 30s", "", duration5m},
+                    {"passed on cmd and set in pwd config and set in user home config", []string{"--duration", "5m", filename}, "duration: 30s", "duration: 1m", duration5m},
+                    {"set in pwd config and set in user home config", []string{filename}, "duration: 5m", "duration: 1m", duration5m},
+                    {"set in pwd config and not set in user home config", []string{filename}, "duration: 5m", "", duration5m},
+                    {"not set in pwd config but set in user home config", []string{filename}, "", "duration: 5m", duration5m},
+                    {"not set in pwd config or user home config", []string{filename}, "", "", time.Duration(0)},
+                },
+            }, {
+				context: "summary",
+				tests: []configurationTest{
+                    {"passed on cmd but not set in pwd config or user home config", []string{"--summary", filename}, "", "", true},
+                    {"passed on cmd and set OFF in pwd config and not set in user home config", []string{"--summary", filename}, "summary: false", "", true},
+                    {"passed on cmd and set OFF in pwd config and set OFF in user home config", []string{"--summary", filename}, "summary: false", "summary: false", true},
+                    {"set ON in pwd config and set OFF in user home config", []string{filename}, "summary: true", "summary: false", true},
+                    {"set OFF in pwd config and set ON in user home config", []string{filename}, "summary: false", "summary: true", false},
+                    {"set ON in pwd config and not set in user home config", []string{filename}, "summary: true", "", true},
+                    {"set OFF in pwd config and not set in user home config", []string{filename}, "summary: false", "", false},
+                    {"not set in pwd config but set ON in user home config", []string{filename}, "", "summary: true", true},
+                    {"not set in pwd config but set OFF in user home config", []string{filename}, "", "summary: false", false},
+                    {"not set in pwd config or user home config", []string{filename}, "", "", false},
+                },
+            }, {
+                //TODO change this to "wait-time" when fixed in the stringutil library
+				context: "wait_time",
+				tests: []configurationTest{
+                    {"passed on cmd but not set in pwd config or user home config", []string{"--wait-time", "5m", filename}, "", "", duration5m},
+                    {"passed on cmd and set in pwd config and not set in user home config", []string{"--wait-time", "5m", filename}, "wait-time: 30s", "", duration5m},
+                    {"passed on cmd and set in pwd config and set in user home config", []string{"--wait-time", "5m", filename}, "wait-time: 30s", "wait-time: 1m", duration5m},
+                    {"set in pwd config and set in user home config", []string{filename}, "wait-time: 5m", "wait-time: 1m", duration5m},
+                    {"set in pwd config and not set in user home config", []string{filename}, "wait-time: 5m", "", duration5m},
+                    {"not set in pwd config but set in user home config", []string{filename}, "", "wait-time: 5m", duration5m},
+                    {"not set in pwd config or user home config", []string{filename}, "", "", time.Duration(0)},
+                },
+            }, {
+				context: "workers",
+				tests: []configurationTest{
+                    {"passed on cmd but not set in pwd config or user home config", []string{"--workers", "5", filename}, "", "", 5},
+                    {"passed on cmd and set in pwd config and not set in user home config", []string{"--workers", "5", filename}, "workers: 3", "", 5},
+                    {"passed on cmd and set in pwd config and set in user home config", []string{"--workers", "3", filename}, "workers: 3", "workers: 2", 5},
+					{"set in pwd config and not set in user home config", []string{filename}, "workers: 3", "", 3},
+                    {"set in pwd config and set in user home config", []string{filename}, "workers: 3", "workers: 5", 3},
+					{"not set in pwd config but set in user home config", []string{filename}, "", "workers: 3", 3},
+					{"not set in pwd config or user home config", []string{filename}, "", "", 1},
+				},
+			},
+		}
+
+		for _, fixture := range testFixtures {
+            // This is that weird thing where if I just used fixture.context in the assertion it had got the one from the next test in the loop!
+            context := fixture.context
+			Context("for " + context, func() {
+				for _, test := range fixture.tests {
+					Context(test.name, func() {
+						BeforeEach(func() {
+							configFileReader = func(path string) ([]byte, error) {
+								pwd, _ := os.Getwd()
+								if strings.Contains(path, pwd) {
+									yaml = test.pwdYaml
+								} else {
+									yaml = test.usrYaml
+								}
+								return []byte(yaml), nil
+							}
+							configuration, err = ParseConfiguration(test.cmdArgs)
+							Expect(err).ShouldNot(HaveOccurred())
+						})
+
+						It("Parses the yaml and applies the config", func() {
+                            fmt.Printf("Looking for %s in %+v", context, configuration)
+                            actual, _ := reflections.GetField(configuration, stringutil.ToUpperCamelCase(context))
+							Expect(actual).To(Equal(test.expected))
+						})
+					})
 				}
-				return []byte(yaml), nil
-			}
-		})
-
-		Context("for workers", func() {
-			Context("set in pwd config file and not set in user home config", func() {
-				BeforeEach(func() {
-					pwdYaml = "workers: 3"
-					usrYaml = ""
-
-					configuration, err = ParseConfiguration(args)
-					Expect(err).ShouldNot(HaveOccurred())
-				})
-
-				It("Parses the yaml and applies the config", func() {
-					Expect(configuration.Workers).To(Equal(3))
-				})
 			})
-
-			Context("set in pwd config and set in user home config", func() {
-				BeforeEach(func() {
-					pwdYaml = "workers: 3"
-                    usrYaml = "workers: 5"
-
-					configuration, err = ParseConfiguration(args)
-					Expect(err).ShouldNot(HaveOccurred())
-				})
-
-				It("Parses the yaml and applies the config", func() {
-					Expect(configuration.Workers).To(Equal(3))
-				})
-			})
-
-			Context("not set in pwd config but set in user home config", func() {
-				BeforeEach(func() {
-					pwdYaml = ""
-                    usrYaml = "workers: 3"
-
-					configuration, err = ParseConfiguration(args)
-					Expect(err).ShouldNot(HaveOccurred())
-				})
-
-				It("Parses the yaml and applies the config", func() {
-					Expect(configuration.Workers).To(Equal(3))
-				})
-			})
-			Context("not set in pwd config not set in user home config", func() {
-				BeforeEach(func() {
-					pwdYaml = ""
-                    usrYaml = ""
-
-					configuration, err = ParseConfiguration(args)
-					Expect(err).ShouldNot(HaveOccurred())
-				})
-
-				It("Applies the default value", func() {
-					Expect(configuration.Workers).To(Equal(1))
-				})
-			})
-		})
+		}
 	})
 
 	Describe("When commandline args are provided", func() {
@@ -335,3 +353,16 @@ var _ = Describe("Configuration", func() {
 		})
 	})
 })
+
+type configurationTestFixture struct {
+	context string
+	tests   []configurationTest
+}
+
+type configurationTest struct {
+	name     string
+	cmdArgs  []string
+	pwdYaml  string
+	usrYaml  string
+	expected interface{}
+}

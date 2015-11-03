@@ -4,7 +4,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	//"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -59,8 +58,6 @@ var _ = Describe("Configuration", func() {
 
 	Describe("When config file is found in pwd", func() {
 		var (
-			//pwdYaml       string
-			//usrYaml       string
 			yaml          string
 			configuration *Configuration
 			err           error
@@ -79,6 +76,20 @@ var _ = Describe("Configuration", func() {
                     {"set in pwd config and not set in user home config", []string{filename}, "duration: 5m", "", duration5m},
                     {"not set in pwd config but set in user home config", []string{filename}, "", "duration: 5m", duration5m},
                     {"not set in pwd config or user home config", []string{filename}, "", "", time.Duration(0)},
+                },
+            }, {
+				context: "random",
+				tests: []configurationTest{
+                    {"passed on cmd but not set in pwd config or user home config", []string{"--random", filename}, "", "", true},
+                    {"passed on cmd and set OFF in pwd config and not set in user home config", []string{"--random", filename}, "random: false", "", true},
+                    {"passed on cmd and set OFF in pwd config and set OFF in user home config", []string{"--random", filename}, "random: false", "random: false", true},
+                    {"set ON in pwd config and set OFF in user home config", []string{filename}, "random: true", "random: false", true},
+                    {"set OFF in pwd config and set ON in user home config", []string{filename}, "random: false", "random: true", false},
+                    {"set ON in pwd config and not set in user home config", []string{filename}, "random: true", "", true},
+                    {"set OFF in pwd config and not set in user home config", []string{filename}, "random: false", "", false},
+                    {"not set in pwd config but set ON in user home config", []string{filename}, "", "random: true", true},
+                    {"not set in pwd config but set OFF in user home config", []string{filename}, "", "random: false", false},
+                    {"not set in pwd config or user home config", []string{filename}, "", "", false},
                 },
             }, {
 				context: "summary",

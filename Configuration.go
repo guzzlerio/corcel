@@ -82,7 +82,6 @@ func cmdConfig(args []string) (Configuration, error) {
 
 	fmt.Printf("Parsing cmd args: %+v\n", args)
 	cmd, err := CommandLine.Parse(args)
-	fmt.Printf("Parsed: %s %s", cmd, err)
 
 	if err != nil {
 		fmt.Println(err)
@@ -178,8 +177,7 @@ var configFileReader = func(path string) ([]byte, error) {
 		fmt.Println(fmt.Errorf("not found %s", path))
 		return nil, nil
 	}
-	fmt.Printf("file exists; processing...")
-	//TODO actually read the file contents
+	fmt.Println("file exists; processing...")
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read %s", path)

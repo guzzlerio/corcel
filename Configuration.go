@@ -3,11 +3,12 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	//"log"
+    "log"
 	"os"
 	"path"
 	"time"
 
+    //log "github.com/Sirupsen/logrus"
 	"github.com/imdario/mergo"
 	"github.com/mitchellh/go-homedir"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -39,27 +40,30 @@ func ParseConfiguration(args []string) (*Configuration, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("\ndefault:  %+v\n", defaults)
-	fmt.Printf("\n    cmd:  %+v\n", cmd)
-	fmt.Printf("\n    pwd:  %+v\n", pwd)
-	fmt.Printf("\n    usr:  %+v\n", usr)
-	fmt.Println("*****************************")
+
+    log.Printf(" default: %+v\n", defaults)
+    log.Printf("     cmd: %+v\n", cmd)
+    log.Printf("     pwd: %+v\n", pwd)
+    log.Printf("     usr: %+v\n", usr)
+    //log.WithFields(log.Fields{ "default": defaults, "cmd": cmd, "pwd": pwd, "usr": usr, }).Debug("Each config")
+
 	if err := mergo.Merge(&config, &cmd); err != nil {
 		return nil, err
 	}
-	fmt.Printf("\n config:  %+v\n", config)
+    //log.WithFields(log.Fields{ "config": config}).Debug("Applied cmd args")
 	if err := mergo.Merge(&config, &pwd); err != nil {
 		return nil, err
 	}
-	fmt.Printf("\n config:  %+v\n", config)
+    //log.WithFields(log.Fields{ "config": config}).Debug("Applied pwd config file")
 	if err := mergo.Merge(&config, &usr); err != nil {
 		return nil, err
 	}
-	fmt.Printf("\n config:  %+v\n", config)
+    //log.WithFields(log.Fields{ "config": config}).Debug("Applied usr config file")
 	if err := mergo.Merge(&config, &defaults); err != nil {
 		return nil, err
 	}
-	fmt.Printf("\n config:  %+v\n", config)
+    log.Printf(" config: %+v\n", config)
+    //log.WithFields(log.Fields{ "config": config}).Info("Configuration")
 	return &config, err
 }
 
@@ -80,12 +84,11 @@ func cmdConfig(args []string) (Configuration, error) {
 	random := CommandLine.Flag("random", "Select the url at random for each execution").Bool()
 	durationArg := CommandLine.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").String()
 
-	fmt.Printf("Parsing cmd args: %+v\n", args)
-	cmd, err := CommandLine.Parse(args)
+    //log.WithFields(log.Fields{ "args": args }).Debug("Parsing cmd args")
+	_, err := CommandLine.Parse(args)
 
 	if err != nil {
-		fmt.Println(err)
-		fmt.Println(cmd)
+        log.Fatal("Unable to parse the kingpin args")
 		return Configuration{}, err
 	}
 	waitTime, err := time.ParseDuration(*waitTimeArg)
@@ -163,7 +166,6 @@ func (c *Configuration) Parse(data []byte) error {
 	if err := yaml.Unmarshal(data, c); err != nil {
 		return err
 	}
-	fmt.Println(c, string(data[:]))
 	/*
 		if c.Hostname == "" {
 			return errors.New("Kitchen config: invalid `hostname`")
@@ -174,13 +176,15 @@ func (c *Configuration) Parse(data []byte) error {
 
 var configFileReader = func(path string) ([]byte, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		fmt.Println(fmt.Errorf("not found %s", path))
+        log.Println("Config file not found")
+        //log.WithFields(log.Fields{ "path": path}).Info("Config file not found")
 		return nil, nil
 	}
-	fmt.Println("file exists; processing...")
+	log.Println("file exists; processing...")
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read %s", path)
+        //log.WithFields(log.Fields{ "path": path}).Info("Unable to read config file")
+		return nil, nil
 	}
 	return data, nil
 }

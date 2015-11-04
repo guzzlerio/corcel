@@ -14,7 +14,7 @@ import (
     "github.com/naoina/go-stringutil"
 )
 
-var _ = Describe("Configuration", func() {
+var _ = FDescribe("Configuration", func() {
 
 	var configuration *Configuration
 	var args []string
@@ -34,7 +34,7 @@ var _ = Describe("Configuration", func() {
 	Describe("When no config file is found and no command line args are provided", func() {
 		Describe("Loading a default configuration", func() {
 			It("sets duration (--duration)", func() {
-				Expect(configuration.WaitTime).To(Equal(defaultDuration))
+				Expect(configuration.Duration).To(Equal(defaultDuration))
 			})
 			It("sets random (--random)", func() {
 				Expect(configuration.Random).To(Equal(false))

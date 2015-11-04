@@ -67,14 +67,6 @@ func ParseConfiguration(args []string) (*Configuration, error) {
 	return &config, err
 }
 
-/*
-Might need to change the approach here. Issue is if you have a .corcelrc with workers: 3
-but you invoke with --workers 1 becuase 1 is the default it will not know to apply the commandline option and will therefore apply the rc file.
-
-One option is to use kingpin.ExpandArgsFromFile
-
-Another option is to use a map, although this wouldn't solve the issue above
-*/
 func cmdConfig(args []string) (Configuration, error) {
 	CommandLine := kingpin.New("corcel", "")
 	filePath := CommandLine.Arg("file", "Urls file").Required().ExistingFile()
@@ -164,7 +156,8 @@ func defaultConfig() Configuration {
 
 func (c *Configuration) Parse(data []byte) error {
 	if err := yaml.Unmarshal(data, c); err != nil {
-		return err
+        log.Println("Unable to parse config file")
+		return nil
 	}
 	/*
 		if c.Hostname == "" {

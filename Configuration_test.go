@@ -64,7 +64,6 @@ var _ = Describe("Configuration", func() {
 		)
         duration5m, _ := time.ParseDuration("5m")
 
-        //TODO Should the url file also be supported in the config files, thus removing it from being a required cmd arg, but required and valid once Configuration is built?
 		testFixtures := []configurationTestFixture{
 			{
 				context: "duration",
@@ -127,6 +126,11 @@ var _ = Describe("Configuration", func() {
                     {"set in pwd config and set in user home config", []string{filename}, "workers: 3", "workers: 5", 3},
 					{"not set in pwd config but set in user home config", []string{filename}, "", "workers: 3", 3},
 					{"not set in pwd config or user home config", []string{filename}, "", "", 1},
+                    // unhappy paths
+                    {"set in pwd with invalid value and set in user home config", []string{filename}, "workers: abc", "workers: 5", 5},
+                    {"set in pwd and set in user home config with invalid value", []string{filename}, "workers: 5", "workers: abc", 5},
+                    {"set in pwd with invalid value and not set in user home config", []string{filename}, "workers: abc", "", 1},
+                    {"not set in pwd but set in user home config with invalid value", []string{filename}, "", "workers: abc", 1},
 				},
 			},
 		}

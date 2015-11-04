@@ -80,7 +80,7 @@ func cmdConfig(args []string) (Configuration, error) {
 	_, err := CommandLine.Parse(args)
 
 	if err != nil {
-        log.Fatal("Unable to parse the kingpin args")
+        log.Println("Unable to parse the kingpin args")
 		return Configuration{}, err
 	}
 	waitTime, err := time.ParseDuration(*waitTimeArg)

@@ -75,6 +75,11 @@ var _ = Describe("Configuration", func() {
                     {"set in pwd config and not set in user home config", []string{filename}, "duration: 5m", "", duration5m},
                     {"not set in pwd config but set in user home config", []string{filename}, "", "duration: 5m", duration5m},
                     {"not set in pwd config or user home config", []string{filename}, "", "", time.Duration(0)},
+                    // unhappy paths
+                    {"set in pwd with invalid value and set in user home config", []string{filename}, "duration: abc", "duration: 5m", duration5m},
+                    {"set in pwd and set in user home config with invalid value", []string{filename}, "duration: 5m", "duration: abc", duration5m},
+                    {"set in pwd with invalid value and not set in user home config", []string{filename}, "duration: abc", "", time.Duration(0)},
+                    {"not set in pwd but set in user home config with invalid value", []string{filename}, "", "duration: abc", time.Duration(0)},
                 },
             }, {
 				context: "random",
@@ -89,6 +94,11 @@ var _ = Describe("Configuration", func() {
                     {"not set in pwd config but set ON in user home config", []string{filename}, "", "random: true", true},
                     {"not set in pwd config but set OFF in user home config", []string{filename}, "", "random: false", false},
                     {"not set in pwd config or user home config", []string{filename}, "", "", false},
+                    // unhappy paths
+                    {"set in pwd with invalid value and set in user home config", []string{filename}, "random: abc", "random: true", true},
+                    {"set in pwd and set in user home config with invalid value", []string{filename}, "random: true", "random: abc", true},
+                    {"set in pwd with invalid value and not set in user home config", []string{filename}, "random: abc", "", false},
+                    {"not set in pwd but set in user home config with invalid value", []string{filename}, "", "random: abc", false},
                 },
             }, {
 				context: "summary",
@@ -103,6 +113,11 @@ var _ = Describe("Configuration", func() {
                     {"not set in pwd config but set ON in user home config", []string{filename}, "", "summary: true", true},
                     {"not set in pwd config but set OFF in user home config", []string{filename}, "", "summary: false", false},
                     {"not set in pwd config or user home config", []string{filename}, "", "", false},
+                    // unhappy paths
+                    {"set in pwd with invalid value and set in user home config", []string{filename}, "summary: abc", "summary: true", true},
+                    {"set in pwd and set in user home config with invalid value", []string{filename}, "summary: true", "summary: abc", true},
+                    {"set in pwd with invalid value and not set in user home config", []string{filename}, "summary: abc", "", false},
+                    {"not set in pwd but set in user home config with invalid value", []string{filename}, "", "summary: abc", false},
                 },
             }, {
                 //TODO change this to "wait-time" when fixed in the stringutil library
@@ -115,6 +130,11 @@ var _ = Describe("Configuration", func() {
                     {"set in pwd config and not set in user home config", []string{filename}, "wait-time: 5m", "", duration5m},
                     {"not set in pwd config but set in user home config", []string{filename}, "", "wait-time: 5m", duration5m},
                     {"not set in pwd config or user home config", []string{filename}, "", "", time.Duration(0)},
+                    // unhappy paths
+                    {"set in pwd with invalid value and set in user home config", []string{filename}, "wait-time: abc", "wait-time: 5m", duration5m},
+                    {"set in pwd and set in user home config with invalid value", []string{filename}, "wait-time: 5m", "wait-time: abc", duration5m},
+                    {"set in pwd with invalid value and not set in user home config", []string{filename}, "wait-time: abc", "", time.Duration(0)},
+                    {"not set in pwd but set in user home config with invalid value", []string{filename}, "", "wait-time: abc", time.Duration(0)},
                 },
             }, {
 				context: "workers",

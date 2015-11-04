@@ -24,7 +24,8 @@ var _ = Describe("RequestAdapter", func() {
 		line += " -X POST"
 		line += ` -H "Content-type: application/json"`
 		adapter = NewRequestAdapter()
-		req, err = adapter.Create(line)
+        reqFunc := adapter.Create(line)
+        req, err = reqFunc()
 		Expect(err).To(BeNil())
 	})
 
@@ -48,7 +49,8 @@ var _ = Describe("RequestAdapter", func() {
 			line += " -X GET"
 			line += fmt.Sprintf(` -d "%s"`,data)
 			adapter = NewRequestAdapter()
-			req, err = adapter.Create(line)
+            reqFunc := adapter.Create(line)
+			req, err = reqFunc()
 			Expect(err).To(BeNil())
 			Expect(req.URL.RawQuery).To(Equal(data))
 		})
@@ -60,7 +62,8 @@ var _ = Describe("RequestAdapter", func() {
 				line += fmt.Sprintf(" -X %s", method)
 				line += fmt.Sprintf(` -d "%s"`,data)
 				adapter = NewRequestAdapter()
-				req, err = adapter.Create(line)
+                reqFunc := adapter.Create(line)
+                req, err = reqFunc()
 				Expect(err).To(BeNil())
 				body, err := ioutil.ReadAll(req.Body)
 				if err != nil{
@@ -75,7 +78,8 @@ var _ = Describe("RequestAdapter", func() {
 	It("Parses URLs with leading whitespace", func() {
 		line = "      " + url
 		adapter = NewRequestAdapter()
-		req, err = adapter.Create(line)
+        reqFunc := adapter.Create(line)
+        req, err = reqFunc()
 		Expect(req.URL.String()).To(Equal(url))
 	})
 })

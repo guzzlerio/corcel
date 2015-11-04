@@ -52,7 +52,7 @@ func SutExecute(list []string, args ...string) []byte {
 	cmd := exec.Command(exePath, append(args, file.Name())...)
 	output, err := cmd.CombinedOutput()
 	if len(output) > 0 {
-		Log.Println(string(output))
+		Log.Println(fmt.Sprintf("%s", output))
 	}
 	Expect(err).To(BeNil())
 	return output
@@ -114,7 +114,6 @@ var _ = Describe("Main", func() {
 	})
 
 	It("Support random selection of url from file", func() {
-
 		list := []string{
 			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/1")),
 			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/2")),
@@ -135,18 +134,17 @@ var _ = Describe("Main", func() {
 		requestsSet2 := Requests(TestServer.requests[:])
 
 		Expect(ConcatRequestPaths(requestsSet1)).ToNot(Equal(ConcatRequestPaths(requestsSet2)))
-
 	})
 
-	for _, numberOfWorkers := range NUMBER_OF_WORKERS_TO_TEST {
+    for _, numberOfWorkers := range NUMBER_OF_WORKERS_TO_TEST {
 		It(fmt.Sprintf("Support %v workers", numberOfWorkers), func() {
 			list := []string{
-				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
 			}
 
 			SutExecute(list, "--workers", strconv.Itoa(numberOfWorkers))

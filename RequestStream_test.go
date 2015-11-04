@@ -38,7 +38,8 @@ var _ = Describe("RequestStream", func() {
 
 		actual := []*http.Request{}
 		for iterator.HasNext() {
-			actual = append(actual, iterator.Next())
+            req,_ := iterator.Next()
+			actual = append(actual, req)
 		}
 		Expect(len(actual)).To(Equal(len(list)))
 	})
@@ -49,12 +50,14 @@ var _ = Describe("RequestStream", func() {
 
 		stream1 := NewRandomRequestStream(reader)
 		for stream1.HasNext() {
-			requestSet1 = append(requestSet1, stream1.Next())
+            req,_ := stream1.Next()
+			requestSet1 = append(requestSet1, req)
 		}
 
 		stream2 := NewRandomRequestStream(reader)
 		for stream2.HasNext() {
-			requestSet2 = append(requestSet2, stream2.Next())
+            req,_ := stream2.Next()
+			requestSet2 = append(requestSet2, req)
 		}
 
 		Expect(len(requestSet1)).To(Equal(len(list)))
@@ -74,5 +77,23 @@ var _ = Describe("RequestStream", func() {
 		max := time.Duration(duration + (500 * time.Millisecond))
 		Expect(DurationIsBetween(actual, duration, max)).To(Equal(true))
 	})
+
+    It("Random Request Stream from Reader with size of 1", func(){
+		list = []string{
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/1")),
+		}
+		file := CreateFileFromLines(list)
+		file.Close()
+		reader = NewRequestReader(file.Name())
+
+		requestSet := []*http.Request{}
+
+		stream := NewRandomRequestStream(reader)
+		for stream.HasNext() {
+            req,_ := stream.Next()
+			requestSet = append(requestSet, req)
+		}
+		Expect(len(requestSet)).To(Equal(len(list)))
+    })
 
 })

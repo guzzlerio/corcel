@@ -14,7 +14,7 @@ import (
     "github.com/naoina/go-stringutil"
 )
 
-var _ = FDescribe("Configuration", func() {
+var _ = Describe("Configuration", func() {
 
 	var configuration *Configuration
 	var args []string

@@ -54,4 +54,15 @@ var _ = Describe("Bugs replication", func() {
 	    Expect(err).ToNot(BeNil())
 		Expect(string(output)).To(ContainSubstring("Your workers value is set to high.  Either increase the system limit for open files or reduce the value of the workers"))
     })
+
+    It("Error non-http url in the urls file causes a run time exception #21", func(){
+		list := []string{
+			fmt.Sprintf(`-Something`),
+        }
+
+        output, err := InvokeCorcel(list)
+
+	    Expect(err).ToNot(BeNil())
+		Expect(string(output)).To(ContainSubstring("Your urls in the test specification must be valid urls"))
+    })
 })

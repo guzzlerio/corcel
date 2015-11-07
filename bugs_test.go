@@ -19,9 +19,7 @@ var _ = Describe("Bugs replication", func() {
 	BeforeEach(func() {
 		os.Remove("./output.yml")
 		exePath, err = filepath.Abs("./corcel")
-		if err != nil {
-			panic(err)
-		}
+        check(err)
 	})
 
 	AfterEach(func() {
@@ -43,5 +41,17 @@ var _ = Describe("Bugs replication", func() {
         UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
 		Expect(executionOutput.Summary.Requests.Total).To(Equal(int64(2)))
+    })
+
+    It("Error when too many workers specified causing too many open files #23", func(){
+        numberOfWorkers := 100000000
+		list := []string{
+			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
+        }
+
+        output, err := InvokeCorcel(list, "--workers",strconv.Itoa(numberOfWorkers))
+
+	    Expect(err).ToNot(BeNil())
+		Expect(string(output)).To(ContainSubstring("Your workers value is set to high.  Either increase the system limit for open files or reduce the value of the workers"))
     })
 })

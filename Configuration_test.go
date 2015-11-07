@@ -4,7 +4,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,7 +24,6 @@ var _ = Describe("Configuration", func() {
 	BeforeEach(func() {
 		args = []string{filename}
 		configFileReader = func(path string) ([]byte, error) {
-			fmt.Println("test filereader")
 			return []byte(""), nil
 		}
 		configuration, _ = ParseConfiguration(args)
@@ -176,7 +174,6 @@ var _ = Describe("Configuration", func() {
 						})
 
 						It("Parses the yaml and applies the config", func() {
-                            fmt.Printf("Looking for %s in %+v", context, configuration)
                             actual, _ := reflections.GetField(configuration, stringutil.ToUpperCamelCase(context))
 							Expect(actual).To(Equal(test.expected))
 						})

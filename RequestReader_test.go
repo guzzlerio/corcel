@@ -37,9 +37,7 @@ var _ = Describe("RequestReader", func() {
         stream := NewSequentialRequestStream(reader)
         for stream.HasNext() {
             req,err := stream.Next()
-            if err != nil{
-                panic(err)
-            }
+            check(err)
             requests = append(requests, req)
         }
         Expect(len(requests)).To(Equal(len(list)))
@@ -57,9 +55,7 @@ var _ = Describe("RequestReader", func() {
                     for stream.HasNext() {
                         mutex.Lock()
                         req,err := stream.Next()
-                        if err != nil{
-                            panic(err)
-                        }
+                        check(err)
                         requests = append(requests, req)
                         mutex.Unlock()
                     }

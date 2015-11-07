@@ -40,11 +40,10 @@ var _ = AfterSuite(func() {
 	TestServer.Stop()
 })
 
-func SutExecute(list []string, args ...string) []byte {
+func InvokeCorcel(list []string, args ...string) ([]byte, error) {
 	exePath, err := filepath.Abs("./corcel")
 	check(err)
 	configFileReader = func(path string) ([]byte, error) {
-		fmt.Println("test filereader")
 		return []byte(""), nil
 	}
 	file := CreateFileFromLines(list)
@@ -54,6 +53,11 @@ func SutExecute(list []string, args ...string) []byte {
 	if len(output) > 0 {
 		Log.Println(fmt.Sprintf("%s", output))
 	}
+	return output, err
+}
+
+func SutExecute(list []string, args ...string) []byte {
+    output, err := InvokeCorcel(list, args...)
 	Expect(err).To(BeNil())
 	return output
 }
@@ -83,9 +87,7 @@ var _ = Describe("Main", func() {
 	BeforeEach(func() {
 		os.Remove("./output.yml")
 		exePath, err = filepath.Abs("./corcel")
-		if err != nil {
-			panic(err)
-		}
+        check(err)
 	})
 
 	AfterEach(func() {

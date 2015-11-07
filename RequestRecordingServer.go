@@ -41,9 +41,7 @@ func CreateRequestRecordingServer(port int) *RequestRecordingServer {
 func (instance *RequestRecordingServer) Start() {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			panic(err)
-		}
+		check(err)
 		recordedRequest := RecordedRequest{
 			request: r,
 			body:    string(body),

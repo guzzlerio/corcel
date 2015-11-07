@@ -3,12 +3,10 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-    "log"
 	"os"
 	"path"
 	"time"
 
-    //log "github.com/Sirupsen/logrus"
 	"github.com/imdario/mergo"
 	"github.com/mitchellh/go-homedir"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -41,29 +39,24 @@ func ParseConfiguration(args []string) (*Configuration, error) {
 		return nil, err
 	}
 
-    log.Printf(" default: %+v\n", defaults)
-    log.Printf("     cmd: %+v\n", cmd)
-    log.Printf("     pwd: %+v\n", pwd)
-    log.Printf("     usr: %+v\n", usr)
-    //log.WithFields(log.Fields{ "default": defaults, "cmd": cmd, "pwd": pwd, "usr": usr, }).Debug("Each config")
+    Log.Printf(" default: %+v\n", defaults)
+    Log.Printf("     cmd: %+v\n", cmd)
+    Log.Printf("     pwd: %+v\n", pwd)
+    Log.Printf("     usr: %+v\n", usr)
 
 	if err := mergo.Merge(&config, &cmd); err != nil {
 		return nil, err
 	}
-    //log.WithFields(log.Fields{ "config": config}).Debug("Applied cmd args")
 	if err := mergo.Merge(&config, &pwd); err != nil {
 		return nil, err
 	}
-    //log.WithFields(log.Fields{ "config": config}).Debug("Applied pwd config file")
 	if err := mergo.Merge(&config, &usr); err != nil {
 		return nil, err
 	}
-    //log.WithFields(log.Fields{ "config": config}).Debug("Applied usr config file")
 	if err := mergo.Merge(&config, &defaults); err != nil {
 		return nil, err
 	}
-    log.Printf(" config: %+v\n", config)
-    //log.WithFields(log.Fields{ "config": config}).Info("Configuration")
+    Log.Printf(" config: %+v\n", config)
 	return &config, err
 }
 
@@ -76,11 +69,10 @@ func cmdConfig(args []string) (Configuration, error) {
 	random := CommandLine.Flag("random", "Select the url at random for each execution").Bool()
 	durationArg := CommandLine.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").String()
 
-    //log.WithFields(log.Fields{ "args": args }).Debug("Parsing cmd args")
 	_, err := CommandLine.Parse(args)
 
 	if err != nil {
-        log.Println("Unable to parse the kingpin args")
+        Log.Println("Unable to parse the kingpin args")
 		return Configuration{}, err
 	}
 	waitTime, err := time.ParseDuration(*waitTimeArg)
@@ -156,7 +148,7 @@ func defaultConfig() Configuration {
 
 func (c *Configuration) Parse(data []byte) error {
 	if err := yaml.Unmarshal(data, c); err != nil {
-        log.Println("Unable to parse config file")
+        Log.Println("Unable to parse config file")
 		return nil
 	}
 	/*
@@ -169,14 +161,12 @@ func (c *Configuration) Parse(data []byte) error {
 
 var configFileReader = func(path string) ([]byte, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-        log.Println("Config file not found")
-        //log.WithFields(log.Fields{ "path": path}).Info("Config file not found")
+        Log.Println("Config file not found")
 		return nil, nil
 	}
-	log.Println("file exists; processing...")
+	Log.Println("file exists; processing...")
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-        //log.WithFields(log.Fields{ "path": path}).Info("Unable to read config file")
 		return nil, nil
 	}
 	return data, nil

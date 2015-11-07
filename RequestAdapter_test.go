@@ -66,9 +66,7 @@ var _ = Describe("RequestAdapter", func() {
                 req, err = reqFunc()
 				Expect(err).To(BeNil())
 				body, err := ioutil.ReadAll(req.Body)
-				if err != nil{
-					panic(err)
-				}
+                check(err)
 				Expect(string(body)).To(Equal(data))
 			})
 		}

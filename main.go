@@ -12,8 +12,8 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+    "strings"
 
-	//"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
 )
 
@@ -22,11 +22,18 @@ var (
 	Log          *log.Logger
 	RandomSource = rand.NewSource(time.Now().UnixNano())
 	Random       = rand.New(RandomSource)
+    ErrorMappings = map[string]ErrorCode{}
 )
 
 func check(err error) {
 	if err != nil {
-		Log.Panic(err)
+        for mapping, errorCode := range ErrorMappings{
+            if strings.Contains(fmt.Sprintf("%v",err), mapping){
+                fmt.Println(errorCode.Message)
+                os.Exit(errorCode.Code)
+            }
+        }
+        Log.Fatalf("UNKNOWN ERROR: %v",err)
 	}
 }
 
@@ -47,16 +54,14 @@ func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Reques
 	start := time.Now()
 	response, responseError := client.Do(request)
 	duration := time.Since(start) / time.Millisecond
-	if responseError == nil {
-		defer response.Body.Close()
-		responseBytes, _ := httputil.DumpResponse(response, true)
-		stats.BytesReceived(int64(len(responseBytes)))
-		if response.StatusCode >= 400 && response.StatusCode < 600 {
-			responseError = errors.New("5XX Response Code")
-		}
-	} else {
-        Log.Panicln(fmt.Sprintf("Error: %v", responseError))
-	}
+    check(responseError)
+
+    defer response.Body.Close()
+    responseBytes, _ := httputil.DumpResponse(response, true)
+    stats.BytesReceived(int64(len(responseBytes)))
+    if response.StatusCode >= 400 && response.StatusCode < 600 {
+        responseError = errors.New("5XX Response Code")
+    }
 
 	stats.ResponseTime(int64(duration))
 	requestBytes, _ := httputil.DumpRequest(request, true)
@@ -73,6 +78,15 @@ func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers i
 	for i := 0; i < workers; i++ {
 		waitGroup.Add(1)
 		go func() {
+            defer func() { //catch or finally
+                if err := recover(); err != nil { //catch
+                    if strings.Contains(fmt.Sprintf("%v",err),"too many open files"){
+                        Log.Fatalf("Too many workers man!")
+                    }else{
+                        Log.Fatalf("UNKNOWN ERROR: %v",err)
+                    }
+                }
+            }()
 			client := &http.Client{
 				Transport: &http.Transport{
 					MaxIdleConnsPerHost: 50,
@@ -85,14 +99,12 @@ func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers i
 			} else {
 				stream = NewSequentialRequestStream(reader)
 			}
-            if duration > 0 {
-               stream = NewTimeBasedRequestStream(stream, duration)
-            }
+			if duration > 0 {
+				stream = NewTimeBasedRequestStream(stream, duration)
+			}
 			for stream.HasNext() {
-                request, err := stream.Next()
-                if err != nil{
-                    panic(err)
-                }
+				request, err := stream.Next()
+                check(err)
 				ExecuteRequest(client, stats, request)
 
 				time.Sleep(waitTime)
@@ -132,30 +144,12 @@ func OutputSummary(stats *Statistics) {
 }
 
 func main() {
-    config, err := ParseConfiguration(os.Args[1:])
-    check(err)
-    /*
-	waitTime, err := time.ParseDuration(*waitTimeArg)
-	if err != nil {
-		Log.Printf("error parsing --wait-time : %v", err)
-		panic("Cannot parse the time specified for --wait-time")
-	}
-
-    var duration time.Duration = time.Duration(0)
-	if *durationArg != "" {
-		duration, err = time.ParseDuration(*durationArg)
-		if err != nil {
-			Log.Printf("error parsing --duration : %v", err)
-			panic("Cannot parse the value specified for --duration")
-		}
-	}
-
-	if *random {
-		waitTime = time.Duration(1)
-	}
-    */
-
+    ConfigureErrorMappings()
 	ConfigureLogging()
+
+	config, err := ParseConfiguration(os.Args[1:])
+	check(err)
+
 
 	absolutePath, err := filepath.Abs(config.FilePath)
 	check(err)

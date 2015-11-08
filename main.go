@@ -18,7 +18,8 @@ import (
 )
 
 var (
-	logEnabled = false
+	applicationVersion = "0.1.1-alpha"
+	logEnabled         = false
 	//Log ...
 	Log *log.Logger
 	//RandomSource ...

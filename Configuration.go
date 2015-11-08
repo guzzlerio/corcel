@@ -63,6 +63,9 @@ func parseConfiguration(args []string) (*Configuration, error) {
 
 func cmdConfig(args []string) (Configuration, error) {
 	CommandLine := kingpin.New("corcel", "")
+
+	CommandLine.Version(applicationVersion)
+
 	filePath := CommandLine.Arg("file", "Urls file").Required().ExistingFile()
 	summary := CommandLine.Flag("summary", "Output summary to STDOUT").Bool()
 	waitTimeArg := CommandLine.Flag("wait-time", "Time to wait between each execution").Default("0s").String()

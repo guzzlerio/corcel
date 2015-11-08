@@ -6,14 +6,15 @@ import (
 	"net/http"
 )
 
-func HttpRequestDo(verb string, url string, bodyBuffer io.Reader, changeRequestDelegate func(request *http.Request)) (response *http.Response, body string, err error) {
+//HTTPRequestDo ...
+func HTTPRequestDo(verb string, url string, bodyBuffer io.Reader, changeRequestDelegate func(request *http.Request)) (response *http.Response, body string, err error) {
 	client := &http.Client{}
 	request, err := http.NewRequest(verb, url, bodyBuffer)
 	if err != nil {
 		Log.Printf("err creating request %v")
 		return
 	}
-	if changeRequestDelegate != nil{
+	if changeRequestDelegate != nil {
 		changeRequestDelegate(request)
 	}
 	response, err = client.Do(request)
@@ -29,4 +30,3 @@ func HttpRequestDo(verb string, url string, bodyBuffer io.Reader, changeRequestD
 	}
 	return
 }
-

@@ -4,21 +4,21 @@ import (
 	"strings"
 )
 
-type StateDelegate func(char rune)
+type stateDelegate func(char rune)
 
-type CommandLineLexer struct {
+type commandLineLexer struct {
 	args          []string
 	state         string
 	allowRune     bool
-	delegate      StateDelegate
+	delegate      stateDelegate
 	enclosingRune rune
 }
 
-func NewCommandLineLexer() *CommandLineLexer {
-	return &CommandLineLexer{}
+func newCommandLineLexer() *commandLineLexer {
+	return &commandLineLexer{}
 }
 
-func (instance *CommandLineLexer) recordFlag(char rune) {
+func (instance *commandLineLexer) recordFlag(char rune) {
 	if char == ' ' || char == ':' {
 		instance.args = append(instance.args, instance.state)
 		instance.state = ""
@@ -28,12 +28,12 @@ func (instance *CommandLineLexer) recordFlag(char rune) {
 	}
 }
 
-func (instance *CommandLineLexer) recordFlagValue(char rune) {
+func (instance *commandLineLexer) recordFlagValue(char rune) {
 	if char == ' ' {
 		if instance.allowRune {
 			instance.state += string(char)
 		} else {
-			if instance.state != ""{
+			if instance.state != "" {
 				instance.args = append(instance.args, instance.state)
 				instance.state = ""
 				instance.delegate = instance.start
@@ -55,7 +55,7 @@ func (instance *CommandLineLexer) recordFlagValue(char rune) {
 	}
 }
 
-func (instance *CommandLineLexer) recordValue(char rune) {
+func (instance *commandLineLexer) recordValue(char rune) {
 	if char == ' ' {
 		instance.args = append(instance.args, strings.Trim(instance.state, "\""))
 		instance.state = ""
@@ -65,7 +65,7 @@ func (instance *CommandLineLexer) recordValue(char rune) {
 	}
 }
 
-func (instance *CommandLineLexer) start(char rune) {
+func (instance *commandLineLexer) start(char rune) {
 	if char == '-' {
 		instance.delegate = instance.recordFlag
 		instance.recordFlag(char)
@@ -77,14 +77,14 @@ func (instance *CommandLineLexer) start(char rune) {
 	}
 }
 
-func (instance *CommandLineLexer) Lex(args string) []string {
+func (instance *commandLineLexer) Lex(args string) []string {
 	instance.state = ""
 	instance.args = []string{}
 	instance.delegate = instance.start
 	for _, char := range args {
 		instance.delegate(char)
 	}
-	if instance.state != ""{
+	if instance.state != "" {
 		instance.args = append(instance.args, instance.state)
 	}
 	return instance.args

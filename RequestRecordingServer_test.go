@@ -12,12 +12,12 @@ import (
 
 var _ = Describe("RequestRecordingServer", func() {
 
-	AfterEach(func(){
+	AfterEach(func() {
 		TestServer.Clear()
 	})
 
 	Describe("Find", func() {
-		var sampleUrl string
+		var sampleURL string
 		var data string
 
 		Describe("Single Request", func() {
@@ -25,8 +25,8 @@ var _ = Describe("RequestRecordingServer", func() {
 
 			BeforeEach(func() {
 				data = "a=1&b=2"
-				sampleUrl = UrlForTestServer("/Fubar?" + data)
-				request, _ = http.NewRequest("GET", sampleUrl, bytes.NewBuffer([]byte(data)))
+				sampleURL = URLForTestServer("/Fubar?" + data)
+				request, _ = http.NewRequest("GET", sampleURL, bytes.NewBuffer([]byte(data)))
 				request.Header.Set("Content-type", "application/json")
 				TestServer.requests = append(TestServer.requests, RecordedRequest{
 					request: request,
@@ -49,7 +49,7 @@ var _ = Describe("RequestRecordingServer", func() {
 			})
 
 			It("Body", func() {
-				request, _ = http.NewRequest("POST", sampleUrl, bytes.NewBuffer([]byte(data)))
+				request, _ = http.NewRequest("POST", sampleURL, bytes.NewBuffer([]byte(data)))
 				TestServer.Clear()
 				TestServer.requests = append(TestServer.requests, RecordedRequest{
 					request: request,
@@ -71,15 +71,15 @@ var _ = Describe("RequestRecordingServer", func() {
 
 		Describe("Multiple Requests", func() {
 			BeforeEach(func() {
-				sampleUrl = UrlForTestServer("/Fubar")
-				request, _ := http.NewRequest("GET", sampleUrl, nil)
+				sampleURL = URLForTestServer("/Fubar")
+				request, _ := http.NewRequest("GET", sampleURL, nil)
 				request.Header.Set("Content-type", "application/json")
 				TestServer.requests = append(TestServer.requests, RecordedRequest{
 					request: request,
 				})
 
 				data = "a=1&b=2"
-				postRequest, _ := http.NewRequest("POST", sampleUrl, bytes.NewBuffer([]byte(data)))
+				postRequest, _ := http.NewRequest("POST", sampleURL, bytes.NewBuffer([]byte(data)))
 				TestServer.requests = append(TestServer.requests, RecordedRequest{
 					request: postRequest,
 					body:    data,
@@ -121,13 +121,13 @@ var _ = Describe("RequestRecordingServer", func() {
 		It("Defines the response to be used for the server", func() {
 			message := "Hello World"
 
-			factory := HttpResponseFactory(func(w http.ResponseWriter) {
+			factory := HTTPResponseFactory(func(w http.ResponseWriter) {
 				io.WriteString(w, message)
 			})
 
 			TestServer.Use(factory)
 
-			response, body, err := HttpRequestDo("GET", fmt.Sprintf("http://localhost:%d", TEST_PORT), nil, nil)
+			response, body, err := HTTPRequestDo("GET", fmt.Sprintf("http://localhost:%d", TestPort), nil, nil)
 
 			Expect(err).To(BeNil())
 			Expect(response.StatusCode).To(Equal(http.StatusOK))
@@ -136,13 +136,13 @@ var _ = Describe("RequestRecordingServer", func() {
 
 		It("Clears the response to be used for the server", func() {
 			message := "Hello World"
-			factory := HttpResponseFactory(func(w http.ResponseWriter) {
+			factory := HTTPResponseFactory(func(w http.ResponseWriter) {
 				io.WriteString(w, message)
 			})
 			TestServer.Use(factory)
 			TestServer.Clear()
 
-			response, body, err := HttpRequestDo("GET", fmt.Sprintf("http://localhost:%d", TEST_PORT), nil, nil)
+			response, body, err := HTTPRequestDo("GET", fmt.Sprintf("http://localhost:%d", TestPort), nil, nil)
 
 			Expect(err).To(BeNil())
 			Expect(response.StatusCode).To(Equal(http.StatusOK))
@@ -151,11 +151,11 @@ var _ = Describe("RequestRecordingServer", func() {
 
 		It("Defines the response to be used for the server with predicate", func() {
 			message := "Hello World"
-			factory := HttpResponseFactory(func(w http.ResponseWriter) {
+			factory := HTTPResponseFactory(func(w http.ResponseWriter) {
 				io.WriteString(w, message)
 			})
 
-			predicates := []HttpRequestPredicate{
+			predicates := []HTTPRequestPredicate{
 				RequestWithPath("/talula"),
 				RequestWithMethod("POST"),
 				RequestWithHeader("Content-Type", "application/json"),
@@ -163,15 +163,15 @@ var _ = Describe("RequestRecordingServer", func() {
 
 			TestServer.Use(factory).For(predicates...)
 
-			pathMatching := fmt.Sprintf("http://localhost:%d/talula", TEST_PORT)
+			pathMatching := fmt.Sprintf("http://localhost:%d/talula", TestPort)
 			verbMatching := "POST"
-			responseMatching, bodyMatching, errMatching := HttpRequestDo(verbMatching, pathMatching, nil, func(request *http.Request) {
+			responseMatching, bodyMatching, errMatching := HTTPRequestDo(verbMatching, pathMatching, nil, func(request *http.Request) {
 				request.Header.Set("Content-Type", "application/json")
 			})
 
-			pathNonMatching := fmt.Sprintf("http://localhost:%d", TEST_PORT)
+			pathNonMatching := fmt.Sprintf("http://localhost:%d", TestPort)
 			verbNonMatching := "GET"
-			responseNonMatching, bodyNonMatching, errNonMatching := HttpRequestDo(verbNonMatching, pathNonMatching, nil, nil)
+			responseNonMatching, bodyNonMatching, errNonMatching := HTTPRequestDo(verbNonMatching, pathNonMatching, nil, nil)
 
 			Expect(errMatching).To(BeNil())
 			Expect(responseMatching.StatusCode).To(Equal(http.StatusOK))

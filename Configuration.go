@@ -13,6 +13,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+//Configuration ...
 type Configuration struct {
 	Duration time.Duration `yaml:"duration"`
 	FilePath string
@@ -22,7 +23,7 @@ type Configuration struct {
 	WaitTime time.Duration `yaml:"wait-time"`
 }
 
-func ParseConfiguration(args []string) (*Configuration, error) {
+func parseConfiguration(args []string) (*Configuration, error) {
 	config := Configuration{}
 	defaults := defaultConfig()
 	cmd, err := cmdConfig(args)
@@ -39,10 +40,10 @@ func ParseConfiguration(args []string) (*Configuration, error) {
 		return nil, err
 	}
 
-    Log.Printf(" default: %+v\n", defaults)
-    Log.Printf("     cmd: %+v\n", cmd)
-    Log.Printf("     pwd: %+v\n", pwd)
-    Log.Printf("     usr: %+v\n", usr)
+	Log.Printf(" default: %+v\n", defaults)
+	Log.Printf("     cmd: %+v\n", cmd)
+	Log.Printf("     pwd: %+v\n", pwd)
+	Log.Printf("     usr: %+v\n", usr)
 
 	if err := mergo.Merge(&config, &cmd); err != nil {
 		return nil, err
@@ -56,7 +57,7 @@ func ParseConfiguration(args []string) (*Configuration, error) {
 	if err := mergo.Merge(&config, &defaults); err != nil {
 		return nil, err
 	}
-    Log.Printf(" config: %+v\n", config)
+	Log.Printf(" config: %+v\n", config)
 	return &config, err
 }
 
@@ -72,7 +73,7 @@ func cmdConfig(args []string) (Configuration, error) {
 	_, err := CommandLine.Parse(args)
 
 	if err != nil {
-        Log.Println("Unable to parse the kingpin args")
+		Log.Println("Unable to parse the kingpin args")
 		return Configuration{}, err
 	}
 	waitTime, err := time.ParseDuration(*waitTimeArg)
@@ -108,7 +109,7 @@ func pwdConfig() (Configuration, error) {
 		return Configuration{}, err
 	}
 	var config Configuration
-	if err := config.Parse(contents); err != nil {
+	if err := config.parse(contents); err != nil {
 		return Configuration{}, err
 	}
 	return config, nil
@@ -128,7 +129,7 @@ func userDirConfig() (Configuration, error) {
 		return Configuration{}, err
 	}
 	var config Configuration
-	if err := config.Parse(contents); err != nil {
+	if err := config.parse(contents); err != nil {
 		return Configuration{}, err
 	}
 	return config, nil
@@ -146,9 +147,9 @@ func defaultConfig() Configuration {
 	}
 }
 
-func (c *Configuration) Parse(data []byte) error {
+func (c *Configuration) parse(data []byte) error {
 	if err := yaml.Unmarshal(data, c); err != nil {
-        Log.Println("Unable to parse config file")
+		Log.Println("Unable to parse config file")
 		return nil
 	}
 	/*
@@ -161,7 +162,7 @@ func (c *Configuration) Parse(data []byte) error {
 
 var configFileReader = func(path string) ([]byte, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-        Log.Println("Config file not found")
+		Log.Println("Config file not found")
 		return nil, nil
 	}
 	Log.Println("file exists; processing...")

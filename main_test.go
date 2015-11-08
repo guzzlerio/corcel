@@ -16,23 +16,23 @@ import (
 )
 
 var (
-	SUPPORTED_HTTP_METHODS         = []string{"GET", "POST", "PUT", "DELETE"}
-	HTTP_METHODS_WITH_REQUEST_BODY = []string{"POST", "PUT", "DELETE"}
-	TestServer                     *RequestRecordingServer
-	TEST_PORT                      = 8000
-	RESPONSE_CODES_400             = []int{400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418}
-	RESPONSE_CODES_500             = []int{500, 501, 502, 503, 504, 505}
-	WAIT_TIME_TESTS                = []string{"1ms", "2ms", "4ms", "8ms", "16ms", "32ms", "64ms", "128ms"}
-	NUMBER_OF_WORKERS_TO_TEST      = []int{1, 2, 4, 8, 16, 32, 64, 128, 256}
+	SupportedHTTPMethods       = []string{"GET", "POST", "PUT", "DELETE"}
+	HTTPMethodsWithRequestBody = []string{"POST", "PUT", "DELETE"}
+	TestServer                 *RequestRecordingServer
+	TestPort                   = 8000
+	ResponseCodes400           = []int{400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418}
+	ResponseCodes500           = []int{500, 501, 502, 503, 504, 505}
+	WaitTimeTests              = []string{"1ms", "2ms", "4ms", "8ms", "16ms", "32ms", "64ms", "128ms"}
+	NumberOfWorkersToTest      = []int{1, 2, 4, 8, 16, 32, 64, 128, 256}
 )
 
-func UrlForTestServer(path string) string {
-	return fmt.Sprintf("http://localhost:%d%s", TEST_PORT, path)
+func URLForTestServer(path string) string {
+	return fmt.Sprintf("http://localhost:%d%s", TestPort, path)
 }
 
 var _ = BeforeSuite(func() {
 	ConfigureLogging()
-	TestServer = CreateRequestRecordingServer(TEST_PORT)
+	TestServer = CreateRequestRecordingServer(TestPort)
 	TestServer.Start()
 })
 
@@ -47,7 +47,12 @@ func InvokeCorcel(list []string, args ...string) ([]byte, error) {
 		return []byte(""), nil
 	}
 	file := CreateFileFromLines(list)
-	defer os.Remove(file.Name())
+	defer func() {
+		err := os.Remove(file.Name())
+		if err != nil {
+			Log.Printf("Error removing file %v", err)
+		}
+	}()
 	cmd := exec.Command(exePath, append(args, file.Name())...)
 	output, err := cmd.CombinedOutput()
 	if len(output) > 0 {
@@ -57,7 +62,7 @@ func InvokeCorcel(list []string, args ...string) ([]byte, error) {
 }
 
 func SutExecute(list []string, args ...string) []byte {
-    output, err := InvokeCorcel(list, args...)
+	output, err := InvokeCorcel(list, args...)
 	Expect(err).To(BeNil())
 	return output
 }
@@ -79,15 +84,11 @@ func ConcatRequestPaths(requests []*http.Request) string {
 
 var _ = Describe("Main", func() {
 
-	var (
-		exePath string
-		err     error
-	)
-
 	BeforeEach(func() {
-		os.Remove("./output.yml")
-		exePath, err = filepath.Abs("./corcel")
-        check(err)
+		err := os.Remove("./output.yml")
+		if err != nil {
+			Log.Printf("Error removing file %v", err)
+		}
 	})
 
 	AfterEach(func() {
@@ -97,12 +98,12 @@ var _ = Describe("Main", func() {
 	Describe("Support specified duraration for test", func() {
 		It("Runs for 10 seconds", func() {
 			list := []string{
-				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
-				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
-				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
-				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
 			}
 
 			SutExecute(list, "--duration", "5s")
@@ -117,16 +118,16 @@ var _ = Describe("Main", func() {
 
 	It("Support random selection of url from file", func() {
 		list := []string{
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/1")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/2")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/3")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/4")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/5")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/6")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/7")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/8")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/9")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/10")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/1")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/2")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/3")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/4")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/5")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/6")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/7")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/8")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/9")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/10")),
 		}
 
 		SutExecute(list, "--random")
@@ -138,15 +139,15 @@ var _ = Describe("Main", func() {
 		Expect(ConcatRequestPaths(requestsSet1)).ToNot(Equal(ConcatRequestPaths(requestsSet2)))
 	})
 
-    for _, numberOfWorkers := range NUMBER_OF_WORKERS_TO_TEST {
+	for _, numberOfWorkers := range NumberOfWorkersToTest {
 		It(fmt.Sprintf("Support %v workers", numberOfWorkers), func() {
 			list := []string{
-                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-                fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
 			}
 
 			SutExecute(list, "--workers", strconv.Itoa(numberOfWorkers))
@@ -160,17 +161,17 @@ var _ = Describe("Main", func() {
 		})
 	}
 
-	for _, waitTime := range WAIT_TIME_TESTS {
+	for _, waitTime := range WaitTimeTests {
 		It(fmt.Sprintf("Support wait time of %v between each execution in the list", waitTime), func() {
 			waitTimeTolerance := 0.25
 
 			list := []string{
-				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
-				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
-				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
-				fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
 			}
 			start := time.Now()
 			SutExecute(list, "--wait-time", waitTime)
@@ -187,15 +188,15 @@ var _ = Describe("Main", func() {
 
 	It("Outputs a summary to STDOUT", func() {
 		list := []string{
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/error")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/success")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
 		}
 
-		TestServer.Use(HttpResponseFactory(func(w http.ResponseWriter) {
+		TestServer.Use(HTTPResponseFactory(func(w http.ResponseWriter) {
 			w.WriteHeader(500)
 		})).For(RequestWithPath("/error"))
 
@@ -221,17 +222,17 @@ var _ = Describe("Main", func() {
 
 		BeforeEach(func() {
 			list = []string{
-				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
-				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
-				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
-				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
-				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, URLForTestServer("/A")),
+				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, URLForTestServer("/A")),
+				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, URLForTestServer("/A")),
+				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, URLForTestServer("/A")),
+				fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, URLForTestServer("/A")),
 			}
 		})
 
 		It("Records the availability", func() {
 			count := 0
-			TestServer.Use(HttpResponseFactory(func(w http.ResponseWriter) {
+			TestServer.Use(HTTPResponseFactory(func(w http.ResponseWriter) {
 				count++
 				if count%2 == 0 {
 					w.WriteHeader(500)
@@ -249,9 +250,9 @@ var _ = Describe("Main", func() {
 			Expect(executionOutput.Summary.Requests.Availability).To(Equal(expectedAvailability))
 		})
 
-		for _, code := range append(RESPONSE_CODES_500, RESPONSE_CODES_400...) {
+		for _, code := range append(ResponseCodes500, ResponseCodes400...) {
 			It(fmt.Sprintf("Records error for HTTP %v response code range", code), func() {
-				TestServer.Use(HttpResponseFactory(func(w http.ResponseWriter) {
+				TestServer.Use(HTTPResponseFactory(func(w http.ResponseWriter) {
 					w.WriteHeader(code)
 				}))
 
@@ -277,15 +278,15 @@ var _ = Describe("Main", func() {
 
 	It("Generate statistics on timings", func() {
 		list := []string{
-			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
-			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
-			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
-			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
-			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
+			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, URLForTestServer("/A")),
+			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, URLForTestServer("/A")),
+			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, URLForTestServer("/A")),
+			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, URLForTestServer("/A")),
+			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, URLForTestServer("/A")),
 		}
 
 		count := 1
-		TestServer.Use(HttpResponseFactory(func(w http.ResponseWriter) {
+		TestServer.Use(HTTPResponseFactory(func(w http.ResponseWriter) {
 			time.Sleep(time.Duration(count) * time.Millisecond)
 			count++
 		}))
@@ -312,15 +313,16 @@ var _ = Describe("Main", func() {
 
 	It("Generate statistics of data from the execution", func() {
 		list := []string{
-			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
-			fmt.Sprintf(`%s -X PUT -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
-			fmt.Sprintf(`%s -X DELETE -H "Content-type:application/json" -d '{"name":"talula"}'`, UrlForTestServer("/A")),
-			fmt.Sprintf(`%s -X GET`, UrlForTestServer("/A")),
+			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, URLForTestServer("/A")),
+			fmt.Sprintf(`%s -X PUT -H "Content-type:application/json" -d '{"name":"talula"}'`, URLForTestServer("/A")),
+			fmt.Sprintf(`%s -X DELETE -H "Content-type:application/json" -d '{"name":"talula"}'`, URLForTestServer("/A")),
+			fmt.Sprintf(`%s -X GET`, URLForTestServer("/A")),
 		}
 
 		responseBody := "-"
-		TestServer.Use(HttpResponseFactory(func(w http.ResponseWriter) {
-			io.WriteString(w, fmt.Sprintf("%s", responseBody))
+		TestServer.Use(HTTPResponseFactory(func(w http.ResponseWriter) {
+			_, err := io.WriteString(w, fmt.Sprintf("%s", responseBody))
+			check(err)
 			responseBody = responseBody + "-"
 		}))
 
@@ -358,13 +360,13 @@ var _ = Describe("Main", func() {
 	})
 
 	Describe("Support sending data with http request", func() {
-		for _, method := range HTTP_METHODS_WITH_REQUEST_BODY {
+		for _, method := range HTTPMethodsWithRequestBody {
 			It(fmt.Sprintf("in the body for verb %s", method), func() {
 				data := "a=1&b=2&c=3"
-				list := []string{fmt.Sprintf(`%s -X %s -d %s`, UrlForTestServer("/A"), method, data)}
+				list := []string{fmt.Sprintf(`%s -X %s -d %s`, URLForTestServer("/A"), method, data)}
 				SutExecute(list)
 
-				predicates := []HttpRequestPredicate{}
+				predicates := []HTTPRequestPredicate{}
 				predicates = append(predicates, RequestWithPath("/A"))
 				predicates = append(predicates, RequestWithMethod(method))
 				predicates = append(predicates, RequestWithBody(data))
@@ -375,10 +377,10 @@ var _ = Describe("Main", func() {
 		It("in the querystring for verb GET", func() {
 			method := "GET"
 			data := "a=1&b=2&c=3"
-			list := []string{fmt.Sprintf(`%s -X %s -d %s"`, UrlForTestServer("/A"), method, data)}
+			list := []string{fmt.Sprintf(`%s -X %s -d %s"`, URLForTestServer("/A"), method, data)}
 			SutExecute(list)
 
-			predicates := []HttpRequestPredicate{}
+			predicates := []HTTPRequestPredicate{}
 			predicates = append(predicates, RequestWithPath("/A"))
 			predicates = append(predicates, RequestWithMethod(method))
 			predicates = append(predicates, RequestWithQuerystring(data))
@@ -386,14 +388,14 @@ var _ = Describe("Main", func() {
 		})
 	})
 
-	for _, method := range SUPPORTED_HTTP_METHODS {
+	for _, method := range SupportedHTTPMethods {
 		It(fmt.Sprintf("Makes a http %s request with http headers", method), func() {
-			applicationJson := "Content-Type:application/json"
-			applicationSoapXml := "Accept:application/soap+xml"
-			list := []string{fmt.Sprintf(`%s -X %s -H "%s" -H "%s"`, UrlForTestServer("/A"), method, applicationJson, applicationSoapXml)}
+			applicationJSON := "Content-Type:application/json"
+			applicationSoapXML := "Accept:application/soap+xml"
+			list := []string{fmt.Sprintf(`%s -X %s -H "%s" -H "%s"`, URLForTestServer("/A"), method, applicationJSON, applicationSoapXML)}
 			SutExecute(list)
 
-			predicates := []HttpRequestPredicate{}
+			predicates := []HTTPRequestPredicate{}
 			predicates = append(predicates, RequestWithPath("/A"))
 			predicates = append(predicates, RequestWithMethod(method))
 			predicates = append(predicates, RequestWithHeader("Content-Type", "application/json"))
@@ -402,9 +404,9 @@ var _ = Describe("Main", func() {
 		})
 	}
 
-	for _, method := range SUPPORTED_HTTP_METHODS {
+	for _, method := range SupportedHTTPMethods {
 		It(fmt.Sprintf("Makes a http %s request", method), func() {
-			list := []string{fmt.Sprintf(`%s -X %s`, UrlForTestServer("/A"), method)}
+			list := []string{fmt.Sprintf(`%s -X %s`, URLForTestServer("/A"), method)}
 			SutExecute(list)
 			Expect(TestServer.Find(RequestWithPath("/A"), RequestWithMethod(method))).To(Equal(true))
 		})
@@ -412,9 +414,9 @@ var _ = Describe("Main", func() {
 
 	It("Makes a http get request to each url in a file", func() {
 		list := []string{
-			UrlForTestServer("/A"),
-			UrlForTestServer("/B"),
-			UrlForTestServer("/C"),
+			URLForTestServer("/A"),
+			URLForTestServer("/B"),
+			URLForTestServer("/C"),
 		}
 
 		SutExecute(list)

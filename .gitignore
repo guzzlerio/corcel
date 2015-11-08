@@ -34,3 +34,4 @@ travis.log
 *.gz
 
 output/
+linting-results.txt

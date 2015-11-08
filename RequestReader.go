@@ -2,19 +2,28 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"net/http"
 	"os"
 )
 
+//RequestFunc ...
 type RequestFunc func() (*http.Request, error)
 
+//RequestReader ...
 type RequestReader struct {
 	Requests []RequestFunc
 }
 
+//NewRequestReader ...
 func NewRequestReader(filePath string) *RequestReader {
 	file, err := os.Open(filePath)
-	defer file.Close()
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			fmt.Printf("Error closes the file")
+		}
+	}()
 	check(err)
 	requests := []RequestFunc{}
 	requestAdapter := NewRequestAdapter()
@@ -31,10 +40,12 @@ func NewRequestReader(filePath string) *RequestReader {
 	}
 }
 
+//Size ...
 func (instance *RequestReader) Size() int {
 	return len(instance.Requests)
 }
 
+//Read ...
 func (instance *RequestReader) Read(index int) RequestFunc {
 	return instance.Requests[index]
 }

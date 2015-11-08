@@ -10,33 +10,38 @@ import (
 	"net/http/httputil"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
-    "strings"
 
 	"gopkg.in/yaml.v2"
 )
 
 var (
-	logEnabled   = false
-	Log          *log.Logger
+	logEnabled = false
+	//Log ...
+	Log *log.Logger
+	//RandomSource ...
 	RandomSource = rand.NewSource(time.Now().UnixNano())
-	Random       = rand.New(RandomSource)
-    ErrorMappings = map[string]ErrorCode{}
+	//Random ...
+	Random = rand.New(RandomSource)
+	//ErrorMappings ...
+	ErrorMappings = map[string]ErrorCode{}
 )
 
 func check(err error) {
 	if err != nil {
-        for mapping, errorCode := range ErrorMappings{
-            if strings.Contains(fmt.Sprintf("%v",err), mapping){
-                fmt.Println(errorCode.Message)
-                os.Exit(errorCode.Code)
-            }
-        }
-        Log.Fatalf("UNKNOWN ERROR: %v",err)
+		for mapping, errorCode := range ErrorMappings {
+			if strings.Contains(fmt.Sprintf("%v", err), mapping) {
+				fmt.Println(errorCode.Message)
+				os.Exit(errorCode.Code)
+			}
+		}
+		Log.Fatalf("UNKNOWN ERROR: %v", err)
 	}
 }
 
+//ConfigureLogging ...
 func ConfigureLogging() {
 	//TODO: refine this to work with levels or replace
 	//with a package which already handles this
@@ -50,18 +55,24 @@ func ConfigureLogging() {
 	}
 }
 
+//ExecuteRequest ...
 func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Request) {
 	start := time.Now()
 	response, responseError := client.Do(request)
 	duration := time.Since(start) / time.Millisecond
-    check(responseError)
+	check(responseError)
 
-    defer response.Body.Close()
-    responseBytes, _ := httputil.DumpResponse(response, true)
-    stats.BytesReceived(int64(len(responseBytes)))
-    if response.StatusCode >= 400 && response.StatusCode < 600 {
-        responseError = errors.New("5XX Response Code")
-    }
+	defer func() {
+		err := response.Body.Close()
+		if err != nil {
+			Log.Printf("Error closing response Body %v", err)
+		}
+	}()
+	responseBytes, _ := httputil.DumpResponse(response, true)
+	stats.BytesReceived(int64(len(responseBytes)))
+	if response.StatusCode >= 400 && response.StatusCode < 600 {
+		responseError = errors.New("5XX Response Code")
+	}
 
 	stats.ResponseTime(int64(duration))
 	requestBytes, _ := httputil.DumpRequest(request, true)
@@ -69,8 +80,14 @@ func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Reques
 	stats.Request(responseError)
 }
 
+//Execute ...
 func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers int, random bool, duration time.Duration) {
-	defer file.Close()
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			Log.Printf("Error closing file %v", err)
+		}
+	}()
 	var waitGroup sync.WaitGroup
 
 	reader := NewRequestReader(file.Name())
@@ -78,15 +95,15 @@ func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers i
 	for i := 0; i < workers; i++ {
 		waitGroup.Add(1)
 		go func() {
-            defer func() { //catch or finally
-                if err := recover(); err != nil { //catch
-                    if strings.Contains(fmt.Sprintf("%v",err),"too many open files"){
-                        Log.Fatalf("Too many workers man!")
-                    }else{
-                        Log.Fatalf("UNKNOWN ERROR: %v",err)
-                    }
-                }
-            }()
+			defer func() { //catch or finally
+				if err := recover(); err != nil { //catch
+					if strings.Contains(fmt.Sprintf("%v", err), "too many open files") {
+						Log.Fatalf("Too many workers man!")
+					} else {
+						Log.Fatalf("UNKNOWN ERROR: %v", err)
+					}
+				}
+			}()
 			client := &http.Client{
 				Transport: &http.Transport{
 					MaxIdleConnsPerHost: 50,
@@ -104,7 +121,7 @@ func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers i
 			}
 			for stream.HasNext() {
 				request, err := stream.Next()
-                check(err)
+				check(err)
 				ExecuteRequest(client, stats, request)
 
 				time.Sleep(waitTime)
@@ -116,6 +133,7 @@ func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers i
 	waitGroup.Wait()
 }
 
+//GenerateExecutionOutput ...
 func GenerateExecutionOutput(outputPath string, stats *Statistics) {
 	output := stats.ExecutionOutput()
 	yamlOutput, err := yaml.Marshal(&output)
@@ -124,6 +142,7 @@ func GenerateExecutionOutput(outputPath string, stats *Statistics) {
 	check(err)
 }
 
+//OutputSummary ...
 func OutputSummary(stats *Statistics) {
 	output := stats.ExecutionOutput()
 	fmt.Println(fmt.Sprintf("Running Time: %v s", output.Summary.RunningTime/1000))
@@ -144,17 +163,21 @@ func OutputSummary(stats *Statistics) {
 }
 
 func main() {
-    ConfigureErrorMappings()
+	configureErrorMappings()
 	ConfigureLogging()
 
-	config, err := ParseConfiguration(os.Args[1:])
+	config, err := parseConfiguration(os.Args[1:])
 	check(err)
-
 
 	absolutePath, err := filepath.Abs(config.FilePath)
 	check(err)
 	file, err := os.Open(absolutePath)
-	defer file.Close()
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			Log.Printf("Error closing file %v", err)
+		}
+	}()
 	check(err)
 
 	stats := CreateStatistics()

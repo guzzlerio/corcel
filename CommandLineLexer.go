@@ -4,39 +4,44 @@ import (
 	"strings"
 )
 
+//StateDelegate ...
 type StateDelegate func(char rune)
 
+//CommandLineLexer ...
 type CommandLineLexer struct {
 	args          []string
 	state         string
 	allowRune     bool
-	delegate      StateDelegate
 	enclosingRune rune
+	delegate      StateDelegate
 }
 
+//NewCommandLineLexer ...
 func NewCommandLineLexer() *CommandLineLexer {
 	return &CommandLineLexer{}
 }
 
-func (instance *CommandLineLexer) recordFlag(char rune) {
+//RecordFlag ...
+func (instance *CommandLineLexer) RecordFlag(char rune) {
 	if char == ' ' || char == ':' {
 		instance.args = append(instance.args, instance.state)
 		instance.state = ""
-		instance.delegate = instance.recordFlagValue
+		instance.delegate = instance.RecordFlagValue
 	} else {
 		instance.state += string(char)
 	}
 }
 
-func (instance *CommandLineLexer) recordFlagValue(char rune) {
+//RecordFlagValue ...
+func (instance *CommandLineLexer) RecordFlagValue(char rune) {
 	if char == ' ' {
 		if instance.allowRune {
 			instance.state += string(char)
 		} else {
-			if instance.state != ""{
+			if instance.state != "" {
 				instance.args = append(instance.args, instance.state)
 				instance.state = ""
-				instance.delegate = instance.start
+				instance.delegate = instance.Start
 			}
 		}
 	} else if char == '"' || char == '\'' {
@@ -55,36 +60,39 @@ func (instance *CommandLineLexer) recordFlagValue(char rune) {
 	}
 }
 
-func (instance *CommandLineLexer) recordValue(char rune) {
+//RecordValue ...
+func (instance *CommandLineLexer) RecordValue(char rune) {
 	if char == ' ' {
 		instance.args = append(instance.args, strings.Trim(instance.state, "\""))
 		instance.state = ""
-		instance.delegate = instance.start
+		instance.delegate = instance.Start
 	} else {
 		instance.state += string(char)
 	}
 }
 
-func (instance *CommandLineLexer) start(char rune) {
+//Start ...
+func (instance *CommandLineLexer) Start(char rune) {
 	if char == '-' {
-		instance.delegate = instance.recordFlag
-		instance.recordFlag(char)
+		instance.delegate = instance.RecordFlag
+		instance.RecordFlag(char)
 	} else if char == ' ' {
-		instance.delegate = instance.start
+		instance.delegate = instance.Start
 	} else {
-		instance.delegate = instance.recordValue
-		instance.recordValue(char)
+		instance.delegate = instance.RecordValue
+		instance.RecordValue(char)
 	}
 }
 
+//Lex ...
 func (instance *CommandLineLexer) Lex(args string) []string {
 	instance.state = ""
 	instance.args = []string{}
-	instance.delegate = instance.start
+	instance.delegate = instance.Start
 	for _, char := range args {
 		instance.delegate(char)
 	}
-	if instance.state != ""{
+	if instance.state != "" {
 		instance.args = append(instance.args, instance.state)
 	}
 	return instance.args

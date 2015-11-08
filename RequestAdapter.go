@@ -6,21 +6,24 @@ import (
 	"strings"
 )
 
-type RequestAdapter struct {}
+//RequestAdapter ...
+type RequestAdapter struct{}
 
+//NewRequestAdapter ...
 func NewRequestAdapter() RequestAdapter {
 	return RequestAdapter{}
 }
 
+//Create ...
 func (instance RequestAdapter) Create(line string) RequestFunc {
-	return RequestFunc(func() (*http.Request,error) {
-        commandLineLexer := NewCommandLineLexer()
+	return RequestFunc(func() (*http.Request, error) {
+		commandLineLexer := NewCommandLineLexer()
 		lineSplit := commandLineLexer.Lex(line)
 		req, err := http.NewRequest("GET", lineSplit[0], nil)
-        if err != nil{
-            return nil, err
-        }
-		for index, _ := range lineSplit {
+		if err != nil {
+			return nil, err
+		}
+		for index := range lineSplit {
 			if lineSplit[index] == "-X" {
 				req.Method = lineSplit[index+1]
 			}

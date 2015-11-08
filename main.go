@@ -175,7 +175,7 @@ func main() {
 	defer func() {
 		err := file.Close()
 		if err != nil {
-			Log.Println("Error closing file %v", err)
+			Log.Printf("Error closing file %v", err)
 		}
 	}()
 	check(err)

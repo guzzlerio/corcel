@@ -13,7 +13,7 @@ var _ = Describe("Bugs replication", func() {
 
 	BeforeEach(func() {
 		err := os.Remove("./output.yml")
-		if err != nil{
+		if err != nil {
 			Log.Printf("Error removing file %v", err)
 		}
 	})

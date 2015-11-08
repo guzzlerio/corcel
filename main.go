@@ -62,9 +62,9 @@ func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Reques
 	duration := time.Since(start) / time.Millisecond
 	check(responseError)
 
-	defer func(){
+	defer func() {
 		err := response.Body.Close()
-		if err != nil{
+		if err != nil {
 			Log.Printf("Error closing response Body %v", err)
 		}
 	}()
@@ -82,7 +82,12 @@ func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Reques
 
 //Execute ...
 func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers int, random bool, duration time.Duration) {
-	defer file.Close()
+	defer func(){
+		err := file.Close()
+		if err != nil{
+			Log.Printf("Error closing file %v", err)			
+		}
+	}()
 	var waitGroup sync.WaitGroup
 
 	reader := NewRequestReader(file.Name())

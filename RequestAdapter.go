@@ -41,6 +41,9 @@ func (instance RequestAdapter) Create(line string) RequestFunc {
 					req, err = http.NewRequest(req.Method, req.URL.String(), body)
 				}
 			}
+			if lineSplit[index] == "-A" {
+				req.Header.Set("User-Agent", lineSplit[index+1])
+			}
 		}
 		return req, err
 	})

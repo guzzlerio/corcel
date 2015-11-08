@@ -28,7 +28,10 @@ var _ = Describe("RequestReader", func() {
 			fmt.Sprintf(`%s -X POST `, URLForTestServer("/10")),
 		}
 		file := CreateFileFromLines(list)
-		file.Close()
+		err := file.Close()
+		if err != nil{
+			fmt.Println("Error closing the file")
+		}
 		reader = NewRequestReader(file.Name())
 	})
 

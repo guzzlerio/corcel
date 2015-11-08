@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"bufio"
 	"net/http"
 	"os"
@@ -17,7 +18,12 @@ type RequestReader struct {
 //NewRequestReader ...
 func NewRequestReader(filePath string) *RequestReader {
 	file, err := os.Open(filePath)
-	defer file.Close()
+	defer func(){
+		err := file.Close()
+		if err != nil {
+			fmt.Printf("Error closes the file")
+		}
+	}()
 	check(err)
 	requests := []RequestFunc{}
 	requestAdapter := NewRequestAdapter()

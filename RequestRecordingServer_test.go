@@ -122,7 +122,8 @@ var _ = Describe("RequestRecordingServer", func() {
 			message := "Hello World"
 
 			factory := HTTPResponseFactory(func(w http.ResponseWriter) {
-				io.WriteString(w, message)
+				_, err := io.WriteString(w, message)
+				check(err)
 			})
 
 			TestServer.Use(factory)
@@ -137,7 +138,8 @@ var _ = Describe("RequestRecordingServer", func() {
 		It("Clears the response to be used for the server", func() {
 			message := "Hello World"
 			factory := HTTPResponseFactory(func(w http.ResponseWriter) {
-				io.WriteString(w, message)
+				_, err := io.WriteString(w, message)
+				check(err)
 			})
 			TestServer.Use(factory)
 			TestServer.Clear()
@@ -152,7 +154,8 @@ var _ = Describe("RequestRecordingServer", func() {
 		It("Defines the response to be used for the server with predicate", func() {
 			message := "Hello World"
 			factory := HTTPResponseFactory(func(w http.ResponseWriter) {
-				io.WriteString(w, message)
+				_, err := io.WriteString(w, message)
+				check(err)
 			})
 
 			predicates := []HTTPRequestPredicate{

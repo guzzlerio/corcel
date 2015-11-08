@@ -404,6 +404,20 @@ var _ = Describe("Main", func() {
 		})
 	}
 
+	It("Makes a http request with a custom user agent", func() {
+		userAgent := "Mozilla/5.0 (iPhone; U; CPU iPhone OS 5_1_1 like Mac OS X; en) AppleWebKit/534.46.0 (KHTML, like Gecko) CriOS/19.0.1084.60 Mobile/9B206 Safari/7534.48.3"
+
+		method := "POST"
+		list := []string{fmt.Sprintf(`%s -X %s -A "%s"`, URLForTestServer("/A"), method, userAgent)}
+		SutExecute(list)
+
+		predicates := []HTTPRequestPredicate{}
+		predicates = append(predicates, RequestWithPath("/A"))
+		predicates = append(predicates, RequestWithMethod(method))
+		predicates = append(predicates, RequestWithHeader("User-Agent", userAgent))
+		Expect(TestServer.Find(predicates...)).To(Equal(true))
+	})
+
 	for _, method := range SupportedHTTPMethods {
 		It(fmt.Sprintf("Makes a http %s request", method), func() {
 			list := []string{fmt.Sprintf(`%s -X %s`, URLForTestServer("/A"), method)}

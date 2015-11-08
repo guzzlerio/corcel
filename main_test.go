@@ -47,7 +47,12 @@ func InvokeCorcel(list []string, args ...string) ([]byte, error) {
 		return []byte(""), nil
 	}
 	file := CreateFileFromLines(list)
-	defer os.Remove(file.Name())
+	defer func(){
+		err := os.Remove(file.Name())
+		if err != nil{
+			Log.Printf("Error removing file %v", err)
+		}
+	}()
 	cmd := exec.Command(exePath, append(args, file.Name())...)
 	output, err := cmd.CombinedOutput()
 	if len(output) > 0 {
@@ -80,7 +85,10 @@ func ConcatRequestPaths(requests []*http.Request) string {
 var _ = Describe("Main", func() {
 
 	BeforeEach(func() {
-		os.Remove("./output.yml")
+		err := os.Remove("./output.yml")
+		if err != nil{
+			Log.Printf("Error removing file %v", err)
+		}
 	})
 
 	AfterEach(func() {
@@ -313,7 +321,8 @@ var _ = Describe("Main", func() {
 
 		responseBody := "-"
 		TestServer.Use(HTTPResponseFactory(func(w http.ResponseWriter) {
-			io.WriteString(w, fmt.Sprintf("%s", responseBody))
+			_, err := io.WriteString(w, fmt.Sprintf("%s", responseBody))
+			check(err)
 			responseBody = responseBody + "-"
 		}))
 

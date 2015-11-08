@@ -82,10 +82,10 @@ func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Reques
 
 //Execute ...
 func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers int, random bool, duration time.Duration) {
-	defer func(){
+	defer func() {
 		err := file.Close()
-		if err != nil{
-			Log.Printf("Error closing file %v", err)			
+		if err != nil {
+			Log.Printf("Error closing file %v", err)
 		}
 	}()
 	var waitGroup sync.WaitGroup
@@ -172,7 +172,12 @@ func main() {
 	absolutePath, err := filepath.Abs(config.FilePath)
 	check(err)
 	file, err := os.Open(absolutePath)
-	defer file.Close()
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			Log.Println("Error closing file %v", err)
+		}
+	}()
 	check(err)
 
 	stats := CreateStatistics()

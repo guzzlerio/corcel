@@ -2,7 +2,6 @@ package main
 
 import (
     "os"
-    "path/filepath"
     "fmt"
     "strconv"
 	. "github.com/onsi/ginkgo"
@@ -11,15 +10,8 @@ import (
 
 var _ = Describe("Bugs replication", func() {
 
-	var (
-		exePath string
-		err     error
-	)
-
 	BeforeEach(func() {
 		os.Remove("./output.yml")
-		exePath, err = filepath.Abs("./corcel")
-        check(err)
 	})
 
 	AfterEach(func() {

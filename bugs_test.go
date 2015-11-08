@@ -12,7 +12,10 @@ import (
 var _ = Describe("Bugs replication", func() {
 
 	BeforeEach(func() {
-		os.Remove("./output.yml")
+		err := os.Remove("./output.yml")
+		if err != nil{
+			Log.Printf("Error removing file %v", err)
+		}
 	})
 
 	AfterEach(func() {

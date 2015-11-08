@@ -62,7 +62,12 @@ func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Reques
 	duration := time.Since(start) / time.Millisecond
 	check(responseError)
 
-	defer response.Body.Close()
+	defer func(){
+		err := response.Body.Close()
+		if err != nil{
+			Log.Printf("Error closing response Body %v", err)
+		}
+	}()
 	responseBytes, _ := httputil.DumpResponse(response, true)
 	stats.BytesReceived(int64(len(responseBytes)))
 	if response.StatusCode >= 400 && response.StatusCode < 600 {

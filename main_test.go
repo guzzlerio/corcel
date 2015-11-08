@@ -47,9 +47,9 @@ func InvokeCorcel(list []string, args ...string) ([]byte, error) {
 		return []byte(""), nil
 	}
 	file := CreateFileFromLines(list)
-	defer func(){
+	defer func() {
 		err := os.Remove(file.Name())
-		if err != nil{
+		if err != nil {
 			Log.Printf("Error removing file %v", err)
 		}
 	}()
@@ -86,7 +86,7 @@ var _ = Describe("Main", func() {
 
 	BeforeEach(func() {
 		err := os.Remove("./output.yml")
-		if err != nil{
+		if err != nil {
 			Log.Printf("Error removing file %v", err)
 		}
 	})

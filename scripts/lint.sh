@@ -8,3 +8,6 @@ aligncheck .
 go tool vet ./*.go
 gocyclo -over ${MAX_COMPLEXITY} .
 errcheck .
+go tool vet --shadow ./*.go
+varcheck .
+defercheck .

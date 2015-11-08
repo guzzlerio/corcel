@@ -29,7 +29,7 @@ var _ = Describe("RequestReader", func() {
 		}
 		file := CreateFileFromLines(list)
 		err := file.Close()
-		if err != nil{
+		if err != nil {
 			fmt.Println("Error closing the file")
 		}
 		reader = NewRequestReader(file.Name())

@@ -29,7 +29,7 @@ var _ = Describe("RequestStream", func() {
 			fmt.Sprintf(`%s -X POST `, URLForTestServer("/10")),
 		}
 		file := CreateFileFromLines(list)
-		file.Close()
+		check(file.Close())
 		reader = NewRequestReader(file.Name())
 	})
 
@@ -71,7 +71,8 @@ var _ = Describe("RequestStream", func() {
 		iterator = NewTimeBasedRequestStream(iterator, duration)
 		actual := Time(func() {
 			for iterator.HasNext() {
-				iterator.Next()
+				_, err := iterator.Next()
+				check(err)
 			}
 		})
 		max := time.Duration(duration + (500 * time.Millisecond))
@@ -83,7 +84,7 @@ var _ = Describe("RequestStream", func() {
 			fmt.Sprintf(`%s -X POST `, URLForTestServer("/1")),
 		}
 		file := CreateFileFromLines(list)
-		file.Close()
+		check(file.Close())
 		reader = NewRequestReader(file.Name())
 
 		requestSet := []*http.Request{}

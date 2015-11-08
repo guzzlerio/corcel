@@ -11,7 +11,7 @@ func HTTPRequestDo(verb string, url string, bodyBuffer io.Reader, changeRequestD
 	client := &http.Client{}
 	request, err := http.NewRequest(verb, url, bodyBuffer)
 	if err != nil {
-		Log.Printf("err creating request %v")
+		Log.Printf("err creating request %v", err)
 		return
 	}
 	if changeRequestDelegate != nil {
@@ -19,12 +19,12 @@ func HTTPRequestDo(verb string, url string, bodyBuffer io.Reader, changeRequestD
 	}
 	response, err = client.Do(request)
 	if err != nil {
-		Log.Printf("err getting response %v")
+		Log.Printf("err getting response %v", err)
 		return
 	}
 	bodyBytes, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		Log.Printf("err reading body %v")
+		Log.Printf("err reading body %v", err)
 	} else {
 		body = string(bodyBytes)
 	}

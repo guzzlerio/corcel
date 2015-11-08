@@ -2,16 +2,17 @@ package main
 
 import (
 	"fmt"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Command Line Lexer", func() {
 
-	var lexer *commandLineLexer
+	var lexer *CommandLineLexer
 
 	BeforeEach(func() {
-		lexer = newCommandLineLexer()
+		lexer = NewCommandLineLexer()
 	})
 
 	It("Lex a line twice", func() {

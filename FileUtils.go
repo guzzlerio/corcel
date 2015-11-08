@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"gopkg.in/yaml.v2"
 )
 
 //CreateFileFromLines ...
@@ -13,9 +14,10 @@ func CreateFileFromLines(lines []string) *os.File {
 	file, err := ioutil.TempFile(os.TempDir(), "prefix")
 	check(err)
 	for _, line := range lines {
-		file.WriteString(fmt.Sprintf("%s\n", line))
+		_, err := file.WriteString(fmt.Sprintf("%s\n", line))
+		check(err)
 	}
-	file.Sync()
+	check(file.Sync())
 	return file
 }
 

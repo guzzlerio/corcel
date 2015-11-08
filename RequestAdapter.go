@@ -17,7 +17,7 @@ func NewRequestAdapter() RequestAdapter {
 //Create ...
 func (instance RequestAdapter) Create(line string) RequestFunc {
 	return RequestFunc(func() (*http.Request, error) {
-		commandLineLexer := newCommandLineLexer()
+		commandLineLexer := NewCommandLineLexer()
 		lineSplit := commandLineLexer.Lex(line)
 		req, err := http.NewRequest("GET", lineSplit[0], nil)
 		if err != nil {

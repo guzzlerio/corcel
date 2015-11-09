@@ -3,12 +3,11 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-    "log"
 	"os"
 	"path"
 	"time"
 
-    //log "github.com/Sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
 	"github.com/imdario/mergo"
 	"github.com/mitchellh/go-homedir"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -22,15 +21,18 @@ type Configuration struct {
 	Summary  bool          `yaml:"summary"`
 	Workers  int           `yaml:"workers"`
 	WaitTime time.Duration `yaml:"wait-time"`
+	LogLevel log.Level     `yaml:"log-level"`
 }
 
 func ParseConfiguration(args []string) (*Configuration, error) {
+	logLevel = log.FatalLevel
 	config := Configuration{}
 	defaults := defaultConfig()
 	cmd, err := cmdConfig(args)
 	if err != nil {
 		return nil, err
 	}
+	log.SetLevel(logLevel)
 
 	pwd, err := pwdConfig()
 	if err != nil {
@@ -41,49 +43,75 @@ func ParseConfiguration(args []string) (*Configuration, error) {
 		return nil, err
 	}
 
-    log.Printf(" default: %+v\n", defaults)
-    log.Printf("     cmd: %+v\n", cmd)
-    log.Printf("     pwd: %+v\n", pwd)
-    log.Printf("     usr: %+v\n", usr)
-    //log.WithFields(log.Fields{ "default": defaults, "cmd": cmd, "pwd": pwd, "usr": usr, }).Debug("Each config")
+	log.WithFields(log.Fields{"default": defaults, "cmd": cmd, "pwd": pwd, "usr": usr}).Debug("Each config")
 
 	if err := mergo.Merge(&config, &cmd); err != nil {
 		return nil, err
 	}
-    //log.WithFields(log.Fields{ "config": config}).Debug("Applied cmd args")
+	log.WithFields(log.Fields{"config": config}).Debug("Applied cmd args")
 	if err := mergo.Merge(&config, &pwd); err != nil {
 		return nil, err
 	}
-    //log.WithFields(log.Fields{ "config": config}).Debug("Applied pwd config file")
+	log.WithFields(log.Fields{"config": config}).Debug("Applied pwd config file")
 	if err := mergo.Merge(&config, &usr); err != nil {
 		return nil, err
 	}
-    //log.WithFields(log.Fields{ "config": config}).Debug("Applied usr config file")
+	log.WithFields(log.Fields{"config": config}).Debug("Applied usr config file")
 	if err := mergo.Merge(&config, &defaults); err != nil {
 		return nil, err
 	}
-    log.Printf(" config: %+v\n", config)
-    //log.WithFields(log.Fields{ "config": config}).Info("Configuration")
+	eachConfig := []log.Level{cmd.LogLevel, pwd.LogLevel, usr.LogLevel, defaults.LogLevel}
+	setLogLevel(&config, eachConfig)
+	log.WithFields(log.Fields{"config": config}).Info("Configuration")
 	return &config, err
 }
 
-func cmdConfig(args []string) (Configuration, error) {
-	CommandLine := kingpin.New("corcel", "")
-	filePath := CommandLine.Arg("file", "Urls file").Required().ExistingFile()
-	summary := CommandLine.Flag("summary", "Output summary to STDOUT").Bool()
-	waitTimeArg := CommandLine.Flag("wait-time", "Time to wait between each execution").Default("0s").String()
-	workers := CommandLine.Flag("workers", "The number of workers to execute the requests").Int()
-	random := CommandLine.Flag("random", "Select the url at random for each execution").Bool()
-	durationArg := CommandLine.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").String()
+var verbosity int
+var logLevel log.Level
 
-    //log.WithFields(log.Fields{ "args": args }).Debug("Parsing cmd args")
+func setLogLevel(config *Configuration, each []log.Level) {
+	max := log.PanicLevel
+	for _, value := range each {
+		if value > max {
+			max = value // found another smaller value, replace previous value in max
+		}
+	}
+	config.LogLevel = max
+}
+
+func counter(c *kingpin.ParseContext) error {
+	verbosity++
+	switch verbosity {
+	case 1:
+		logLevel = log.WarnLevel
+	case 2:
+		logLevel = log.InfoLevel
+	case 3:
+		logLevel = log.DebugLevel
+	}
+	return nil
+}
+
+func cmdConfig(args []string) (Configuration, error) {
+	config := Configuration{}
+	CommandLine := kingpin.New("corcel", "")
+	CommandLine.Arg("file", "Urls file").Required().ExistingFileVar(&config.FilePath)
+	CommandLine.Flag("summary", "Output summary to STDOUT").BoolVar(&config.Summary)
+	CommandLine.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").Default("0s").DurationVar(&config.Duration)
+	CommandLine.Flag("wait-time", "Time to wait between each execution").Default("0s").DurationVar(&config.WaitTime)
+	CommandLine.Flag("workers", "The number of workers to execute the requests").IntVar(&config.Workers)
+	CommandLine.Flag("random", "Select the url at random for each execution").BoolVar(&config.Random)
+	CommandLine.Flag("verbose", "verbosity").Short('v').Action(counter).Bool()
+
+	//log.WithFields(log.Fields{ "args": args }).Debug("Parsing cmd args")
 	_, err := CommandLine.Parse(args)
 
 	if err != nil {
-        log.Println("Unable to parse the kingpin args")
+		log.Error(err)
 		return Configuration{}, err
 	}
-	waitTime, err := time.ParseDuration(*waitTimeArg)
+	config.LogLevel = logLevel
+	/*waitTime, err := time.ParseDuration(*waitTimeArg)
 	if err != nil {
 		return Configuration{}, fmt.Errorf("Cannot parse the value specified for --wait-time: '%v'", *waitTimeArg)
 	}
@@ -95,15 +123,9 @@ func cmdConfig(args []string) (Configuration, error) {
 			return Configuration{}, fmt.Errorf("Cannot parse the value specified for --duration: '%v'", *durationArg)
 		}
 	}
+	*/
 
-	return Configuration{
-		Duration: duration,
-		FilePath: *filePath,
-		Random:   *random,
-		Summary:  *summary,
-		Workers:  *workers,
-		WaitTime: waitTime,
-	}, err
+	return config, err
 }
 
 func pwdConfig() (Configuration, error) {
@@ -151,12 +173,13 @@ func defaultConfig() Configuration {
 		Summary:  false,
 		Workers:  1,
 		WaitTime: waitTime,
+		LogLevel: log.FatalLevel,
 	}
 }
 
 func (c *Configuration) Parse(data []byte) error {
 	if err := yaml.Unmarshal(data, c); err != nil {
-        log.Println("Unable to parse config file")
+		log.Warn("Unable to parse config file")
 		return nil
 	}
 	/*
@@ -169,14 +192,12 @@ func (c *Configuration) Parse(data []byte) error {
 
 var configFileReader = func(path string) ([]byte, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-        log.Println("Config file not found")
-        //log.WithFields(log.Fields{ "path": path}).Info("Config file not found")
+		log.WithFields(log.Fields{"path": path}).Warn("Config file not found")
 		return nil, nil
 	}
-	log.Println("file exists; processing...")
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-        //log.WithFields(log.Fields{ "path": path}).Info("Unable to read config file")
+		log.WithFields(log.Fields{"path": path}).Warn("Unable to read config file")
 		return nil, nil
 	}
 	return data, nil

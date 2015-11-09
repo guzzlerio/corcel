@@ -4,14 +4,15 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"fmt"
+	//"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
-    "github.com/oleiade/reflections"
-    "github.com/naoina/go-stringutil"
+	"github.com/Sirupsen/logrus"
+	"github.com/naoina/go-stringutil"
+	"github.com/oleiade/reflections"
 )
 
 var _ = Describe("Configuration", func() {
@@ -24,8 +25,9 @@ var _ = Describe("Configuration", func() {
 
 	BeforeEach(func() {
 		args = []string{filename}
+		logrus.setoutput(ioutil.discard)
+		Log.Out = ioutil.Discard
 		configFileReader = func(path string) ([]byte, error) {
-			fmt.Println("test filereader")
 			return []byte(""), nil
 		}
 		configuration, _ = ParseConfiguration(args)
@@ -48,6 +50,9 @@ var _ = Describe("Configuration", func() {
 			It("sets wait-time (--wait-time)", func() {
 				Expect(configuration.WaitTime).To(Equal(defaultWaitTime))
 			})
+			It("sets log-level", func() {
+				Expect(configuration.LogLevel).To(Equal(logrus.FatalLevel))
+			})
 		})
 	})
 
@@ -62,103 +67,108 @@ var _ = Describe("Configuration", func() {
 			configuration *Configuration
 			err           error
 		)
-        duration5m, _ := time.ParseDuration("5m")
+		duration5m, _ := time.ParseDuration("5m")
 
 		testFixtures := []configurationTestFixture{
 			{
 				context: "duration",
 				tests: []configurationTest{
-                    {"passed on cmd but not set in pwd config or user home config", []string{"--duration", "5m", filename}, "", "", duration5m},
-                    {"passed on cmd and set in pwd config and not set in user home config", []string{"--duration", "5m", filename}, "duration: 30s", "", duration5m},
-                    {"passed on cmd and set in pwd config and set in user home config", []string{"--duration", "5m", filename}, "duration: 30s", "duration: 1m", duration5m},
-                    {"set in pwd config and set in user home config", []string{filename}, "duration: 5m", "duration: 1m", duration5m},
-                    {"set in pwd config and not set in user home config", []string{filename}, "duration: 5m", "", duration5m},
-                    {"not set in pwd config but set in user home config", []string{filename}, "", "duration: 5m", duration5m},
-                    {"not set in pwd config or user home config", []string{filename}, "", "", time.Duration(0)},
-                    // unhappy paths
-                    {"set in pwd with invalid value and set in user home config", []string{filename}, "duration: abc", "duration: 5m", duration5m},
-                    {"set in pwd and set in user home config with invalid value", []string{filename}, "duration: 5m", "duration: abc", duration5m},
-                    {"set in pwd with invalid value and not set in user home config", []string{filename}, "duration: abc", "", time.Duration(0)},
-                    {"not set in pwd but set in user home config with invalid value", []string{filename}, "", "duration: abc", time.Duration(0)},
-                },
-            }, {
+					{"passed on cmd but not set in pwd config or user home config", []string{"--duration", "5m", filename}, "", "", duration5m},
+					{"passed on cmd and set in pwd config and not set in user home config", []string{"--duration", "5m", filename}, "duration: 30s", "", duration5m},
+					{"passed on cmd and set in pwd config and set in user home config", []string{"--duration", "5m", filename}, "duration: 30s", "duration: 1m", duration5m},
+					{"set in pwd config and set in user home config", []string{filename}, "duration: 5m", "duration: 1m", duration5m},
+					{"set in pwd config and not set in user home config", []string{filename}, "duration: 5m", "", duration5m},
+					{"not set in pwd config but set in user home config", []string{filename}, "", "duration: 5m", duration5m},
+					{"not set in pwd config or user home config", []string{filename}, "", "", time.Duration(0)},
+					// unhappy paths
+					{"set in pwd with invalid value and set in user home config", []string{filename}, "duration: abc", "duration: 5m", duration5m},
+					{"set in pwd and set in user home config with invalid value", []string{filename}, "duration: 5m", "duration: abc", duration5m},
+					{"set in pwd with invalid value and not set in user home config", []string{filename}, "duration: abc", "", time.Duration(0)},
+					{"not set in pwd but set in user home config with invalid value", []string{filename}, "", "duration: abc", time.Duration(0)},
+				},
+			}, {
 				context: "random",
 				tests: []configurationTest{
-                    {"passed on cmd but not set in pwd config or user home config", []string{"--random", filename}, "", "", true},
-                    {"passed on cmd and set OFF in pwd config and not set in user home config", []string{"--random", filename}, "random: false", "", true},
-                    {"passed on cmd and set OFF in pwd config and set OFF in user home config", []string{"--random", filename}, "random: false", "random: false", true},
-                    {"set ON in pwd config and set OFF in user home config", []string{filename}, "random: true", "random: false", true},
-                    {"set OFF in pwd config and set ON in user home config", []string{filename}, "random: false", "random: true", false},
-                    {"set ON in pwd config and not set in user home config", []string{filename}, "random: true", "", true},
-                    {"set OFF in pwd config and not set in user home config", []string{filename}, "random: false", "", false},
-                    {"not set in pwd config but set ON in user home config", []string{filename}, "", "random: true", true},
-                    {"not set in pwd config but set OFF in user home config", []string{filename}, "", "random: false", false},
-                    {"not set in pwd config or user home config", []string{filename}, "", "", false},
-                    // unhappy paths
-                    {"set in pwd with invalid value and set in user home config", []string{filename}, "random: abc", "random: true", true},
-                    {"set in pwd and set in user home config with invalid value", []string{filename}, "random: true", "random: abc", true},
-                    {"set in pwd with invalid value and not set in user home config", []string{filename}, "random: abc", "", false},
-                    {"not set in pwd but set in user home config with invalid value", []string{filename}, "", "random: abc", false},
-                },
-            }, {
+					{"passed on cmd but not set in pwd config or user home config", []string{"--random", filename}, "", "", true},
+					{"passed on cmd and set OFF in pwd config and not set in user home config", []string{"--random", filename}, "random: false", "", true},
+					{"passed on cmd and set OFF in pwd config and set OFF in user home config", []string{"--random", filename}, "random: false", "random: false", true},
+					{"set ON in pwd config and set OFF in user home config", []string{filename}, "random: true", "random: false", true},
+					{"set OFF in pwd config and set ON in user home config", []string{filename}, "random: false", "random: true", false},
+					{"set ON in pwd config and not set in user home config", []string{filename}, "random: true", "", true},
+					{"set OFF in pwd config and not set in user home config", []string{filename}, "random: false", "", false},
+					{"not set in pwd config but set ON in user home config", []string{filename}, "", "random: true", true},
+					{"not set in pwd config but set OFF in user home config", []string{filename}, "", "random: false", false},
+					{"not set in pwd config or user home config", []string{filename}, "", "", false},
+					// unhappy paths
+					{"set in pwd with invalid value and set in user home config", []string{filename}, "random: abc", "random: true", true},
+					{"set in pwd and set in user home config with invalid value", []string{filename}, "random: true", "random: abc", true},
+					{"set in pwd with invalid value and not set in user home config", []string{filename}, "random: abc", "", false},
+					{"not set in pwd but set in user home config with invalid value", []string{filename}, "", "random: abc", false},
+				},
+			}, {
 				context: "summary",
 				tests: []configurationTest{
-                    {"passed on cmd but not set in pwd config or user home config", []string{"--summary", filename}, "", "", true},
-                    {"passed on cmd and set OFF in pwd config and not set in user home config", []string{"--summary", filename}, "summary: false", "", true},
-                    {"passed on cmd and set OFF in pwd config and set OFF in user home config", []string{"--summary", filename}, "summary: false", "summary: false", true},
-                    {"set ON in pwd config and set OFF in user home config", []string{filename}, "summary: true", "summary: false", true},
-                    {"set OFF in pwd config and set ON in user home config", []string{filename}, "summary: false", "summary: true", false},
-                    {"set ON in pwd config and not set in user home config", []string{filename}, "summary: true", "", true},
-                    {"set OFF in pwd config and not set in user home config", []string{filename}, "summary: false", "", false},
-                    {"not set in pwd config but set ON in user home config", []string{filename}, "", "summary: true", true},
-                    {"not set in pwd config but set OFF in user home config", []string{filename}, "", "summary: false", false},
-                    {"not set in pwd config or user home config", []string{filename}, "", "", false},
-                    // unhappy paths
-                    {"set in pwd with invalid value and set in user home config", []string{filename}, "summary: abc", "summary: true", true},
-                    {"set in pwd and set in user home config with invalid value", []string{filename}, "summary: true", "summary: abc", true},
-                    {"set in pwd with invalid value and not set in user home config", []string{filename}, "summary: abc", "", false},
-                    {"not set in pwd but set in user home config with invalid value", []string{filename}, "", "summary: abc", false},
-                },
-            }, {
-                //TODO change this to "wait-time" when fixed in the stringutil library
+					{"passed on cmd but not set in pwd config or user home config", []string{"--summary", filename}, "", "", true},
+					{"passed on cmd and set OFF in pwd config and not set in user home config", []string{"--summary", filename}, "summary: false", "", true},
+					{"passed on cmd and set OFF in pwd config and set OFF in user home config", []string{"--summary", filename}, "summary: false", "summary: false", true},
+					{"set ON in pwd config and set OFF in user home config", []string{filename}, "summary: true", "summary: false", true},
+					{"set OFF in pwd config and set ON in user home config", []string{filename}, "summary: false", "summary: true", false},
+					{"set ON in pwd config and not set in user home config", []string{filename}, "summary: true", "", true},
+					{"set OFF in pwd config and not set in user home config", []string{filename}, "summary: false", "", false},
+					{"not set in pwd config but set ON in user home config", []string{filename}, "", "summary: true", true},
+					{"not set in pwd config but set OFF in user home config", []string{filename}, "", "summary: false", false},
+					{"not set in pwd config or user home config", []string{filename}, "", "", false},
+					// unhappy paths
+					{"set in pwd with invalid value and set in user home config", []string{filename}, "summary: abc", "summary: true", true},
+					{"set in pwd and set in user home config with invalid value", []string{filename}, "summary: true", "summary: abc", true},
+					{"set in pwd with invalid value and not set in user home config", []string{filename}, "summary: abc", "", false},
+					{"not set in pwd but set in user home config with invalid value", []string{filename}, "", "summary: abc", false},
+				},
+			}, {
+				//TODO change this to "wait-time" when fixed in the stringutil library
 				context: "wait_time",
 				tests: []configurationTest{
-                    {"passed on cmd but not set in pwd config or user home config", []string{"--wait-time", "5m", filename}, "", "", duration5m},
-                    {"passed on cmd and set in pwd config and not set in user home config", []string{"--wait-time", "5m", filename}, "wait-time: 30s", "", duration5m},
-                    {"passed on cmd and set in pwd config and set in user home config", []string{"--wait-time", "5m", filename}, "wait-time: 30s", "wait-time: 1m", duration5m},
-                    {"set in pwd config and set in user home config", []string{filename}, "wait-time: 5m", "wait-time: 1m", duration5m},
-                    {"set in pwd config and not set in user home config", []string{filename}, "wait-time: 5m", "", duration5m},
-                    {"not set in pwd config but set in user home config", []string{filename}, "", "wait-time: 5m", duration5m},
-                    {"not set in pwd config or user home config", []string{filename}, "", "", time.Duration(0)},
-                    // unhappy paths
-                    {"set in pwd with invalid value and set in user home config", []string{filename}, "wait-time: abc", "wait-time: 5m", duration5m},
-                    {"set in pwd and set in user home config with invalid value", []string{filename}, "wait-time: 5m", "wait-time: abc", duration5m},
-                    {"set in pwd with invalid value and not set in user home config", []string{filename}, "wait-time: abc", "", time.Duration(0)},
-                    {"not set in pwd but set in user home config with invalid value", []string{filename}, "", "wait-time: abc", time.Duration(0)},
-                },
-            }, {
+					{"passed on cmd but not set in pwd config or user home config", []string{"--wait-time", "5m", filename}, "", "", duration5m},
+					{"passed on cmd and set in pwd config and not set in user home config", []string{"--wait-time", "5m", filename}, "wait-time: 30s", "", duration5m},
+					{"passed on cmd and set in pwd config and set in user home config", []string{"--wait-time", "5m", filename}, "wait-time: 30s", "wait-time: 1m", duration5m},
+					{"set in pwd config and set in user home config", []string{filename}, "wait-time: 5m", "wait-time: 1m", duration5m},
+					{"set in pwd config and not set in user home config", []string{filename}, "wait-time: 5m", "", duration5m},
+					{"not set in pwd config but set in user home config", []string{filename}, "", "wait-time: 5m", duration5m},
+					{"not set in pwd config or user home config", []string{filename}, "", "", time.Duration(0)},
+					// unhappy paths
+					{"set in pwd with invalid value and set in user home config", []string{filename}, "wait-time: abc", "wait-time: 5m", duration5m},
+					{"set in pwd and set in user home config with invalid value", []string{filename}, "wait-time: 5m", "wait-time: abc", duration5m},
+					{"set in pwd with invalid value and not set in user home config", []string{filename}, "wait-time: abc", "", time.Duration(0)},
+					{"not set in pwd but set in user home config with invalid value", []string{filename}, "", "wait-time: abc", time.Duration(0)},
+				},
+			}, {
 				context: "workers",
 				tests: []configurationTest{
-                    {"passed on cmd but not set in pwd config or user home config", []string{"--workers", "5", filename}, "", "", 5},
-                    {"passed on cmd and set in pwd config and not set in user home config", []string{"--workers", "5", filename}, "workers: 3", "", 5},
-                    {"passed on cmd and set in pwd config and set in user home config", []string{"--workers", "3", filename}, "workers: 3", "workers: 2", 5},
+					{"passed on cmd but not set in pwd config or user home config", []string{"--workers", "5", filename}, "", "", 5},
+					{"passed on cmd and set in pwd config and not set in user home config", []string{"--workers", "5", filename}, "workers: 3", "", 5},
+					{"passed on cmd and set in pwd config and set in user home config", []string{"--workers", "3", filename}, "workers: 3", "workers: 2", 5},
 					{"set in pwd config and not set in user home config", []string{filename}, "workers: 3", "", 3},
-                    {"set in pwd config and set in user home config", []string{filename}, "workers: 3", "workers: 5", 3},
+					{"set in pwd config and set in user home config", []string{filename}, "workers: 3", "workers: 5", 3},
 					{"not set in pwd config but set in user home config", []string{filename}, "", "workers: 3", 3},
 					{"not set in pwd config or user home config", []string{filename}, "", "", 1},
-                    // unhappy paths
-                    {"set in pwd with invalid value and set in user home config", []string{filename}, "workers: abc", "workers: 5", 5},
-                    {"set in pwd and set in user home config with invalid value", []string{filename}, "workers: 5", "workers: abc", 5},
-                    {"set in pwd with invalid value and not set in user home config", []string{filename}, "workers: abc", "", 1},
-                    {"not set in pwd but set in user home config with invalid value", []string{filename}, "", "workers: abc", 1},
+					// unhappy paths
+					{"set in pwd with invalid value and set in user home config", []string{filename}, "workers: abc", "workers: 5", 5},
+					{"set in pwd and set in user home config with invalid value", []string{filename}, "workers: 5", "workers: abc", 5},
+					{"set in pwd with invalid value and not set in user home config", []string{filename}, "workers: abc", "", 1},
+					{"not set in pwd but set in user home config with invalid value", []string{filename}, "", "workers: abc", 1},
 				},
+			}, {
+				context: "log_level",
+				tests:   []configurationTest{
+                    {"set in pwd config and not set in user home config", []string{filename}, "log-level: 3", "", logrus.WarnLevel},
+                },
 			},
 		}
 
 		for _, fixture := range testFixtures {
-            // This is that weird thing where if I just used fixture.context in the assertion it had got the one from the next test in the loop!
-            context := fixture.context
-			Context("for " + context, func() {
+			// This is that weird thing where if I just used fixture.context in the assertion it had got the one from the next test in the loop!
+			context := fixture.context
+			Context("for "+context, func() {
 				for _, test := range fixture.tests {
 					Context(test.name, func() {
 						BeforeEach(func() {
@@ -176,8 +186,7 @@ var _ = Describe("Configuration", func() {
 						})
 
 						It("Parses the yaml and applies the config", func() {
-                            fmt.Printf("Looking for %s in %+v", context, configuration)
-                            actual, _ := reflections.GetField(configuration, stringutil.ToUpperCamelCase(context))
+							actual, _ := reflections.GetField(configuration, stringutil.ToUpperCamelCase(context))
 							Expect(actual).To(Equal(test.expected))
 						})
 					})
@@ -341,11 +350,18 @@ var _ = Describe("Configuration", func() {
 					})
 				})
 			})
+
+			Describe("for verbosity", func() {
+				Context("not set", func() {})
+				Context("-v", func() {})
+				Context("-vv", func() {})
+				Context("-vvv", func() {})
+			})
 		})
 
 		Describe("setting multiple command line args", func() {
 			BeforeEach(func() {
-				args = []string{"--summary", "--workers", "50", "--duration", "3s", filename}
+				args = []string{"--summary", "--workers", "50", "--duration", "3s", "-vv", filename}
 				configuration, _ = ParseConfiguration(args)
 			})
 			It("applies the overrides", func() {
@@ -353,6 +369,7 @@ var _ = Describe("Configuration", func() {
 				Expect(configuration.Duration).To(Equal(duration))
 				Expect(configuration.Summary).To(Equal(true))
 				Expect(configuration.Workers).To(Equal(50))
+				Expect(configuration.LogLevel).To(Equal(logrus.InfoLevel))
 			})
 
 			It("does not override the defaults for other args", func() {
@@ -366,7 +383,7 @@ var _ = Describe("Configuration", func() {
 				It("returns error", func() {
 					args = []string{"--duration", "xs", filename}
 					_, err := ParseConfiguration(args)
-					Expect(err).Should(MatchError("Cannot parse the value specified for --duration: 'xs'"))
+					Expect(err).Should(MatchError("time: invalid duration xs"))
 				})
 			})
 
@@ -382,7 +399,7 @@ var _ = Describe("Configuration", func() {
 				It("returns error", func() {
 					args = []string{"--wait-time", "xs", filename}
 					_, err := ParseConfiguration(args)
-					Expect(err).Should(MatchError("Cannot parse the value specified for --wait-time: 'xs'"))
+					Expect(err).Should(MatchError("time: invalid duration xs"))
 				})
 			})
 		})

@@ -35,10 +35,12 @@ func CreateStatistics() *Statistics {
 
 func (instance *Statistics) Start() {
 	instance.start = time.Now()
+    Log.WithField("at", instance.start).Info("Start")
 }
 
 func (instance *Statistics) Stop(){
 	instance.end = time.Now()
+    Log.WithField("at", instance.end).Info("Stop")
 }
 
 func (instance *Statistics) Request(err error) {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"io"
+    "io/ioutil"
 	"net/http"
 
 	. "github.com/onsi/ginkgo"
@@ -13,6 +14,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/Sirupsen/logrus"
 )
 
 var (
@@ -31,7 +34,9 @@ func UrlForTestServer(path string) string {
 }
 
 var _ = BeforeSuite(func() {
-	ConfigureLogging()
+	ConfigureLogging(&Configuration{})
+    logrus.SetOutput(ioutil.Discard)
+    Log.Out = ioutil.Discard
 	TestServer = CreateRequestRecordingServer(TEST_PORT)
 	TestServer.Start()
 })

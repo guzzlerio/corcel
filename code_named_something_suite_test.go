@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestCodeNamedSomething(t *testing.T) {
+func TestCorcel(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "CodeNamedSomething Suite")
+	RunSpecs(t, "Corcel Suite")
 }

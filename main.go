@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"net/http"
 	"net/http/httputil"
@@ -13,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	//"gopkg.in/alecthomas/kingpin.v2"
+	log "github.com/Sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
@@ -26,21 +25,18 @@ var (
 
 func check(err error) {
 	if err != nil {
-		Log.Panic(err)
+		Log.Fatal(err)
 	}
 }
 
-func ConfigureLogging() {
-	//TODO: refine this to work with levels or replace
-	//with a package which already handles this
-	flags := log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile
-	prefix := "cns: "
+func ConfigureLogging(config *Configuration) {
+	Log = log.New()
+	Log.Level = config.LogLevel
 	if logEnabled {
-		Log = log.New(os.Stdout, prefix, flags)
-	} else {
-		//Send all the output to dev null
-		Log = log.New(ioutil.Discard, prefix, flags)
+		Log.Out = ioutil.Discard
 	}
+	//TODO probably have another ticket to support outputting logs to a file
+	//Log.Formatter = config.Logging.Formatter
 }
 
 func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Request) {
@@ -55,7 +51,7 @@ func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Reques
 			responseError = errors.New("5XX Response Code")
 		}
 	} else {
-        Log.Panicln(fmt.Sprintf("Error: %v", responseError))
+		Log.Panicln(fmt.Sprintf("Error: %v", responseError))
 	}
 
 	stats.ResponseTime(int64(duration))
@@ -65,6 +61,8 @@ func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Reques
 }
 
 func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers int, random bool, duration time.Duration) {
+	stats.Start()
+	defer stats.Stop()
 	defer file.Close()
 	var waitGroup sync.WaitGroup
 
@@ -85,14 +83,14 @@ func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers i
 			} else {
 				stream = NewSequentialRequestStream(reader)
 			}
-            if duration > 0 {
-               stream = NewTimeBasedRequestStream(stream, duration)
-            }
+			if duration > 0 {
+				stream = NewTimeBasedRequestStream(stream, duration)
+			}
 			for stream.HasNext() {
-                request, err := stream.Next()
-                if err != nil{
-                    panic(err)
-                }
+				request, err := stream.Next()
+				if err != nil {
+					panic(err)
+				}
 				ExecuteRequest(client, stats, request)
 
 				time.Sleep(waitTime)
@@ -104,7 +102,9 @@ func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers i
 	waitGroup.Wait()
 }
 
-func GenerateExecutionOutput(outputPath string, stats *Statistics) {
+func GenerateExecutionOutput(file string, stats *Statistics) {
+	outputPath, err := filepath.Abs(file)
+	check(err)
 	output := stats.ExecutionOutput()
 	yamlOutput, err := yaml.Marshal(&output)
 	check(err)
@@ -132,30 +132,12 @@ func OutputSummary(stats *Statistics) {
 }
 
 func main() {
-    config, err := ParseConfiguration(os.Args[1:])
-    check(err)
-    /*
-	waitTime, err := time.ParseDuration(*waitTimeArg)
+	config, err := ParseConfiguration(os.Args[1:])
 	if err != nil {
-		Log.Printf("error parsing --wait-time : %v", err)
-		panic("Cannot parse the time specified for --wait-time")
+		log.Fatal(err)
 	}
 
-    var duration time.Duration = time.Duration(0)
-	if *durationArg != "" {
-		duration, err = time.ParseDuration(*durationArg)
-		if err != nil {
-			Log.Printf("error parsing --duration : %v", err)
-			panic("Cannot parse the value specified for --duration")
-		}
-	}
-
-	if *random {
-		waitTime = time.Duration(1)
-	}
-    */
-
-	ConfigureLogging()
+	ConfigureLogging(config)
 
 	absolutePath, err := filepath.Abs(config.FilePath)
 	check(err)
@@ -164,15 +146,10 @@ func main() {
 	check(err)
 
 	stats := CreateStatistics()
-	stats.Start()
 
 	Execute(file, stats, config.WaitTime, config.Workers, config.Random, config.Duration)
 
-	stats.Stop()
-
-	outputPath, err := filepath.Abs("./output.yml")
-	check(err)
-	GenerateExecutionOutput(outputPath, stats)
+	GenerateExecutionOutput("output.yml", stats)
 
 	if config.Summary {
 		OutputSummary(stats)

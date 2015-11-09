@@ -17,19 +17,19 @@ var _ = Describe("RequestStream", func() {
 
 	BeforeEach(func() {
 		list = []string{
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/1")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/2")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/3")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/4")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/5")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/6")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/7")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/8")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/9")),
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/10")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/1")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/2")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/3")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/4")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/5")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/6")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/7")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/8")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/9")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/10")),
 		}
 		file := CreateFileFromLines(list)
-		file.Close()
+		check(file.Close())
 		reader = NewRequestReader(file.Name())
 	})
 
@@ -38,7 +38,7 @@ var _ = Describe("RequestStream", func() {
 
 		actual := []*http.Request{}
 		for iterator.HasNext() {
-            req,_ := iterator.Next()
+			req, _ := iterator.Next()
 			actual = append(actual, req)
 		}
 		Expect(len(actual)).To(Equal(len(list)))
@@ -50,13 +50,13 @@ var _ = Describe("RequestStream", func() {
 
 		stream1 := NewRandomRequestStream(reader)
 		for stream1.HasNext() {
-            req,_ := stream1.Next()
+			req, _ := stream1.Next()
 			requestSet1 = append(requestSet1, req)
 		}
 
 		stream2 := NewRandomRequestStream(reader)
 		for stream2.HasNext() {
-            req,_ := stream2.Next()
+			req, _ := stream2.Next()
 			requestSet2 = append(requestSet2, req)
 		}
 
@@ -71,29 +71,30 @@ var _ = Describe("RequestStream", func() {
 		iterator = NewTimeBasedRequestStream(iterator, duration)
 		actual := Time(func() {
 			for iterator.HasNext() {
-				iterator.Next()
+				_, err := iterator.Next()
+				check(err)
 			}
 		})
 		max := time.Duration(duration + (500 * time.Millisecond))
 		Expect(DurationIsBetween(actual, duration, max)).To(Equal(true))
 	})
 
-    It("Random Request Stream from Reader with size of 1", func(){
+	It("Random Request Stream from Reader with size of 1", func() {
 		list = []string{
-			fmt.Sprintf(`%s -X POST `, UrlForTestServer("/1")),
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/1")),
 		}
 		file := CreateFileFromLines(list)
-		file.Close()
+		check(file.Close())
 		reader = NewRequestReader(file.Name())
 
 		requestSet := []*http.Request{}
 
 		stream := NewRandomRequestStream(reader)
 		for stream.HasNext() {
-            req,_ := stream.Next()
+			req, _ := stream.Next()
 			requestSet = append(requestSet, req)
 		}
 		Expect(len(requestSet)).To(Equal(len(list)))
-    })
+	})
 
 })

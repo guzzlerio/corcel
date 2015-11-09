@@ -14,6 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+//Configuration ...
 type Configuration struct {
 	Duration time.Duration `yaml:"duration"`
 	FilePath string
@@ -96,6 +97,9 @@ func counter(c *kingpin.ParseContext) error {
 func cmdConfig(args []string) (Configuration, error) {
 	config := Configuration{}
 	CommandLine := kingpin.New("corcel", "")
+
+    CommandLine.Version(applicationVersion)
+
 	CommandLine.Arg("file", "Urls file").Required().ExistingFileVar(&config.FilePath)
 	CommandLine.Flag("summary", "Output summary to STDOUT").BoolVar(&config.Summary)
 	CommandLine.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").Default("0s").DurationVar(&config.Duration)
@@ -112,19 +116,6 @@ func cmdConfig(args []string) (Configuration, error) {
 		return Configuration{}, err
 	}
 	config.LogLevel = logLevel
-	/*waitTime, err := time.ParseDuration(*waitTimeArg)
-	if err != nil {
-		return Configuration{}, fmt.Errorf("Cannot parse the value specified for --wait-time: '%v'", *waitTimeArg)
-	}
-	var duration time.Duration
-	//remove this if when issue #17 is completed
-	if *durationArg != "" {
-		duration, err = time.ParseDuration(*durationArg)
-		if err != nil {
-			return Configuration{}, fmt.Errorf("Cannot parse the value specified for --duration: '%v'", *durationArg)
-		}
-	}
-	*/
 
 	return config, err
 }
@@ -139,7 +130,7 @@ func pwdConfig() (Configuration, error) {
 		return Configuration{}, err
 	}
 	var config Configuration
-	if err := config.Parse(contents); err != nil {
+	if err := config.parse(contents); err != nil {
 		return Configuration{}, err
 	}
 	return config, nil
@@ -159,7 +150,7 @@ func userDirConfig() (Configuration, error) {
 		return Configuration{}, err
 	}
 	var config Configuration
-	if err := config.Parse(contents); err != nil {
+	if err := config.parse(contents); err != nil {
 		return Configuration{}, err
 	}
 	return config, nil
@@ -178,7 +169,7 @@ func defaultConfig() Configuration {
 	}
 }
 
-func (c *Configuration) Parse(data []byte) error {
+func (c *Configuration) parse(data []byte) error {
 	if err := yaml.Unmarshal(data, c); err != nil {
 		log.Warn("Unable to parse config file")
 		return nil

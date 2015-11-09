@@ -9,6 +9,7 @@ import (
 	"net/http/httputil"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -17,41 +18,57 @@ import (
 )
 
 var (
-	logEnabled   = false
-	Log          *log.Logger
+	applicationVersion = "0.1.1-alpha"
+	logEnabled         = false
+	//Log ...
+	Log *log.Logger
+	//RandomSource ...
 	RandomSource = rand.NewSource(time.Now().UnixNano())
-	Random       = rand.New(RandomSource)
+	//Random ...
+	Random = rand.New(RandomSource)
+	//ErrorMappings ...
+	ErrorMappings = map[string]ErrorCode{}
 )
 
 func check(err error) {
 	if err != nil {
-		Log.Fatal(err)
+		for mapping, errorCode := range ErrorMappings {
+			if strings.Contains(fmt.Sprintf("%v", err), mapping) {
+				fmt.Println(errorCode.Message)
+				os.Exit(errorCode.Code)
+			}
+		}
+		Log.Fatalf("UNKNOWN ERROR: %v", err)
 	}
 }
 
 func ConfigureLogging(config *Configuration) {
 	Log = log.New()
 	Log.Level = config.LogLevel
-	if logEnabled {
+	if !logEnabled {
 		Log.Out = ioutil.Discard
 	}
 	//TODO probably have another ticket to support outputting logs to a file
 	//Log.Formatter = config.Logging.Formatter
 }
 
+//ExecuteRequest ...
 func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Request) {
 	start := time.Now()
 	response, responseError := client.Do(request)
 	duration := time.Since(start) / time.Millisecond
-	if responseError == nil {
-		defer response.Body.Close()
-		responseBytes, _ := httputil.DumpResponse(response, true)
-		stats.BytesReceived(int64(len(responseBytes)))
-		if response.StatusCode >= 400 && response.StatusCode < 600 {
-			responseError = errors.New("5XX Response Code")
+	check(responseError)
+
+	defer func() {
+		err := response.Body.Close()
+		if err != nil {
+			Log.Printf("Error closing response Body %v", err)
 		}
-	} else {
-		Log.Panicln(fmt.Sprintf("Error: %v", responseError))
+	}()
+	responseBytes, _ := httputil.DumpResponse(response, true)
+	stats.BytesReceived(int64(len(responseBytes)))
+	if response.StatusCode >= 400 && response.StatusCode < 600 {
+		responseError = errors.New("5XX Response Code")
 	}
 
 	stats.ResponseTime(int64(duration))
@@ -60,10 +77,14 @@ func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Reques
 	stats.Request(responseError)
 }
 
+//Execute ...
 func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers int, random bool, duration time.Duration) {
-	stats.Start()
-	defer stats.Stop()
-	defer file.Close()
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			Log.Printf("Error closing file %v", err)
+		}
+	}()
 	var waitGroup sync.WaitGroup
 
 	reader := NewRequestReader(file.Name())
@@ -71,6 +92,15 @@ func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers i
 	for i := 0; i < workers; i++ {
 		waitGroup.Add(1)
 		go func() {
+			defer func() { //catch or finally
+				if err := recover(); err != nil { //catch
+					if strings.Contains(fmt.Sprintf("%v", err), "too many open files") {
+						Log.Fatalf("Too many workers man!")
+					} else {
+						Log.Fatalf("UNKNOWN ERROR: %v", err)
+					}
+				}
+			}()
 			client := &http.Client{
 				Transport: &http.Transport{
 					MaxIdleConnsPerHost: 50,
@@ -88,9 +118,7 @@ func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers i
 			}
 			for stream.HasNext() {
 				request, err := stream.Next()
-				if err != nil {
-					panic(err)
-				}
+				check(err)
 				ExecuteRequest(client, stats, request)
 
 				time.Sleep(waitTime)
@@ -112,6 +140,7 @@ func GenerateExecutionOutput(file string, stats *Statistics) {
 	check(err)
 }
 
+//OutputSummary ...
 func OutputSummary(stats *Statistics) {
 	output := stats.ExecutionOutput()
 	fmt.Println(fmt.Sprintf("Running Time: %v s", output.Summary.RunningTime/1000))
@@ -132,24 +161,32 @@ func OutputSummary(stats *Statistics) {
 }
 
 func main() {
+	configureErrorMappings()
 	config, err := ParseConfiguration(os.Args[1:])
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(err)
 
 	ConfigureLogging(config)
+
 
 	absolutePath, err := filepath.Abs(config.FilePath)
 	check(err)
 	file, err := os.Open(absolutePath)
-	defer file.Close()
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			Log.Printf("Error closing file %v", err)
+		}
+	}()
 	check(err)
 
 	stats := CreateStatistics()
 
 	Execute(file, stats, config.WaitTime, config.Workers, config.Random, config.Duration)
 
-	GenerateExecutionOutput("output.yml", stats)
+	stats.Stop()
+
+	check(err)
+	GenerateExecutionOutput("./output.yml", stats)
 
 	if config.Summary {
 		OutputSummary(stats)

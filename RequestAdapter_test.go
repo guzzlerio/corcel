@@ -11,11 +11,12 @@ import (
 
 var _ = Describe("RequestAdapter", func() {
 	var (
-		url     string
-		line    string
-		adapter RequestAdapter
-		req     *http.Request
-		err     error
+		userAgent = "Mozilla/5.0 (iPhone; U; CPU iPhone OS 5_1_1 like Mac OS X; en) AppleWebKit/534.46.0 (KHTML, like Gecko) CriOS/19.0.1084.60 Mobile/9B206 Safari/7534.48.3"
+		url       string
+		line      string
+		adapter   RequestAdapter
+		req       *http.Request
+		err       error
 	)
 
 	BeforeEach(func() {
@@ -23,9 +24,10 @@ var _ = Describe("RequestAdapter", func() {
 		line = url
 		line += " -X POST"
 		line += ` -H "Content-type: application/json"`
+		line += fmt.Sprintf(` -A "%s"`, userAgent)
 		adapter = NewRequestAdapter()
-        reqFunc := adapter.Create(line)
-        req, err = reqFunc()
+		reqFunc := adapter.Create(line)
+		req, err = reqFunc()
 		Expect(err).To(BeNil())
 	})
 
@@ -37,38 +39,36 @@ var _ = Describe("RequestAdapter", func() {
 		Expect(req.Method).To(Equal("POST"))
 	})
 
-	It("Parses Header", func(){
+	It("Parses Header", func() {
 		Expect(req.Header.Get("Content-type")).To(Equal("application/json"))
 	})
 
-	Describe("Parses Body", func(){
+	Describe("Parses Body", func() {
 
-		It("For GET request is inside the querystring", func(){
+		It("For GET request is inside the querystring", func() {
 			data := "a=1&b=2"
 			line = url
 			line += " -X GET"
-			line += fmt.Sprintf(` -d "%s"`,data)
+			line += fmt.Sprintf(` -d "%s"`, data)
 			adapter = NewRequestAdapter()
-            reqFunc := adapter.Create(line)
+			reqFunc := adapter.Create(line)
 			req, err = reqFunc()
 			Expect(err).To(BeNil())
 			Expect(req.URL.RawQuery).To(Equal(data))
 		})
 
-		for _, method := range HTTP_METHODS_WITH_REQUEST_BODY {
-			It(fmt.Sprintf("For %s request is in he actual request body", method), func(){
+		for _, method := range HTTPMethodsWithRequestBody {
+			It(fmt.Sprintf("For %s request is in he actual request body", method), func() {
 				data := "a=1&b=2"
 				line = url
 				line += fmt.Sprintf(" -X %s", method)
-				line += fmt.Sprintf(` -d "%s"`,data)
+				line += fmt.Sprintf(` -d "%s"`, data)
 				adapter = NewRequestAdapter()
-                reqFunc := adapter.Create(line)
-                req, err = reqFunc()
+				reqFunc := adapter.Create(line)
+				req, err = reqFunc()
 				Expect(err).To(BeNil())
-				body, err := ioutil.ReadAll(req.Body)
-				if err != nil{
-					panic(err)
-				}
+				body, bodyErr := ioutil.ReadAll(req.Body)
+				check(bodyErr)
 				Expect(string(body)).To(Equal(data))
 			})
 		}
@@ -78,8 +78,12 @@ var _ = Describe("RequestAdapter", func() {
 	It("Parses URLs with leading whitespace", func() {
 		line = "      " + url
 		adapter = NewRequestAdapter()
-        reqFunc := adapter.Create(line)
-        req, err = reqFunc()
+		reqFunc := adapter.Create(line)
+		req, err = reqFunc()
 		Expect(req.URL.String()).To(Equal(url))
+	})
+
+	It("Parses UserAgent", func() {
+		Expect(req.UserAgent()).To(Equal(userAgent))
 	})
 })

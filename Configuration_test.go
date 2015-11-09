@@ -63,9 +63,8 @@ var _ = Describe("Configuration", func() {
 
 	Describe("When config file is found in pwd", func() {
 		var (
-			yaml          string
-			configuration *Configuration
-			err           error
+			yaml string
+			err  error
 		)
 		duration5m, _ := time.ParseDuration("5m")
 

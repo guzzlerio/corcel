@@ -6,6 +6,7 @@ import (
 	"github.com/rcrowley/go-metrics"
 )
 
+//Statistics ...
 type Statistics struct {
 	hBytesSent     metrics.Histogram
 	hBytesReceived metrics.Histogram
@@ -13,12 +14,13 @@ type Statistics struct {
 	mBytesSent     metrics.Meter
 	mBytesReceived metrics.Meter
 	start          time.Time
-	end			   time.Time
+	end            time.Time
 	mRequests      metrics.Meter
 	cErrors        metrics.Counter
 	cTotal         metrics.Counter
 }
 
+//CreateStatistics ...
 func CreateStatistics() *Statistics {
 	sampleSize := 1024
 	return &Statistics{
@@ -33,16 +35,19 @@ func CreateStatistics() *Statistics {
 	}
 }
 
+//Start ...
 func (instance *Statistics) Start() {
 	instance.start = time.Now()
     Log.WithField("at", instance.start).Info("Start")
 }
 
-func (instance *Statistics) Stop(){
+//Stop ...
+func (instance *Statistics) Stop() {
 	instance.end = time.Now()
     Log.WithField("at", instance.end).Info("Stop")
 }
 
+//Request ...
 func (instance *Statistics) Request(err error) {
 	instance.mRequests.Mark(1)
 	if err != nil {
@@ -51,28 +56,34 @@ func (instance *Statistics) Request(err error) {
 	instance.cTotal.Inc(1)
 }
 
+//BytesReceived ...
 func (instance *Statistics) BytesReceived(value int64) {
 	instance.hBytesReceived.Update(value)
 	instance.mBytesReceived.Mark(value)
 }
 
+//BytesSent ...
 func (instance *Statistics) BytesSent(value int64) {
 	instance.hBytesSent.Update(value)
 	instance.mBytesSent.Mark(value)
 }
 
+//ResponseTime ...
 func (instance *Statistics) ResponseTime(value int64) {
 	instance.hResponseTime.Update(value)
 }
 
+//ExecutionOutput ...
 func (instance *Statistics) ExecutionOutput() ExecutionOutput {
+	//TODO: Separate out the construction of the following variables into methods
+	//so that it is easier to manage.  Bit lengthy this ...
 	output := ExecutionOutput{
 		Summary: ExecutionSummary{
 			Requests: RequestsSummary{
-				Rate:   instance.mRequests.RateMean(),
-				Errors: instance.cErrors.Count(),
-				Total: instance.cTotal.Count(),
-				Availability: 1-(float64(instance.cErrors.Count())/float64(instance.cTotal.Count())),
+				Rate:         instance.mRequests.RateMean(),
+				Errors:       instance.cErrors.Count(),
+				Total:        instance.cTotal.Count(),
+				Availability: 1 - (float64(instance.cErrors.Count()) / float64(instance.cTotal.Count())),
 			},
 			RunningTime: float64(instance.end.Sub(instance.start) / time.Millisecond),
 			ResponseTime: ResponseTimeStats{

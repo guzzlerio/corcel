@@ -1,10 +1,11 @@
 package main
 
-type ResponseTimeStats struct{
-	Sum    int64 `yaml:"sum"`
-	Max    int64 `yaml:"max"`
+//ResponseTimeStats ...
+type ResponseTimeStats struct {
+	Sum    int64   `yaml:"sum"`
+	Max    int64   `yaml:"max"`
 	Mean   float64 `yaml:"mean"`
-	Min    int64 `yaml:"min"`
+	Min    int64   `yaml:"min"`
 	P50    float64 `yaml:"p50"`
 	P75    float64 `yaml:"p75"`
 	P95    float64 `yaml:"p95"`
@@ -13,11 +14,12 @@ type ResponseTimeStats struct{
 	Var    float64 `yaml:"var"`
 }
 
+//BytesStats ...
 type BytesStats struct {
-	Sum    int64 `yaml:"sum"`
-	Max    int64 `yaml:"max"`
+	Sum    int64   `yaml:"sum"`
+	Max    int64   `yaml:"max"`
 	Mean   float64 `yaml:"mean"`
-	Min    int64 `yaml:"min"`
+	Min    int64   `yaml:"min"`
 	P50    float64 `yaml:"p50"`
 	P75    float64 `yaml:"p75"`
 	P95    float64 `yaml:"p95"`
@@ -27,25 +29,29 @@ type BytesStats struct {
 	Rate   float64 `yaml:"rate"`
 }
 
+//BytesSummary ...
 type BytesSummary struct {
 	Sent     BytesStats `yaml:"sent"`
 	Received BytesStats `yaml:"received"`
 }
 
+//RequestsSummary ...
 type RequestsSummary struct {
-	Rate float64 `yaml:"rate"`
-	Errors int64 `yaml:"errors"`
-	Total int64 `yaml:"total"`
+	Rate         float64 `yaml:"rate"`
+	Errors       int64   `yaml:"errors"`
+	Total        int64   `yaml:"total"`
 	Availability float64 `yaml:"availability"`
 }
 
+//ExecutionSummary ...
 type ExecutionSummary struct {
-	Bytes BytesSummary `yaml:"bytes"`
+	Bytes        BytesSummary      `yaml:"bytes"`
 	ResponseTime ResponseTimeStats `yaml:"responseTime"`
-	RunningTime float64 `yaml:"runningTime"`
-	Requests RequestsSummary `yaml:"requests"`
+	RunningTime  float64           `yaml:"runningTime"`
+	Requests     RequestsSummary   `yaml:"requests"`
 }
 
+//ExecutionOutput ...
 type ExecutionOutput struct {
 	Summary ExecutionSummary `yaml:"summary"`
 }

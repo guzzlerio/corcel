@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	//"io/ioutil"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,7 +25,7 @@ var _ = Describe("Configuration", func() {
 
 	BeforeEach(func() {
 		args = []string{filename}
-		logrus.setoutput(ioutil.discard)
+		logrus.SetOutput(ioutil.Discard)
 		Log.Out = ioutil.Discard
 		configFileReader = func(path string) ([]byte, error) {
 			return []byte(""), nil
@@ -159,9 +159,9 @@ var _ = Describe("Configuration", func() {
 				},
 			}, {
 				context: "log_level",
-				tests:   []configurationTest{
-                    {"set in pwd config and not set in user home config", []string{filename}, "log-level: 3", "", logrus.WarnLevel},
-                },
+				tests: []configurationTest{
+					{"set in pwd config and not set in user home config", []string{filename}, "log-level: 3", "", logrus.WarnLevel},
+				},
 			},
 		}
 
@@ -352,10 +352,47 @@ var _ = Describe("Configuration", func() {
 			})
 
 			Describe("for verbosity", func() {
-				Context("not set", func() {})
-				Context("-v", func() {})
-				Context("-vv", func() {})
-				Context("-vvv", func() {})
+				Context("not set", func() {
+					BeforeEach(func() {
+						args = []string{filename}
+						configuration, _ = ParseConfiguration(args)
+					})
+
+					It("sets verbosity to Fatal", func() {
+						Expect(configuration.LogLevel).To(Equal(logrus.FatalLevel))
+					})
+				})
+
+				Context("-v", func() {
+					BeforeEach(func() {
+						args = []string{"-v", filename}
+						configuration, _ = ParseConfiguration(args)
+					})
+
+					It("sets verbosity to Fatal", func() {
+						Expect(configuration.LogLevel).To(Equal(logrus.WarnLevel))
+					})
+				})
+				Context("-vv", func() {
+					BeforeEach(func() {
+						args = []string{"-vv", filename}
+						configuration, _ = ParseConfiguration(args)
+					})
+
+					It("sets verbosity to Fatal", func() {
+						Expect(configuration.LogLevel).To(Equal(logrus.InfoLevel))
+					})
+				})
+				Context("-vvv", func() {
+					BeforeEach(func() {
+						args = []string{"-vvv", filename}
+						configuration, _ = ParseConfiguration(args)
+					})
+
+					It("sets verbosity to Fatal", func() {
+						Expect(configuration.LogLevel).To(Equal(logrus.DebugLevel))
+					})
+				})
 			})
 		})
 

@@ -25,6 +25,7 @@ type Configuration struct {
 }
 
 func ParseConfiguration(args []string) (*Configuration, error) {
+    verbosity = 0
 	logLevel = log.FatalLevel
 	config := Configuration{}
 	defaults := defaultConfig()

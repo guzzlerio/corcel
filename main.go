@@ -82,18 +82,12 @@ func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Reques
 }
 
 //Execute ...
-func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers int, random bool, duration time.Duration) {
-	defer func() {
-		err := file.Close()
-		if err != nil {
-			Log.Printf("Error closing file %v", err)
-		}
-	}()
+func Execute(config *Configuration, stats *Statistics) {
 	var waitGroup sync.WaitGroup
 
-	reader := NewRequestReader(file.Name())
+	reader := NewRequestReader(config.FilePath)
 
-	for i := 0; i < workers; i++ {
+	for i := 0; i < config.Workers; i++ {
 		waitGroup.Add(1)
 		go func() {
 			defer func() { //catch or finally
@@ -112,20 +106,20 @@ func Execute(file *os.File, stats *Statistics, waitTime time.Duration, workers i
 			}
 			var stream RequestStream
 
-			if random {
+			if config.Random {
 				stream = NewRandomRequestStream(reader)
 			} else {
 				stream = NewSequentialRequestStream(reader)
 			}
-			if duration > 0 {
-				stream = NewTimeBasedRequestStream(stream, duration)
+			if config.Duration > 0 {
+				stream = NewTimeBasedRequestStream(stream, config.Duration)
 			}
 			for stream.HasNext() {
 				request, err := stream.Next()
 				check(err)
 				ExecuteRequest(client, stats, request)
 
-				time.Sleep(waitTime)
+				time.Sleep(config.WaitTime)
 			}
 			waitGroup.Done()
 		}()
@@ -164,11 +158,11 @@ func OutputSummary(stats *Statistics) {
 }
 
 func main() {
-	configureErrorMappings()
-	ConfigureLogging()
-
 	config, err := parseConfiguration(os.Args[1:])
 	check(err)
+
+	configureErrorMappings()
+	ConfigureLogging()
 
 	absolutePath, err := filepath.Abs(config.FilePath)
 	check(err)
@@ -184,7 +178,7 @@ func main() {
 	stats := CreateStatistics()
 	stats.Start()
 
-	Execute(file, stats, config.WaitTime, config.Workers, config.Random, config.Duration)
+	Execute(config, stats)
 
 	stats.Stop()
 

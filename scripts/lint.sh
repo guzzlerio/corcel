@@ -9,14 +9,25 @@
 
 MAX_COMPLEXITY=3
 
+echo "golint"
 golint
+echo "gofmt -w -s ./*.go"
 gofmt -w -s ./*.go
+echo "goimports -w ./*.go"
 goimports -w ./*.go
+echo "structcheck -t ."
 structcheck -t .
+echo "aligncheck ."
 aligncheck .
+echo "go tool vet ./*.go"
 go tool vet ./*.go
+echo "gocyclo -over ${MAX_COMPLEXITY} ."
 gocyclo -over ${MAX_COMPLEXITY} .
+echo "errcheck ."
 errcheck .
+echo "go tool vet --shadow ./*.go"
 go tool vet --shadow ./*.go
+echo "varcheck ."
 varcheck .
+echo "defercheck ."
 defercheck .

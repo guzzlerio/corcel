@@ -2,7 +2,10 @@ package main
 
 import (
 	"bytes"
+    "io/ioutil"
+    "fmt"
 	"net/http"
+    "os"
 	"strings"
 )
 
@@ -34,10 +37,19 @@ func (instance RequestAdapter) Create(line string) RequestFunc {
 				req.Header.Set(strings.TrimSpace(valueSplit[0]), strings.TrimSpace(valueSplit[1]))
 			}
 			if lineSplit[index] == "-d" {
+                rawBody := lineSplit[index+1]
+
 				if strings.ToLower(req.Method) == "get" {
 					req.URL.RawQuery = lineSplit[index+1]
 				} else {
-					body := bytes.NewBuffer([]byte(lineSplit[index+1]))
+                    var body *bytes.Buffer
+                    bodyBytes := []byte(rawBody)
+                    if strings.HasPrefix(rawBody, "@") {
+                        body = loadRequestBodyFromFile(string(bytes.TrimLeft(bodyBytes, "@")))
+                    } else {
+                        fmt.Println("body from request")
+					    body = bytes.NewBuffer(bodyBytes)
+                    }
 					req, err = http.NewRequest(req.Method, req.URL.String(), body)
 				}
 			}
@@ -45,6 +57,21 @@ func (instance RequestAdapter) Create(line string) RequestFunc {
 				req.Header.Set("User-Agent", lineSplit[index+1])
 			}
 		}
+        fmt.Println("request")
 		return req, err
 	})
+}
+
+var loadRequestBodyFromFile = func(filepath string) *bytes.Buffer {
+	if _, err := os.Stat(filepath); os.IsNotExist(err) {
+        Log.Fatalf("Request body file not found: %s", filepath)
+		return nil
+	}
+	Log.Println("file exists; processing...")
+	data, err := ioutil.ReadFile(filepath)
+    if err != nil {
+        Log.Fatalf("Unable to read Request body file: %s", filepath)
+		return nil
+	}
+    return bytes.NewBuffer([]byte(data))
 }

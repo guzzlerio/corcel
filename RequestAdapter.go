@@ -71,5 +71,5 @@ var loadRequestBodyFromFile = func(filepath string) *bytes.Buffer {
         Log.Fatalf("Unable to read Request body file: %s", filepath)
 		return nil
 	}
-    return bytes.NewBuffer([]byte(data))
+    return bytes.NewBuffer(data)
 }

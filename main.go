@@ -79,7 +79,6 @@ func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Reques
 	requestBytes, _ := httputil.DumpRequest(request, true)
 	stats.BytesSent(int64(len(requestBytes)))
 	stats.Request(responseError)
-    fmt.Println(request, response)
 }
 
 //Execute ...

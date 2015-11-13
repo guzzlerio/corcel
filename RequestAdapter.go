@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
     "io/ioutil"
-    "fmt"
 	"net/http"
     "os"
 	"strings"
@@ -47,7 +46,7 @@ func (instance RequestAdapter) Create(line string) RequestFunc {
                     if strings.HasPrefix(rawBody, "@") {
                         body = loadRequestBodyFromFile(string(bytes.TrimLeft(bodyBytes, "@")))
                     } else {
-                        fmt.Println("body from request")
+                        Log.Println("body from request")
 					    body = bytes.NewBuffer(bodyBytes)
                     }
 					req, err = http.NewRequest(req.Method, req.URL.String(), body)
@@ -57,7 +56,6 @@ func (instance RequestAdapter) Create(line string) RequestFunc {
 				req.Header.Set("User-Agent", lineSplit[index+1])
 			}
 		}
-        fmt.Println("request")
 		return req, err
 	})
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -46,13 +45,6 @@ func parseConfiguration(args []string) (*Configuration, error) {
 		return nil, err
 	}
 
-	/*
-		log.Printf(" default: %+v\n", defaults)
-		log.Printf("     cmd: %+v\n", cmd)
-		log.Printf("     pwd: %+v\n", pwd)
-		log.Printf("     usr: %+v\n", usr)
-	*/
-
 	if err := mergo.Merge(&config, &cmd); err != nil {
 		return nil, err
 	}
@@ -65,7 +57,6 @@ func parseConfiguration(args []string) (*Configuration, error) {
 	if err := mergo.Merge(&config, &defaults); err != nil {
 		return nil, err
 	}
-	//log.Printf(" config: %+v\n", config)
 	return &config, err
 }
 
@@ -85,7 +76,6 @@ func cmdConfig(args []string) (Configuration, error) {
 	_, err := CommandLine.Parse(args)
 
 	if err != nil {
-		//log.Println("Unable to parse the kingpin args")
 		return Configuration{}, err
 	}
 	waitTime, err := time.ParseDuration(*waitTimeArg)
@@ -105,7 +95,7 @@ func cmdConfig(args []string) (Configuration, error) {
 		return Configuration{}, err
 	}
 
-	if _, err := os.Stat(config.FilePath); os.IsNotExist(err) {
+	if _, err = os.Stat(config.FilePath); os.IsNotExist(err) {
 		return Configuration{}, fmt.Errorf("required argument 'file' not provided")
 	}
 
@@ -115,7 +105,7 @@ func cmdConfig(args []string) (Configuration, error) {
 	defer func() {
 		err := file.Close()
 		if err != nil {
-			log.Printf("Error closing file %v", err)
+			Log.Printf("Error closing file %v", err)
 		}
 	}()
 	check(err)
@@ -181,20 +171,19 @@ func defaultConfig() Configuration {
 func (c *Configuration) handleHTTPEndpointForURLFile() error {
 	u, e := url.ParseRequestURI(c.FilePath)
 	if e == nil && u.Scheme != "" {
-		log.Printf("Dowloading URL file from %s ...\n", c.FilePath)
+		Log.Printf("Dowloading URL file from %s ...\n", c.FilePath)
 		file, _ := createTemporaryFile(c.FilePath)
 		out, _ := os.Create(file.Name())
 		defer func() {
-			out.Close()
+			check(out.Close())
 		}()
 
 		body, e := downloadURLFileFromEndpoint(c.FilePath)
 		if e != nil {
 			return fmt.Errorf("unable to download url file from endpoint %s [%s]", c.FilePath, e)
 		}
-		defer body.Close()
+		defer check(body.Close())
 		_, _ = io.Copy(out, body)
-		//log.Printf("url file downloaded: %s\n", file.Name())
 		c.FilePath = file.Name()
 	}
 	return nil
@@ -202,23 +191,15 @@ func (c *Configuration) handleHTTPEndpointForURLFile() error {
 
 func (c *Configuration) parse(data []byte) error {
 	if err := yaml.Unmarshal(data, c); err != nil {
-		//log.Println("Unable to parse config file")
 		return nil
 	}
-	/*
-	   if c.Hostname == "" {
-	       return errors.New("Kitchen config: invalid `hostname`")
-	   }
-	*/
 	return nil
 }
 
 var configFileReader = func(path string) ([]byte, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		//log.Println("Config file not found")
 		return nil, nil
 	}
-	//log.Println("file exists; processing...")
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, nil

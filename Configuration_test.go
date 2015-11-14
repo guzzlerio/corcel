@@ -61,7 +61,6 @@ var _ = Describe("Configuration", func() {
 	Describe("When config file is found in pwd", func() {
 		var (
 			yaml string
-			err  error
 		)
 		duration5m, _ := time.ParseDuration("5m")
 
@@ -366,7 +365,7 @@ var _ = Describe("Configuration", func() {
 			Describe("missing url file", func() {
 				It("returns error", func() {
 					args = []string{}
-					_, err := parseConfiguration(args)
+					_, err = parseConfiguration(args)
 					Expect(err).Should(MatchError("required argument 'file' not provided"))
 				})
 			})
@@ -374,7 +373,7 @@ var _ = Describe("Configuration", func() {
 			Describe("for duration", func() {
 				It("returns error", func() {
 					args = []string{"--duration", "xs", filename}
-					_, err := parseConfiguration(args)
+					_, err = parseConfiguration(args)
 					Expect(err).Should(MatchError("Cannot parse the value specified for --duration: 'xs'"))
 				})
 			})
@@ -382,7 +381,7 @@ var _ = Describe("Configuration", func() {
 			Describe("for workers", func() {
 				It("returns error", func() {
 					args = []string{"--workers", "xs", filename}
-					_, err := parseConfiguration(args)
+					_, err = parseConfiguration(args)
 					Expect(err).Should(MatchError("strconv.ParseFloat: parsing \"xs\": invalid syntax"))
 				})
 			})
@@ -390,7 +389,7 @@ var _ = Describe("Configuration", func() {
 			Describe("for wait-time", func() {
 				It("returns error", func() {
 					args = []string{"--wait-time", "xs", filename}
-					_, err := parseConfiguration(args)
+					_, err = parseConfiguration(args)
 					Expect(err).Should(MatchError("Cannot parse the value specified for --wait-time: 'xs'"))
 				})
 			})
@@ -402,9 +401,9 @@ var _ = Describe("Configuration", func() {
 				endpoint = "http://some-url/to/download/from"
 				createTemporaryFile = func(filePath string) (*os.File, error) {
 					hashed := md5.Sum([]byte(filePath))
-					file, err := ioutil.TempFile(os.TempDir(), fmt.Sprintf("%x", hashed))
+					file, fileErr := ioutil.TempFile(os.TempDir(), fmt.Sprintf("%x", hashed))
 					tmpFile = file.Name()
-					return file, err
+					return file, fileErr
 				}
 			})
 

@@ -2,6 +2,6 @@ http://127.0.0.1:5000/success -X POST
 http://127.0.0.1:5000/server_error -X POST
 http://127.0.0.1:5000/server_error -X POST
 http://127.0.0.1:5000/server_error -X POST
-http://127.0.0.1:5000/success -X POST
+http://127.0.0.1:5000/success -X POST -d @./sample-post.json
 http://127.0.0.1:5000/success -X POST
 http://127.0.0.1:5000/success -X POST

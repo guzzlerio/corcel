@@ -4,6 +4,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"crypto/md5"
+	"fmt"
+	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,8 +18,8 @@ import (
 )
 
 var _ = Describe("Configuration", func() {
-
 	var configuration *Configuration
+	var err error
 	var args []string
 	defaultWaitTime := time.Duration(0)
 	defaultDuration := time.Duration(0)
@@ -57,7 +61,6 @@ var _ = Describe("Configuration", func() {
 	Describe("When config file is found in pwd", func() {
 		var (
 			yaml string
-			err  error
 		)
 		duration5m, _ := time.ParseDuration("5m")
 
@@ -342,7 +345,8 @@ var _ = Describe("Configuration", func() {
 		Describe("setting multiple command line args", func() {
 			BeforeEach(func() {
 				args = []string{"--summary", "--workers", "50", "--duration", "3s", filename}
-				configuration, _ = parseConfiguration(args)
+				configuration, err = parseConfiguration(args)
+				Expect(err).ShouldNot(HaveOccurred())
 			})
 			It("applies the overrides", func() {
 				duration, _ := time.ParseDuration("3s")
@@ -358,10 +362,18 @@ var _ = Describe("Configuration", func() {
 		})
 
 		Describe("with invalid arg values", func() {
+			Describe("missing url file", func() {
+				It("returns error", func() {
+					args = []string{}
+					_, err = parseConfiguration(args)
+					Expect(err).Should(MatchError("required argument 'file' not provided"))
+				})
+			})
+
 			Describe("for duration", func() {
 				It("returns error", func() {
 					args = []string{"--duration", "xs", filename}
-					_, err := parseConfiguration(args)
+					_, err = parseConfiguration(args)
 					Expect(err).Should(MatchError("Cannot parse the value specified for --duration: 'xs'"))
 				})
 			})
@@ -369,7 +381,7 @@ var _ = Describe("Configuration", func() {
 			Describe("for workers", func() {
 				It("returns error", func() {
 					args = []string{"--workers", "xs", filename}
-					_, err := parseConfiguration(args)
+					_, err = parseConfiguration(args)
 					Expect(err).Should(MatchError("strconv.ParseFloat: parsing \"xs\": invalid syntax"))
 				})
 			})
@@ -377,8 +389,51 @@ var _ = Describe("Configuration", func() {
 			Describe("for wait-time", func() {
 				It("returns error", func() {
 					args = []string{"--wait-time", "xs", filename}
-					_, err := parseConfiguration(args)
+					_, err = parseConfiguration(args)
 					Expect(err).Should(MatchError("Cannot parse the value specified for --wait-time: 'xs'"))
+				})
+			})
+		})
+
+		Describe("providing a HTTP endpoint for the url file", func() {
+			var tmpFile, endpoint string
+			BeforeEach(func() {
+				endpoint = "http://some-url/to/download/from"
+				createTemporaryFile = func(filePath string) (*os.File, error) {
+					hashed := md5.Sum([]byte(filePath))
+					file, fileErr := ioutil.TempFile(os.TempDir(), fmt.Sprintf("%x", hashed))
+					tmpFile = file.Name()
+					return file, fileErr
+				}
+			})
+
+			Context("when the file is downloaded successfully", func() {
+				BeforeEach(func() {
+					downloadURLFileFromEndpoint = func(endpoint string) (io.ReadCloser, error) {
+						return ioutil.NopCloser(strings.NewReader("http://something")), nil
+					}
+
+					args = []string{endpoint}
+					configuration, err = parseConfiguration(args)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				It("applies the override", func() {
+					Expect(configuration.FilePath).To(Equal(tmpFile))
+				})
+			})
+
+			Context("when the download fails", func() {
+				BeforeEach(func() {
+					downloadURLFileFromEndpoint = func(endpoint string) (io.ReadCloser, error) {
+						return nil, fmt.Errorf("booom")
+					}
+				})
+
+				It("returns error", func() {
+					args = []string{endpoint}
+					_, err := parseConfiguration(args)
+					Expect(err).Should(MatchError("unable to download url file from endpoint " + endpoint + " [booom]"))
 				})
 			})
 		})

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -44,7 +45,6 @@ var _ = Describe("RequestAdapter", func() {
 	})
 
 	Describe("Parses Body", func() {
-
 		It("For GET request is inside the querystring", func() {
 			data := "a=1&b=2"
 			line = url
@@ -58,7 +58,7 @@ var _ = Describe("RequestAdapter", func() {
 		})
 
 		for _, method := range HTTPMethodsWithRequestBody {
-			It(fmt.Sprintf("For %s request is in he actual request body", method), func() {
+			It(fmt.Sprintf("For %s request is in the actual request body", method), func() {
 				data := "a=1&b=2"
 				line = url
 				line += fmt.Sprintf(" -X %s", method)
@@ -70,6 +70,26 @@ var _ = Describe("RequestAdapter", func() {
 				body, bodyErr := ioutil.ReadAll(req.Body)
 				check(bodyErr)
 				Expect(string(body)).To(Equal(data))
+			})
+
+			It(fmt.Sprintf("For %s requests specifying an input file", method), func() {
+				data := "a=1&b=2"
+				loadRequestBodyFromFile = func(filename string) *bytes.Buffer {
+					body := bytes.NewBuffer([]byte(data))
+					return body
+				}
+
+				line = url
+				line += fmt.Sprintf(" -X %s", method)
+				line += " -d @./file"
+				adapter = NewRequestAdapter()
+				reqFunc := adapter.Create(line)
+				req, err = reqFunc()
+				Expect(err).To(BeNil())
+				body, bodyErr := ioutil.ReadAll(req.Body)
+				check(bodyErr)
+				Expect(string(body)).To(Equal(data))
+
 			})
 		}
 

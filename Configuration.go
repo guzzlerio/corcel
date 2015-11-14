@@ -1,10 +1,15 @@
 package main
 
 import (
+	"crypto/md5"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"net/http"
+	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/imdario/mergo"
@@ -40,11 +45,6 @@ func parseConfiguration(args []string) (*Configuration, error) {
 		return nil, err
 	}
 
-	Log.Printf(" default: %+v\n", defaults)
-	Log.Printf("     cmd: %+v\n", cmd)
-	Log.Printf("     pwd: %+v\n", pwd)
-	Log.Printf("     usr: %+v\n", usr)
-
 	if err := mergo.Merge(&config, &cmd); err != nil {
 		return nil, err
 	}
@@ -57,16 +57,16 @@ func parseConfiguration(args []string) (*Configuration, error) {
 	if err := mergo.Merge(&config, &defaults); err != nil {
 		return nil, err
 	}
-	Log.Printf(" config: %+v\n", config)
 	return &config, err
 }
 
 func cmdConfig(args []string) (Configuration, error) {
+	config := Configuration{}
 	CommandLine := kingpin.New("corcel", "")
 
 	CommandLine.Version(applicationVersion)
 
-	filePath := CommandLine.Arg("file", "Urls file").Required().ExistingFile()
+	CommandLine.Arg("file", "Urls file").Required().StringVar(&config.FilePath)
 	summary := CommandLine.Flag("summary", "Output summary to STDOUT").Bool()
 	waitTimeArg := CommandLine.Flag("wait-time", "Time to wait between each execution").Default("0s").String()
 	workers := CommandLine.Flag("workers", "The number of workers to execute the requests").Int()
@@ -76,7 +76,6 @@ func cmdConfig(args []string) (Configuration, error) {
 	_, err := CommandLine.Parse(args)
 
 	if err != nil {
-		Log.Println("Unable to parse the kingpin args")
 		return Configuration{}, err
 	}
 	waitTime, err := time.ParseDuration(*waitTimeArg)
@@ -92,9 +91,28 @@ func cmdConfig(args []string) (Configuration, error) {
 		}
 	}
 
+	if err = config.handleHTTPEndpointForURLFile(); err != nil {
+		return Configuration{}, err
+	}
+
+	if _, err = os.Stat(config.FilePath); os.IsNotExist(err) {
+		return Configuration{}, fmt.Errorf("required argument 'file' not provided")
+	}
+
+	absolutePath, err := filepath.Abs(config.FilePath)
+	check(err)
+	file, err := os.Open(absolutePath)
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			Log.Printf("Error closing file %v", err)
+		}
+	}()
+	check(err)
+
 	return Configuration{
 		Duration: duration,
-		FilePath: *filePath,
+		FilePath: config.FilePath,
 		Random:   *random,
 		Summary:  *summary,
 		Workers:  *workers,
@@ -150,28 +168,54 @@ func defaultConfig() Configuration {
 	}
 }
 
+func (c *Configuration) handleHTTPEndpointForURLFile() error {
+	u, e := url.ParseRequestURI(c.FilePath)
+	if e == nil && u.Scheme != "" {
+		Log.Printf("Dowloading URL file from %s ...\n", c.FilePath)
+		file, _ := createTemporaryFile(c.FilePath)
+		out, _ := os.Create(file.Name())
+		defer func() {
+			check(out.Close())
+		}()
+
+		body, e := downloadURLFileFromEndpoint(c.FilePath)
+		if e != nil {
+			return fmt.Errorf("unable to download url file from endpoint %s [%s]", c.FilePath, e)
+		}
+		defer check(body.Close())
+		_, _ = io.Copy(out, body)
+		c.FilePath = file.Name()
+	}
+	return nil
+}
+
 func (c *Configuration) parse(data []byte) error {
 	if err := yaml.Unmarshal(data, c); err != nil {
-		Log.Println("Unable to parse config file")
 		return nil
 	}
-	/*
-		if c.Hostname == "" {
-			return errors.New("Kitchen config: invalid `hostname`")
-		}
-	*/
 	return nil
 }
 
 var configFileReader = func(path string) ([]byte, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		Log.Println("Config file not found")
 		return nil, nil
 	}
-	Log.Println("file exists; processing...")
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, nil
 	}
 	return data, nil
+}
+
+var downloadURLFileFromEndpoint = func(endpoint string) (io.ReadCloser, error) {
+	resp, e := http.Get(endpoint)
+	if e != nil {
+		return nil, e
+	}
+	return resp.Body, nil
+}
+
+var createTemporaryFile = func(filePath string) (*os.File, error) {
+	hashed := md5.Sum([]byte(filePath))
+	return ioutil.TempFile(os.TempDir(), fmt.Sprintf("%x", hashed))
 }

@@ -1,7 +1,7 @@
 package main
 
 import (
-    "bytes"
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -72,12 +72,12 @@ var _ = Describe("RequestAdapter", func() {
 				Expect(string(body)).To(Equal(data))
 			})
 
-            It(fmt.Sprintf("For %s requests specifying an input file", method), func() {
+			It(fmt.Sprintf("For %s requests specifying an input file", method), func() {
 				data := "a=1&b=2"
-                loadRequestBodyFromFile = func(filename string) *bytes.Buffer {
+				loadRequestBodyFromFile = func(filename string) *bytes.Buffer {
 					body := bytes.NewBuffer([]byte(data))
-                    return body
-                }
+					return body
+				}
 
 				line = url
 				line += fmt.Sprintf(" -X %s", method)
@@ -90,7 +90,7 @@ var _ = Describe("RequestAdapter", func() {
 				check(bodyErr)
 				Expect(string(body)).To(Equal(data))
 
-            })
+			})
 		}
 
 	})

@@ -7,7 +7,7 @@
 
 
 
-MAX_COMPLEXITY=3
+MAX_COMPLEXITY=4
 
 golint
 gofmt -w -s ./*.go

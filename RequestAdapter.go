@@ -2,9 +2,9 @@ package main
 
 import (
 	"bytes"
-    "io/ioutil"
+	"io/ioutil"
 	"net/http"
-    "os"
+	"os"
 	"strings"
 )
 
@@ -36,19 +36,19 @@ func (instance RequestAdapter) Create(line string) RequestFunc {
 				req.Header.Set(strings.TrimSpace(valueSplit[0]), strings.TrimSpace(valueSplit[1]))
 			}
 			if lineSplit[index] == "-d" {
-                rawBody := lineSplit[index+1]
+				rawBody := lineSplit[index+1]
 
 				if strings.ToLower(req.Method) == "get" {
 					req.URL.RawQuery = lineSplit[index+1]
 				} else {
-                    var body *bytes.Buffer
-                    bodyBytes := []byte(rawBody)
-                    if strings.HasPrefix(rawBody, "@") {
-                        body = loadRequestBodyFromFile(string(bytes.TrimLeft(bodyBytes, "@")))
-                    } else {
-                        Log.Println("body from request")
-					    body = bytes.NewBuffer(bodyBytes)
-                    }
+					var body *bytes.Buffer
+					bodyBytes := []byte(rawBody)
+					if strings.HasPrefix(rawBody, "@") {
+						body = loadRequestBodyFromFile(string(bytes.TrimLeft(bodyBytes, "@")))
+					} else {
+						Log.Println("body from request")
+						body = bytes.NewBuffer(bodyBytes)
+					}
 					req, err = http.NewRequest(req.Method, req.URL.String(), body)
 				}
 			}
@@ -62,14 +62,14 @@ func (instance RequestAdapter) Create(line string) RequestFunc {
 
 var loadRequestBodyFromFile = func(filepath string) *bytes.Buffer {
 	if _, err := os.Stat(filepath); os.IsNotExist(err) {
-        Log.Fatalf("Request body file not found: %s", filepath)
+		Log.Fatalf("Request body file not found: %s", filepath)
 		return nil
 	}
 	Log.Println("file exists; processing...")
 	data, err := ioutil.ReadFile(filepath)
-    if err != nil {
-        Log.Fatalf("Unable to read Request body file: %s", filepath)
+	if err != nil {
+		Log.Fatalf("Unable to read Request body file: %s", filepath)
 		return nil
 	}
-    return bytes.NewBuffer(data)
+	return bytes.NewBuffer(data)
 }

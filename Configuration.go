@@ -45,18 +45,13 @@ func parseConfiguration(args []string) (*Configuration, error) {
 		return nil, err
 	}
 
-	if err := mergo.Merge(&config, &cmd); err != nil {
-		return nil, err
+	items := []interface{}{&cmd, &pwd, &usr, &defaults}
+	for _, item := range items {
+		if err := mergo.Merge(&config, item); err != nil {
+			return nil, err
+		}
 	}
-	if err := mergo.Merge(&config, &pwd); err != nil {
-		return nil, err
-	}
-	if err := mergo.Merge(&config, &usr); err != nil {
-		return nil, err
-	}
-	if err := mergo.Merge(&config, &defaults); err != nil {
-		return nil, err
-	}
+
 	return &config, err
 }
 

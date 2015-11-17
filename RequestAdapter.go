@@ -25,6 +25,14 @@ func HandlerForMethod(options []string, index int, req *http.Request) *http.Requ
 	return req
 }
 
+func HandlerForHeader(options []string, index int, req *http.Request) *http.Request {
+	value := strings.Trim(options[index+1], "\"")
+
+	valueSplit := strings.Split(value, ":")
+	req.Header.Set(strings.TrimSpace(valueSplit[0]), strings.TrimSpace(valueSplit[1]))
+	return req
+}
+
 //Create ...
 func (instance RequestAdapter) Create(line string) RequestFunc {
 	return RequestFunc(func() (*http.Request, error) {
@@ -36,14 +44,10 @@ func (instance RequestAdapter) Create(line string) RequestFunc {
 		}
 		for index := range lineSplit {
 			if lineSplit[index] == "-X" {
-				//req.Method = lineSplit[index+1]
 				req = HandlerForMethod(lineSplit, index, req)
 			}
 			if lineSplit[index] == "-H" {
-				value := strings.Trim(lineSplit[index+1], "\"")
-
-				valueSplit := strings.Split(value, ":")
-				req.Header.Set(strings.TrimSpace(valueSplit[0]), strings.TrimSpace(valueSplit[1]))
+				req = HandlerForHeader(lineSplit, index, req)
 			}
 			if lineSplit[index] == "-d" {
 				rawBody := lineSplit[index+1]

@@ -16,6 +16,15 @@ func NewRequestAdapter() RequestAdapter {
 	return RequestAdapter{}
 }
 
+type RequestConfigHandler interface {
+	Handle(options []string, index int, req *http.Request) *http.Request
+}
+
+func HandlerForMethod(options []string, index int, req *http.Request) *http.Request {
+	req.Method = options[index+1]
+	return req
+}
+
 //Create ...
 func (instance RequestAdapter) Create(line string) RequestFunc {
 	return RequestFunc(func() (*http.Request, error) {
@@ -27,7 +36,8 @@ func (instance RequestAdapter) Create(line string) RequestFunc {
 		}
 		for index := range lineSplit {
 			if lineSplit[index] == "-X" {
-				req.Method = lineSplit[index+1]
+				//req.Method = lineSplit[index+1]
+				req = HandlerForMethod(lineSplit, index, req)
 			}
 			if lineSplit[index] == "-H" {
 				value := strings.Trim(lineSplit[index+1], "\"")

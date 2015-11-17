@@ -45,6 +45,22 @@ func CreateRequestRecordingServer(port int) *RequestRecordingServer {
 	}
 }
 
+func (instance *RequestRecordingServer) evaluatePredicates(recordedRequest RecordedRequest, w http.ResponseWriter) {
+	for _, item := range instance.use {
+		if item.RequestPredicates != nil {
+			result := instance.Evaluate(recordedRequest, item.RequestPredicates...)
+			if result {
+				item.ResponseFactory(w)
+				return
+			}
+		} else {
+			item.ResponseFactory(w)
+			return
+		}
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 //Start ...
 func (instance *RequestRecordingServer) Start() {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -56,19 +72,7 @@ func (instance *RequestRecordingServer) Start() {
 		}
 		instance.requests = append(instance.requests, recordedRequest)
 		if instance.use != nil {
-			for _, item := range instance.use {
-				if item.RequestPredicates != nil {
-					result := instance.Evaluate(recordedRequest, item.RequestPredicates...)
-					if result {
-						item.ResponseFactory(w)
-						return
-					}
-				} else {
-					item.ResponseFactory(w)
-					return
-				}
-			}
-			w.WriteHeader(http.StatusOK)
+			instance.evaluatePredicates(recordedRequest, w)
 		} else {
 			w.WriteHeader(http.StatusOK)
 		}

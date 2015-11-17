@@ -28,6 +28,13 @@ type Configuration struct {
 	WaitTime time.Duration `yaml:"wait-time"`
 }
 
+func (instance *Configuration) validate() error {
+	if _, err := os.Stat(instance.FilePath); os.IsNotExist(err) {
+		return fmt.Errorf("required argument 'file' not provided")
+	}
+	return nil
+}
+
 func parseConfiguration(args []string) (*Configuration, error) {
 	config := Configuration{}
 	defaults := defaultConfig()
@@ -61,11 +68,11 @@ func parseConfiguration(args []string) (*Configuration, error) {
 }
 
 func cmdConfig(args []string) (Configuration, error) {
-	config := Configuration{}
 	CommandLine := kingpin.New("corcel", "")
 
 	CommandLine.Version(applicationVersion)
 
+	config := Configuration{}
 	CommandLine.Arg("file", "Urls file").Required().StringVar(&config.FilePath)
 	summary := CommandLine.Flag("summary", "Output summary to STDOUT").Bool()
 	waitTimeArg := CommandLine.Flag("wait-time", "Time to wait between each execution").Default("0s").String()
@@ -95,10 +102,6 @@ func cmdConfig(args []string) (Configuration, error) {
 		return Configuration{}, err
 	}
 
-	if _, err = os.Stat(config.FilePath); os.IsNotExist(err) {
-		return Configuration{}, fmt.Errorf("required argument 'file' not provided")
-	}
-
 	absolutePath, err := filepath.Abs(config.FilePath)
 	check(err)
 	file, err := os.Open(absolutePath)
@@ -110,14 +113,21 @@ func cmdConfig(args []string) (Configuration, error) {
 	}()
 	check(err)
 
-	return Configuration{
+	config = Configuration{
 		Duration: duration,
 		FilePath: config.FilePath,
 		Random:   *random,
 		Summary:  *summary,
 		Workers:  *workers,
 		WaitTime: waitTime,
-	}, err
+	}
+
+	if validationErr := config.validate(); validationErr != nil {
+		return Configuration{}, validationErr
+	} else {
+		return config, nil
+	}
+
 }
 
 func pwdConfig() (Configuration, error) {

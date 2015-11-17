@@ -1,4 +1,4 @@
-all: clean build lint test
+all: install clean build lint test
 
 clean:
 	go clean
@@ -12,4 +12,9 @@ test: build lint
 lint:
 	bash scripts/lint.sh
 
-.PHONY: clean build lint test
+install:
+	go get -t
+	go get github.com/alecthomas/gometalinter
+	gometalinter --install --update
+
+.PHONY: clean build lint test install

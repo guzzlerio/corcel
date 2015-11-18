@@ -33,6 +33,28 @@ func HandlerForHeader(options []string, index int, req *http.Request) *http.Requ
 	return req
 }
 
+func HandlerForData(options []string, index int, req *http.Request) (outReq *http.Request) {
+	rawBody := options[index+1]
+
+	if strings.ToLower(req.Method) == "get" {
+		req.URL.RawQuery = options[index+1]
+		outReq = req
+	} else {
+		var body *bytes.Buffer
+		bodyBytes := []byte(rawBody)
+		if strings.HasPrefix(rawBody, "@") {
+			body = loadRequestBodyFromFile(string(bytes.TrimLeft(bodyBytes, "@")))
+		} else {
+			Log.Println("body from request")
+			body = bytes.NewBuffer(bodyBytes)
+		}
+		newReq, err := http.NewRequest(req.Method, req.URL.String(), body)
+		check(err)
+		outReq = newReq
+	}
+	return
+}
+
 //Create ...
 func (instance RequestAdapter) Create(line string) RequestFunc {
 	return RequestFunc(func() (*http.Request, error) {
@@ -50,21 +72,7 @@ func (instance RequestAdapter) Create(line string) RequestFunc {
 				req = HandlerForHeader(lineSplit, index, req)
 			}
 			if lineSplit[index] == "-d" {
-				rawBody := lineSplit[index+1]
-
-				if strings.ToLower(req.Method) == "get" {
-					req.URL.RawQuery = lineSplit[index+1]
-				} else {
-					var body *bytes.Buffer
-					bodyBytes := []byte(rawBody)
-					if strings.HasPrefix(rawBody, "@") {
-						body = loadRequestBodyFromFile(string(bytes.TrimLeft(bodyBytes, "@")))
-					} else {
-						Log.Println("body from request")
-						body = bytes.NewBuffer(bodyBytes)
-					}
-					req, err = http.NewRequest(req.Method, req.URL.String(), body)
-				}
+				req = HandlerForData(lineSplit, index, req)
 			}
 			if lineSplit[index] == "-A" {
 				req.Header.Set("User-Agent", lineSplit[index+1])

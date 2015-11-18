@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"os"
 	"path"
-	"path/filepath"
 	"time"
 
 	"github.com/imdario/mergo"
@@ -26,6 +25,17 @@ type Configuration struct {
 	Summary  bool          `yaml:"summary"`
 	Workers  int           `yaml:"workers"`
 	WaitTime time.Duration `yaml:"wait-time"`
+}
+
+func (instance *Configuration) validate() error {
+	if err := instance.handleHTTPEndpointForURLFile(); err != nil {
+		return err
+	}
+
+	if _, err := os.Stat(instance.FilePath); os.IsNotExist(err) {
+		return fmt.Errorf("required argument 'file' not provided")
+	}
+	return nil
 }
 
 func parseConfiguration(args []string) (*Configuration, error) {
@@ -56,11 +66,11 @@ func parseConfiguration(args []string) (*Configuration, error) {
 }
 
 func cmdConfig(args []string) (Configuration, error) {
-	config := Configuration{}
 	CommandLine := kingpin.New("corcel", "")
 
 	CommandLine.Version(applicationVersion)
 
+	config := Configuration{}
 	CommandLine.Arg("file", "Urls file").Required().StringVar(&config.FilePath)
 	summary := CommandLine.Flag("summary", "Output summary to STDOUT").Bool()
 	waitTimeArg := CommandLine.Flag("wait-time", "Time to wait between each execution").Default("0s").String()
@@ -86,33 +96,20 @@ func cmdConfig(args []string) (Configuration, error) {
 		}
 	}
 
-	if err = config.handleHTTPEndpointForURLFile(); err != nil {
-		return Configuration{}, err
-	}
-
-	if _, err = os.Stat(config.FilePath); os.IsNotExist(err) {
-		return Configuration{}, fmt.Errorf("required argument 'file' not provided")
-	}
-
-	absolutePath, err := filepath.Abs(config.FilePath)
-	check(err)
-	file, err := os.Open(absolutePath)
-	defer func() {
-		err := file.Close()
-		if err != nil {
-			Log.Printf("Error closing file %v", err)
-		}
-	}()
-	check(err)
-
-	return Configuration{
+	config = Configuration{
 		Duration: duration,
 		FilePath: config.FilePath,
 		Random:   *random,
 		Summary:  *summary,
 		Workers:  *workers,
 		WaitTime: waitTime,
-	}, err
+	}
+
+	if validationErr := config.validate(); validationErr != nil {
+		return Configuration{}, validationErr
+	} else {
+		return config, nil
+	}
 }
 
 func pwdConfig() (Configuration, error) {

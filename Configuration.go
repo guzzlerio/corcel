@@ -29,6 +29,17 @@ type Configuration struct {
 	LogLevel log.Level     `yaml:"log-level"`
 }
 
+func (instance *Configuration) validate() error {
+	if err := instance.handleHTTPEndpointForURLFile(); err != nil {
+		return err
+	}
+
+	if _, err := os.Stat(instance.FilePath); os.IsNotExist(err) {
+		return fmt.Errorf("required argument 'file' not provided")
+	}
+	return nil
+}
+
 func ParseConfiguration(args []string) (*Configuration, error) {
     verbosity = 0
 	logLevel = log.FatalLevel
@@ -88,11 +99,11 @@ func counter(c *kingpin.ParseContext) error {
 }
 
 func cmdConfig(args []string) (Configuration, error) {
-	config := Configuration{}
 	CommandLine := kingpin.New("corcel", "")
 
     CommandLine.Version(applicationVersion)
 
+	config := Configuration{}
 	CommandLine.Arg("file", "Urls file").Required().StringVar(&config.FilePath)
 	CommandLine.Flag("summary", "Output summary to STDOUT").BoolVar(&config.Summary)
 	CommandLine.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").Default("0s").DurationVar(&config.Duration)
@@ -117,7 +128,11 @@ func cmdConfig(args []string) (Configuration, error) {
 		return Configuration{}, fmt.Errorf("required argument 'file' not provided")
 	}
 
-	return config, err
+	if validationErr := config.validate(); validationErr != nil {
+		return Configuration{}, validationErr
+	} else {
+		return config, nil
+	}
 }
 
 func pwdConfig() (Configuration, error) {

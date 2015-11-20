@@ -19,7 +19,6 @@ import (
 
 var (
 	applicationVersion = "0.1.1-alpha"
-	logEnabled         = false
 	//Log ...
 	Log *log.Logger
 	//RandomSource ...
@@ -46,15 +45,13 @@ func check(err error) {
 func ConfigureLogging(config *Configuration) {
 	Log = log.New()
 	Log.Level = config.LogLevel
-	if !logEnabled {
-		Log.Out = ioutil.Discard
-	}
 	//TODO probably have another ticket to support outputting logs to a file
 	//Log.Formatter = config.Logging.Formatter
 }
 
 //ExecuteRequest ...
 func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Request) {
+	Log.Infof("%s to %s", request.Method, request.URL)
 	start := time.Now()
 	response, responseError := client.Do(request)
 	duration := time.Since(start) / time.Millisecond
@@ -63,7 +60,7 @@ func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Reques
 	defer func() {
 		err := response.Body.Close()
 		if err != nil {
-			Log.Printf("Error closing response Body %v", err)
+			Log.Warnf("Error closing response Body %v", err)
 		}
 	}()
 	responseBytes, _ := httputil.DumpResponse(response, true)
@@ -125,6 +122,7 @@ func Execute(config *Configuration, stats *Statistics) {
 	waitGroup.Wait()
 }
 
+//GenerateExecutionOutput ...
 func GenerateExecutionOutput(file string, stats *Statistics) {
 	outputPath, err := filepath.Abs(file)
 	check(err)
@@ -161,7 +159,6 @@ func main() {
 
 	configureErrorMappings()
 	ConfigureLogging(config)
-
 
 	absolutePath, err := filepath.Abs(config.FilePath)
 	check(err)

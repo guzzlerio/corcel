@@ -20,7 +20,6 @@ import (
 
 var _ = Describe("Configuration", func() {
 	var configuration *Configuration
-	var err error
 	var args []string
 	defaultWaitTime := time.Duration(0)
 	defaultDuration := time.Duration(0)
@@ -182,6 +181,7 @@ var _ = Describe("Configuration", func() {
 								}
 								return []byte(yaml), nil
 							}
+							var err error
 							configuration, err = ParseConfiguration(test.cmdArgs)
 							Expect(err).ShouldNot(HaveOccurred())
 						})
@@ -420,7 +420,7 @@ var _ = Describe("Configuration", func() {
 			Describe("missing url file", func() {
 				It("returns error", func() {
 					args = []string{}
-					_, err = ParseConfiguration(args)
+					_, err := ParseConfiguration(args)
 					Expect(err).Should(MatchError("required argument 'file' not provided"))
 				})
 			})
@@ -469,6 +469,7 @@ var _ = Describe("Configuration", func() {
 					}
 
 					args = []string{endpoint}
+					var err error
 					configuration, err = ParseConfiguration(args)
 					Expect(err).ShouldNot(HaveOccurred())
 				})

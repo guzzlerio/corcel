@@ -20,13 +20,13 @@ import (
 
 //Configuration ...
 type Configuration struct {
-	Duration time.Duration `yaml:"duration"`
-	FilePath string
 	Random   bool          `yaml:"random"`
 	Summary  bool          `yaml:"summary"`
-	Workers  int           `yaml:"workers"`
-	WaitTime time.Duration `yaml:"wait-time"`
 	LogLevel log.Level     `yaml:"log-level"`
+	Workers  int           `yaml:"workers"`
+	Duration time.Duration `yaml:"duration"`
+	WaitTime time.Duration `yaml:"wait-time"`
+	FilePath string
 }
 
 func (instance *Configuration) validate() error {
@@ -40,8 +40,9 @@ func (instance *Configuration) validate() error {
 	return nil
 }
 
+//ParseConfiguration ...
 func ParseConfiguration(args []string) (*Configuration, error) {
-    verbosity = 0
+	verbosity = 0
 	logLevel = log.FatalLevel
 	config := Configuration{}
 	defaults := defaultConfig()
@@ -101,7 +102,7 @@ func counter(c *kingpin.ParseContext) error {
 func cmdConfig(args []string) (Configuration, error) {
 	CommandLine := kingpin.New("corcel", "")
 
-    CommandLine.Version(applicationVersion)
+	CommandLine.Version(applicationVersion)
 
 	config := Configuration{}
 	CommandLine.Arg("file", "Urls file").Required().StringVar(&config.FilePath)
@@ -130,9 +131,8 @@ func cmdConfig(args []string) (Configuration, error) {
 
 	if validationErr := config.validate(); validationErr != nil {
 		return Configuration{}, validationErr
-	} else {
-		return config, nil
 	}
+	return config, nil
 }
 
 func pwdConfig() (Configuration, error) {
@@ -184,29 +184,29 @@ func defaultConfig() Configuration {
 	}
 }
 
-func (c *Configuration) handleHTTPEndpointForURLFile() error {
-	u, e := url.ParseRequestURI(c.FilePath)
+func (instance *Configuration) handleHTTPEndpointForURLFile() error {
+	u, e := url.ParseRequestURI(instance.FilePath)
 	if e == nil && u.Scheme != "" {
-		Log.Printf("Dowloading URL file from %s ...\n", c.FilePath)
-		file, _ := createTemporaryFile(c.FilePath)
+		Log.Printf("Dowloading URL file from %s ...\n", instance.FilePath)
+		file, _ := createTemporaryFile(instance.FilePath)
 		out, _ := os.Create(file.Name())
 		defer func() {
 			check(out.Close())
 		}()
 
-		body, e := downloadURLFileFromEndpoint(c.FilePath)
+		body, e := downloadURLFileFromEndpoint(instance.FilePath)
 		if e != nil {
-			return fmt.Errorf("unable to download url file from endpoint %s [%s]", c.FilePath, e)
+			return fmt.Errorf("unable to download url file from endpoint %s [%s]", instance.FilePath, e)
 		}
 		defer check(body.Close())
 		_, _ = io.Copy(out, body)
-		c.FilePath = file.Name()
+		instance.FilePath = file.Name()
 	}
 	return nil
 }
 
-func (c *Configuration) parse(data []byte) error {
-	if err := yaml.Unmarshal(data, c); err != nil {
+func (instance *Configuration) parse(data []byte) error {
+	if err := yaml.Unmarshal(data, instance); err != nil {
 		log.Warn("Unable to parse config file")
 		return nil
 	}

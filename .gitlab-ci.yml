@@ -1,0 +1,27 @@
+image: golang:1.5.1
+
+variables:
+    GOPATH: "/builds"
+
+stages:
+    - build
+    - test
+
+
+jobBuild:
+    stage: build
+    script:
+        - echo "test"
+        - go get -t
+        - go build
+
+jobTest:
+    stage: test
+    script:
+        - go test
+
+jobDeploy:
+    stage: deploy
+    script:
+        - go get github.com/mitchellh/gox
+        - go get github.com/tcnksm/ghr

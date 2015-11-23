@@ -101,7 +101,7 @@ var _ = Describe("Main", func() {
 	})
 
 	Describe("Support specified duraration for test", func() {
-		It("Runs for 10 seconds", func() {
+		It("Runs for 5 seconds", func() {
 			list := []string{
 				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
 				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
@@ -116,8 +116,8 @@ var _ = Describe("Main", func() {
 			var executionOutput ExecutionOutput
 			UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
-			Expect(int64(executionOutput.Summary.RunningTime)).To(BeNumerically(">=", int64(5000)))
-			Expect(int64(executionOutput.Summary.RunningTime)).To(BeNumerically("<", int64(6000)))
+			Expect(int64(executionOutput.Summary.RunningTime)).To(BeNumerically(">=", int64(5000)), "RunningTime should be greater than 5 seconds")
+			Expect(int64(executionOutput.Summary.RunningTime)).To(BeNumerically("<", int64(6000)), "RunningTime should be less than 6 seconds")
 		})
 	})
 

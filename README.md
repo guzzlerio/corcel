@@ -1,5 +1,7 @@
 # Corcel
 
+LATEST STATUS: [![build status](http://ci.guzzler.io/ci/projects/1/status.png?ref=develop)](http://ci.guzzler.io/ci/projects/1?ref=develop)
+
 ## What is it and what will it be?
 
 This is a performance testing tool.  Some of the core aims of this project are:

@@ -1,27 +1,15 @@
 image: golang:1.5.1
 
-variables:
-    GOPATH: "/builds"
+before_script:
+    - cp -r ../../guzzler $GOPATH/src
+    - cd $GOPATH/src/guzzler/corcel
 
 stages:
     - build
-    - test
 
-
-jobBuild:
+job1:
     stage: build
     script:
-        - echo "test"
         - go get -t
         - go build
-
-jobTest:
-    stage: test
-    script:
-        - go test
-
-jobDeploy:
-    stage: deploy
-    script:
-        - go get github.com/mitchellh/gox
-        - go get github.com/tcnksm/ghr
+        - go test -cover

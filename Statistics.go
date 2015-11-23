@@ -38,11 +38,13 @@ func CreateStatistics() *Statistics {
 //Start ...
 func (instance *Statistics) Start() {
 	instance.start = time.Now()
+	Log.WithField("at", instance.start).Info("Start")
 }
 
 //Stop ...
 func (instance *Statistics) Stop() {
 	instance.end = time.Now()
+	Log.WithField("at", instance.end).Info("Stop")
 }
 
 //Request ...

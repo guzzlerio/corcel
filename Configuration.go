@@ -11,6 +11,7 @@ import (
 	"path"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/imdario/mergo"
 	"github.com/mitchellh/go-homedir"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -19,12 +20,13 @@ import (
 
 //Configuration ...
 type Configuration struct {
-	Duration time.Duration `yaml:"duration"`
-	FilePath string
 	Random   bool          `yaml:"random"`
 	Summary  bool          `yaml:"summary"`
+	LogLevel log.Level     `yaml:"log-level"`
 	Workers  int           `yaml:"workers"`
+	Duration time.Duration `yaml:"duration"`
 	WaitTime time.Duration `yaml:"wait-time"`
+	FilePath string
 }
 
 func (instance *Configuration) validate() error {
@@ -38,13 +40,17 @@ func (instance *Configuration) validate() error {
 	return nil
 }
 
-func parseConfiguration(args []string) (*Configuration, error) {
+//ParseConfiguration ...
+func ParseConfiguration(args []string) (*Configuration, error) {
+	verbosity = 0
+	logLevel = log.FatalLevel
 	config := Configuration{}
 	defaults := defaultConfig()
 	cmd, err := cmdConfig(args)
 	if err != nil {
 		return nil, err
 	}
+	log.SetLevel(logLevel)
 
 	pwd, err := pwdConfig()
 	if err != nil {
@@ -55,14 +61,42 @@ func parseConfiguration(args []string) (*Configuration, error) {
 		return nil, err
 	}
 
-	items := []interface{}{&cmd, &pwd, &usr, &defaults}
-	for _, item := range items {
+	eachConfig := []interface{}{&cmd, &pwd, &usr, &defaults}
+	for _, item := range eachConfig {
 		if err := mergo.Merge(&config, item); err != nil {
 			return nil, err
 		}
 	}
+	setLogLevel(&config, eachConfig)
+	log.WithFields(log.Fields{"config": config}).Info("Configuration")
 
 	return &config, err
+}
+
+var verbosity int
+var logLevel log.Level
+
+func setLogLevel(config *Configuration, each []interface{}) {
+	max := log.PanicLevel
+	for _, value := range each {
+		if value.(*Configuration).LogLevel > max {
+			max = value.(*Configuration).LogLevel // found another smaller value, replace previous value in max
+		}
+	}
+	config.LogLevel = max
+}
+
+func counter(c *kingpin.ParseContext) error {
+	verbosity++
+	switch verbosity {
+	case 1:
+		logLevel = log.WarnLevel
+	case 2:
+		logLevel = log.InfoLevel
+	case 3:
+		logLevel = log.DebugLevel
+	}
+	return nil
 }
 
 func cmdConfig(args []string) (Configuration, error) {
@@ -72,44 +106,33 @@ func cmdConfig(args []string) (Configuration, error) {
 
 	config := Configuration{}
 	CommandLine.Arg("file", "Urls file").Required().StringVar(&config.FilePath)
-	summary := CommandLine.Flag("summary", "Output summary to STDOUT").Bool()
-	waitTimeArg := CommandLine.Flag("wait-time", "Time to wait between each execution").Default("0s").String()
-	workers := CommandLine.Flag("workers", "The number of workers to execute the requests").Int()
-	random := CommandLine.Flag("random", "Select the url at random for each execution").Bool()
-	durationArg := CommandLine.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").String()
+	CommandLine.Flag("summary", "Output summary to STDOUT").BoolVar(&config.Summary)
+	CommandLine.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").Default("0s").DurationVar(&config.Duration)
+	CommandLine.Flag("wait-time", "Time to wait between each execution").Default("0s").DurationVar(&config.WaitTime)
+	CommandLine.Flag("workers", "The number of workers to execute the requests").IntVar(&config.Workers)
+	CommandLine.Flag("random", "Select the url at random for each execution").BoolVar(&config.Random)
+	CommandLine.Flag("verbose", "verbosity").Short('v').Action(counter).Bool()
 
 	_, err := CommandLine.Parse(args)
 
 	if err != nil {
+		log.Error(err)
 		return Configuration{}, err
 	}
-	waitTime, err := time.ParseDuration(*waitTimeArg)
-	if err != nil {
-		return Configuration{}, fmt.Errorf("Cannot parse the value specified for --wait-time: '%v'", *waitTimeArg)
-	}
-	var duration time.Duration
-	//remove this if when issue #17 is completed
-	if *durationArg != "" {
-		duration, err = time.ParseDuration(*durationArg)
-		if err != nil {
-			return Configuration{}, fmt.Errorf("Cannot parse the value specified for --duration: '%v'", *durationArg)
-		}
+	config.LogLevel = logLevel
+
+	if err = config.handleHTTPEndpointForURLFile(); err != nil {
+		return Configuration{}, err
 	}
 
-	config = Configuration{
-		Duration: duration,
-		FilePath: config.FilePath,
-		Random:   *random,
-		Summary:  *summary,
-		Workers:  *workers,
-		WaitTime: waitTime,
+	if _, err = os.Stat(config.FilePath); os.IsNotExist(err) {
+		return Configuration{}, fmt.Errorf("required argument 'file' not provided")
 	}
 
 	if validationErr := config.validate(); validationErr != nil {
 		return Configuration{}, validationErr
-	} else {
-		return config, nil
 	}
+	return config, nil
 }
 
 func pwdConfig() (Configuration, error) {
@@ -157,32 +180,34 @@ func defaultConfig() Configuration {
 		Summary:  false,
 		Workers:  1,
 		WaitTime: waitTime,
+		LogLevel: log.FatalLevel,
 	}
 }
 
-func (c *Configuration) handleHTTPEndpointForURLFile() error {
-	u, e := url.ParseRequestURI(c.FilePath)
+func (instance *Configuration) handleHTTPEndpointForURLFile() error {
+	u, e := url.ParseRequestURI(instance.FilePath)
 	if e == nil && u.Scheme != "" {
-		Log.Printf("Dowloading URL file from %s ...\n", c.FilePath)
-		file, _ := createTemporaryFile(c.FilePath)
+		Log.Printf("Dowloading URL file from %s ...\n", instance.FilePath)
+		file, _ := createTemporaryFile(instance.FilePath)
 		out, _ := os.Create(file.Name())
 		defer func() {
 			check(out.Close())
 		}()
 
-		body, e := downloadURLFileFromEndpoint(c.FilePath)
+		body, e := downloadURLFileFromEndpoint(instance.FilePath)
 		if e != nil {
-			return fmt.Errorf("unable to download url file from endpoint %s [%s]", c.FilePath, e)
+			return fmt.Errorf("unable to download url file from endpoint %s [%s]", instance.FilePath, e)
 		}
 		defer check(body.Close())
 		_, _ = io.Copy(out, body)
-		c.FilePath = file.Name()
+		instance.FilePath = file.Name()
 	}
 	return nil
 }
 
-func (c *Configuration) parse(data []byte) error {
-	if err := yaml.Unmarshal(data, c); err != nil {
+func (instance *Configuration) parse(data []byte) error {
+	if err := yaml.Unmarshal(data, instance); err != nil {
+		log.Warn("Unable to parse config file")
 		return nil
 	}
 	return nil
@@ -190,10 +215,12 @@ func (c *Configuration) parse(data []byte) error {
 
 var configFileReader = func(path string) ([]byte, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
+		log.WithFields(log.Fields{"path": path}).Warn("Config file not found")
 		return nil, nil
 	}
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
+		log.WithFields(log.Fields{"path": path}).Warn("Unable to read config file")
 		return nil, nil
 	}
 	return data, nil

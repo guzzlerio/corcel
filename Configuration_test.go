@@ -13,13 +13,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/naoina/go-stringutil"
 	"github.com/oleiade/reflections"
 )
 
 var _ = Describe("Configuration", func() {
 	var configuration *Configuration
-	var err error
 	var args []string
 	defaultWaitTime := time.Duration(0)
 	defaultDuration := time.Duration(0)
@@ -27,10 +27,12 @@ var _ = Describe("Configuration", func() {
 
 	BeforeEach(func() {
 		args = []string{filename}
+		logrus.SetOutput(ioutil.Discard)
+		Log.Out = ioutil.Discard
 		configFileReader = func(path string) ([]byte, error) {
 			return []byte(""), nil
 		}
-		configuration, _ = parseConfiguration(args)
+		configuration, _ = ParseConfiguration(args)
 	})
 
 	Describe("When no config file is found and no command line args are provided", func() {
@@ -49,6 +51,9 @@ var _ = Describe("Configuration", func() {
 			})
 			It("sets wait-time (--wait-time)", func() {
 				Expect(configuration.WaitTime).To(Equal(defaultWaitTime))
+			})
+			It("sets log-level", func() {
+				Expect(configuration.LogLevel).To(Equal(logrus.FatalLevel))
 			})
 		})
 	})
@@ -152,6 +157,11 @@ var _ = Describe("Configuration", func() {
 					{"set in pwd with invalid value and not set in user home config", []string{filename}, "workers: abc", "", 1},
 					{"not set in pwd but set in user home config with invalid value", []string{filename}, "", "workers: abc", 1},
 				},
+			}, {
+				context: "log_level",
+				tests: []configurationTest{
+					{"set in pwd config and not set in user home config", []string{filename}, "log-level: 3", "", logrus.WarnLevel},
+				},
 			},
 		}
 
@@ -171,7 +181,8 @@ var _ = Describe("Configuration", func() {
 								}
 								return []byte(yaml), nil
 							}
-							configuration, err = parseConfiguration(test.cmdArgs)
+							var err error
+							configuration, err = ParseConfiguration(test.cmdArgs)
 							Expect(err).ShouldNot(HaveOccurred())
 						})
 
@@ -190,7 +201,7 @@ var _ = Describe("Configuration", func() {
 			Describe("for duration (--duration)", func() {
 				BeforeEach(func() {
 					args = []string{"--duration", "3s", filename}
-					configuration, _ = parseConfiguration(args)
+					configuration, _ = ParseConfiguration(args)
 				})
 				It("applies the override", func() {
 					duration, _ := time.ParseDuration("3s")
@@ -215,7 +226,7 @@ var _ = Describe("Configuration", func() {
 
 			Describe("for file", func() {
 				BeforeEach(func() {
-					configuration, _ = parseConfiguration(args)
+					configuration, _ = ParseConfiguration(args)
 				})
 				It("applies the override", func() {
 					Expect(configuration.FilePath).To(Equal(filename))
@@ -243,7 +254,7 @@ var _ = Describe("Configuration", func() {
 			Describe("for random (--random)", func() {
 				BeforeEach(func() {
 					args = []string{"--random", filename}
-					configuration, _ = parseConfiguration(args)
+					configuration, _ = ParseConfiguration(args)
 				})
 				It("applies the override", func() {
 					Expect(configuration.Random).To(Equal(true))
@@ -268,7 +279,7 @@ var _ = Describe("Configuration", func() {
 			Describe("for summary (--summary)", func() {
 				BeforeEach(func() {
 					args = []string{"--summary", filename}
-					configuration, _ = parseConfiguration(args)
+					configuration, _ = ParseConfiguration(args)
 				})
 				It("applies the override", func() {
 					Expect(configuration.Summary).To(Equal(true))
@@ -293,7 +304,7 @@ var _ = Describe("Configuration", func() {
 			Describe("for workers (--workers)", func() {
 				BeforeEach(func() {
 					args = []string{"--workers", "3", filename}
-					configuration, _ = parseConfiguration(args)
+					configuration, _ = ParseConfiguration(args)
 				})
 				It("applies the override", func() {
 					Expect(configuration.Workers).To(Equal(3))
@@ -318,7 +329,7 @@ var _ = Describe("Configuration", func() {
 			Describe("for wait-time (--wait-time)", func() {
 				BeforeEach(func() {
 					args = []string{"--wait-time", "3s", filename}
-					configuration, _ = parseConfiguration(args)
+					configuration, _ = ParseConfiguration(args)
 				})
 				It("applies the override", func() {
 					waitTime, _ := time.ParseDuration("3s")
@@ -340,19 +351,63 @@ var _ = Describe("Configuration", func() {
 					})
 				})
 			})
+
+			Describe("for verbosity", func() {
+				Context("not set", func() {
+					BeforeEach(func() {
+						args = []string{filename}
+						configuration, _ = ParseConfiguration(args)
+					})
+
+					It("sets verbosity to Fatal", func() {
+						Expect(configuration.LogLevel).To(Equal(logrus.FatalLevel))
+					})
+				})
+
+				Context("-v", func() {
+					BeforeEach(func() {
+						args = []string{"-v", filename}
+						configuration, _ = ParseConfiguration(args)
+					})
+
+					It("sets verbosity to Fatal", func() {
+						Expect(configuration.LogLevel).To(Equal(logrus.WarnLevel))
+					})
+				})
+				Context("-vv", func() {
+					BeforeEach(func() {
+						args = []string{"-vv", filename}
+						configuration, _ = ParseConfiguration(args)
+					})
+
+					It("sets verbosity to Fatal", func() {
+						Expect(configuration.LogLevel).To(Equal(logrus.InfoLevel))
+					})
+				})
+				Context("-vvv", func() {
+					BeforeEach(func() {
+						args = []string{"-vvv", filename}
+						configuration, _ = ParseConfiguration(args)
+					})
+
+					It("sets verbosity to Fatal", func() {
+						Expect(configuration.LogLevel).To(Equal(logrus.DebugLevel))
+					})
+				})
+			})
 		})
 
 		Describe("setting multiple command line args", func() {
 			BeforeEach(func() {
-				args = []string{"--summary", "--workers", "50", "--duration", "3s", filename}
-				configuration, err = parseConfiguration(args)
-				Expect(err).ShouldNot(HaveOccurred())
+				args = []string{"--summary", "--workers", "50", "--duration", "3s", "-vv", filename}
+				configuration, _ = ParseConfiguration(args)
 			})
 			It("applies the overrides", func() {
 				duration, _ := time.ParseDuration("3s")
 				Expect(configuration.Duration).To(Equal(duration))
 				Expect(configuration.Summary).To(Equal(true))
 				Expect(configuration.Workers).To(Equal(50))
+				Expect(configuration.LogLevel).To(Equal(logrus.InfoLevel))
 			})
 
 			It("does not override the defaults for other args", func() {
@@ -365,7 +420,7 @@ var _ = Describe("Configuration", func() {
 			Describe("missing url file", func() {
 				It("returns error", func() {
 					args = []string{}
-					_, err = parseConfiguration(args)
+					_, err := ParseConfiguration(args)
 					Expect(err).Should(MatchError("required argument 'file' not provided"))
 				})
 			})
@@ -373,15 +428,15 @@ var _ = Describe("Configuration", func() {
 			Describe("for duration", func() {
 				It("returns error", func() {
 					args = []string{"--duration", "xs", filename}
-					_, err = parseConfiguration(args)
-					Expect(err).Should(MatchError("Cannot parse the value specified for --duration: 'xs'"))
+					_, err := ParseConfiguration(args)
+					Expect(err).Should(MatchError("time: invalid duration xs"))
 				})
 			})
 
 			Describe("for workers", func() {
 				It("returns error", func() {
 					args = []string{"--workers", "xs", filename}
-					_, err = parseConfiguration(args)
+					_, err := ParseConfiguration(args)
 					Expect(err).Should(MatchError("strconv.ParseFloat: parsing \"xs\": invalid syntax"))
 				})
 			})
@@ -389,8 +444,8 @@ var _ = Describe("Configuration", func() {
 			Describe("for wait-time", func() {
 				It("returns error", func() {
 					args = []string{"--wait-time", "xs", filename}
-					_, err = parseConfiguration(args)
-					Expect(err).Should(MatchError("Cannot parse the value specified for --wait-time: 'xs'"))
+					_, err := ParseConfiguration(args)
+					Expect(err).Should(MatchError("time: invalid duration xs"))
 				})
 			})
 		})
@@ -414,7 +469,8 @@ var _ = Describe("Configuration", func() {
 					}
 
 					args = []string{endpoint}
-					configuration, err = parseConfiguration(args)
+					var err error
+					configuration, err = ParseConfiguration(args)
 					Expect(err).ShouldNot(HaveOccurred())
 				})
 
@@ -432,7 +488,7 @@ var _ = Describe("Configuration", func() {
 
 				It("returns error", func() {
 					args = []string{endpoint}
-					_, err := parseConfiguration(args)
+					_, err := ParseConfiguration(args)
 					Expect(err).Should(MatchError("unable to download url file from endpoint " + endpoint + " [booom]"))
 				})
 			})

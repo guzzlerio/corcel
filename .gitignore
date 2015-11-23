@@ -25,6 +25,8 @@ _testmain.go
 code-named-something
 corcel
 travis.log
+# Ignore any .corcelrc files created during testing so behaviour is as expected on fresh clone
+.corcelrc
 
 *.swp
 

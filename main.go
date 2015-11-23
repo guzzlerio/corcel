@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"net/http"
 	"net/http/httputil"
@@ -14,12 +13,12 @@ import (
 	"sync"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
 var (
 	applicationVersion = "0.1.1-alpha"
-	logEnabled         = false
 	//Log ...
 	Log *log.Logger
 	//RandomSource ...
@@ -43,21 +42,16 @@ func check(err error) {
 }
 
 //ConfigureLogging ...
-func ConfigureLogging() {
-	//TODO: refine this to work with levels or replace
-	//with a package which already handles this
-	flags := log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile
-	prefix := "cns: "
-	if logEnabled {
-		Log = log.New(os.Stdout, prefix, flags)
-	} else {
-		//Send all the output to dev null
-		Log = log.New(ioutil.Discard, prefix, flags)
-	}
+func ConfigureLogging(config *Configuration) {
+	Log = log.New()
+	Log.Level = config.LogLevel
+	//TODO probably have another ticket to support outputting logs to a file
+	//Log.Formatter = config.Logging.Formatter
 }
 
 //ExecuteRequest ...
 func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Request) {
+	Log.Infof("%s to %s", request.Method, request.URL)
 	start := time.Now()
 	response, responseError := client.Do(request)
 	duration := time.Since(start) / time.Millisecond
@@ -66,7 +60,7 @@ func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Reques
 	defer func() {
 		err := response.Body.Close()
 		if err != nil {
-			Log.Printf("Error closing response Body %v", err)
+			Log.Warnf("Error closing response Body %v", err)
 		}
 	}()
 	responseBytes, _ := httputil.DumpResponse(response, true)
@@ -129,7 +123,9 @@ func Execute(config *Configuration, stats *Statistics) {
 }
 
 //GenerateExecutionOutput ...
-func GenerateExecutionOutput(outputPath string, stats *Statistics) {
+func GenerateExecutionOutput(file string, stats *Statistics) {
+	outputPath, err := filepath.Abs(file)
+	check(err)
 	output := stats.ExecutionOutput()
 	yamlOutput, err := yaml.Marshal(&output)
 	check(err)
@@ -140,7 +136,7 @@ func GenerateExecutionOutput(outputPath string, stats *Statistics) {
 //OutputSummary ...
 func OutputSummary(stats *Statistics) {
 	output := stats.ExecutionOutput()
-	fmt.Println(fmt.Sprintf("Running Time: %v s", output.Summary.RunningTime/1000))
+	fmt.Println(fmt.Sprintf("Running Time: %g s", output.Summary.RunningTime/1000))
 	fmt.Println(fmt.Sprintf("Throughput: %v req/s", int64(output.Summary.Requests.Rate)))
 	fmt.Println(fmt.Sprintf("Total Requests: %v", output.Summary.Requests.Total))
 	fmt.Println(fmt.Sprintf("Number of Errors: %v", output.Summary.Requests.Errors))
@@ -158,11 +154,11 @@ func OutputSummary(stats *Statistics) {
 }
 
 func main() {
-	config, err := parseConfiguration(os.Args[1:])
+	config, err := ParseConfiguration(os.Args[1:])
 	check(err)
 
 	configureErrorMappings()
-	ConfigureLogging()
+	ConfigureLogging(config)
 
 	absolutePath, err := filepath.Abs(config.FilePath)
 	check(err)
@@ -182,9 +178,8 @@ func main() {
 
 	stats.Stop()
 
-	outputPath, err := filepath.Abs("./output.yml")
 	check(err)
-	GenerateExecutionOutput(outputPath, stats)
+	GenerateExecutionOutput("./output.yml", stats)
 
 	if config.Summary {
 		OutputSummary(stats)

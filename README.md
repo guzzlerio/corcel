@@ -1,6 +1,8 @@
 # Corcel
 
-[![develop build status](http://ci.guzzler.io/ci/projects/1/status.png?ref=develop)](http://ci.guzzler.io/ci/projects/1?ref=develop) [![release build status](http://ci.guzzler.io/ci/projects/1/status.png?ref=release)](http://ci.guzzler.io/ci/projects/1?ref=release) [![master build status](http://ci.guzzler.io/ci/projects/1/status.png?ref=master)](http://ci.guzzler.io/ci/projects/1?ref=master)
+Develop branch : [![build status](http://ci.guzzler.io/ci/projects/1/status.png?ref=develop)](http://ci.guzzler.io/ci/projects/1?ref=develop)
+Release branch : [![build status](http://ci.guzzler.io/ci/projects/1/status.png?ref=release)](http://ci.guzzler.io/ci/projects/1?ref=release)
+Master branch   : [![build status](http://ci.guzzler.io/ci/projects/1/status.png?ref=master)](http://ci.guzzler.io/ci/projects/1?ref=master)
 
 ## What is it and what will it be?
 

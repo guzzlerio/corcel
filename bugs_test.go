@@ -39,7 +39,7 @@ var _ = Describe("Bugs replication", func() {
 		Expect(executionOutput.Summary.Requests.Total).To(Equal(int64(2)))
 	})
 
-	It("Error when too many workers specified causing too many open files #23", func() {
+	PIt("Error when too many workers specified causing too many open files #23", func() {
 		numberOfWorkers := 100000000000
 		list := []string{
 			fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),

@@ -29,5 +29,3 @@ echo "go tool vet --shadow ./*.go"
 go tool vet --shadow ./*.go
 echo "varcheck ."
 varcheck .
-echo "defercheck ."
-defercheck .

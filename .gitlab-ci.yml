@@ -1,0 +1,15 @@
+image: golang:1.5.1
+
+before_script:
+    - cp -r ../../guzzler $GOPATH/src
+    - cd $GOPATH/src/guzzler/corcel
+
+stages:
+    - build
+
+job1:
+    stage: build
+    script:
+        - make install
+        - make build
+        - make test

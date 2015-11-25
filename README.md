@@ -1,5 +1,9 @@
 # Corcel
 
+Develop branch : [![build status](http://ci.guzzler.io/ci/projects/1/status.png?ref=develop)](http://ci.guzzler.io/ci/projects/1?ref=develop)
+Release branch : [![build status](http://ci.guzzler.io/ci/projects/1/status.png?ref=release)](http://ci.guzzler.io/ci/projects/1?ref=release)
+Master branch   : [![build status](http://ci.guzzler.io/ci/projects/1/status.png?ref=master)](http://ci.guzzler.io/ci/projects/1?ref=master)
+
 ## What is it and what will it be?
 
 This is a performance testing tool.  Some of the core aims of this project are:

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 )
 
 //ResponseTimeStats ...
@@ -60,40 +61,40 @@ type ExecutionOutput struct {
 	Summary ExecutionSummary `yaml:"summary"`
 }
 
-type ExecutionOutputConsoleWriter struct {
+type ExecutionOutputWriter struct {
 	Output ExecutionOutput
 }
 
-func (w *ExecutionOutputConsoleWriter) Write() {
-	top()
-	line("Running Time", fmt.Sprintf("%g s", w.Output.Summary.RunningTime/1000))
-	line("Throughput", fmt.Sprintf("%-v req/s", int64(w.Output.Summary.Requests.Rate)))
-	line("Total Requests", fmt.Sprintf("%v", w.Output.Summary.Requests.Total))
-	line("Number of Errors", fmt.Sprintf("%v", w.Output.Summary.Requests.Errors))
-	line("Availability", fmt.Sprintf("%.4v%%", w.Output.Summary.Requests.Availability*100))
-	line("Bytes Sent", fmt.Sprintf("%v", w.Output.Summary.Bytes.Sent.Sum))
-	line("Bytes Received", fmt.Sprintf("%v", w.Output.Summary.Bytes.Received.Sum))
+func (w *ExecutionOutputWriter) Write(writer io.Writer) {
+	top(writer)
+	line(writer, "Running Time", fmt.Sprintf("%g s", w.Output.Summary.RunningTime/1000))
+	line(writer, "Throughput", fmt.Sprintf("%-v req/s", int64(w.Output.Summary.Requests.Rate)))
+	line(writer, "Total Requests", fmt.Sprintf("%v", w.Output.Summary.Requests.Total))
+	line(writer, "Number of Errors", fmt.Sprintf("%v", w.Output.Summary.Requests.Errors))
+	line(writer, "Availability", fmt.Sprintf("%.4v%%", w.Output.Summary.Requests.Availability*100))
+	line(writer, "Bytes Sent", fmt.Sprintf("%v", w.Output.Summary.Bytes.Sent.Sum))
+	line(writer, "Bytes Received", fmt.Sprintf("%v", w.Output.Summary.Bytes.Received.Sum))
 	if w.Output.Summary.ResponseTime.Mean > 0 {
-		line("Mean Response Time", fmt.Sprintf("%.4v ms", w.Output.Summary.ResponseTime.Mean))
+		line(writer, "Mean Response Time", fmt.Sprintf("%.4v ms", w.Output.Summary.ResponseTime.Mean))
 	} else {
-		line("Mean Response Time", fmt.Sprintf("%v ms", w.Output.Summary.ResponseTime.Mean))
+		line(writer, "Mean Response Time", fmt.Sprintf("%v ms", w.Output.Summary.ResponseTime.Mean))
 	}
 
-	line("Min Response Time", fmt.Sprintf("%v ms", w.Output.Summary.ResponseTime.Min))
-	line("Max Response Time", fmt.Sprintf("%v ms", w.Output.Summary.ResponseTime.Max))
-	tail()
+	line(writer, "Min Response Time", fmt.Sprintf("%v ms", w.Output.Summary.ResponseTime.Min))
+	line(writer, "Max Response Time", fmt.Sprintf("%v ms", w.Output.Summary.ResponseTime.Max))
+	tail(writer)
 }
 
-func top() {
-	fmt.Println("╔═══════════════════════════════════════════════════════════════════╗")
-	fmt.Println("║                           Summary                                 ║")
-	fmt.Println("╠═══════════════════════════════════════════════════════════════════╣")
+func top(writer io.Writer) {
+	fmt.Fprintln(writer, "╔═══════════════════════════════════════════════════════════════════╗")
+	fmt.Fprintln(writer, "║                           Summary                                 ║")
+	fmt.Fprintln(writer, "╠═══════════════════════════════════════════════════════════════════╣")
 }
 
-func tail() {
-	fmt.Println("╚═══════════════════════════════════════════════════════════════════╝")
+func tail(writer io.Writer) {
+	fmt.Fprintln(writer, "╚═══════════════════════════════════════════════════════════════════╝")
 }
 
-func line(label string, value string) {
-	fmt.Printf("║ %20s: %-43s ║\n", label, value)
+func line(writer io.Writer, label string, value string) {
+	fmt.Fprintf(writer, "║ %20s: %-43s ║\n", label, value)
 }

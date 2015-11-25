@@ -163,7 +163,7 @@ func main() {
 
 	if config.Summary {
 		output := stats.ExecutionOutput()
-		consoleWriter := ExecutionOutputConsoleWriter{output}
-		consoleWriter.Write()
+		consoleWriter := ExecutionOutputWriter{output}
+		consoleWriter.Write(os.Stdout)
 	}
 }

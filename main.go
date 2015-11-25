@@ -133,26 +133,6 @@ func GenerateExecutionOutput(file string, stats *Statistics) {
 	check(err)
 }
 
-//OutputSummary ...
-func OutputSummary(stats *Statistics) {
-	output := stats.ExecutionOutput()
-	fmt.Println(fmt.Sprintf("Running Time: %g s", output.Summary.RunningTime/1000))
-	fmt.Println(fmt.Sprintf("Throughput: %v req/s", int64(output.Summary.Requests.Rate)))
-	fmt.Println(fmt.Sprintf("Total Requests: %v", output.Summary.Requests.Total))
-	fmt.Println(fmt.Sprintf("Number of Errors: %v", output.Summary.Requests.Errors))
-	fmt.Println(fmt.Sprintf("Availability: %v%%", output.Summary.Requests.Availability*100))
-	fmt.Println(fmt.Sprintf("Bytes Sent: %v", output.Summary.Bytes.Sent.Sum))
-	fmt.Println(fmt.Sprintf("Bytes Received: %v", output.Summary.Bytes.Received.Sum))
-	if output.Summary.ResponseTime.Mean > 0 {
-		fmt.Println(fmt.Sprintf("Mean Response Time: %.4v ms", output.Summary.ResponseTime.Mean))
-	} else {
-		fmt.Println(fmt.Sprintf("Mean Response Time: %v ms", output.Summary.ResponseTime.Mean))
-	}
-
-	fmt.Println(fmt.Sprintf("Min Response Time: %v ms", output.Summary.ResponseTime.Min))
-	fmt.Println(fmt.Sprintf("Max Response Time: %v ms", output.Summary.ResponseTime.Max))
-}
-
 func main() {
 	config, err := ParseConfiguration(os.Args[1:])
 	check(err)
@@ -182,6 +162,8 @@ func main() {
 	GenerateExecutionOutput("./output.yml", stats)
 
 	if config.Summary {
-		OutputSummary(stats)
+		output := stats.ExecutionOutput()
+		consoleWriter := ExecutionOutputConsoleWriter{output}
+		consoleWriter.Write()
 	}
 }

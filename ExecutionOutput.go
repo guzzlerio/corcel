@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"io"
+)
+
 //ResponseTimeStats ...
 type ResponseTimeStats struct {
 	Sum    int64   `yaml:"sum"`
@@ -54,4 +59,42 @@ type ExecutionSummary struct {
 //ExecutionOutput ...
 type ExecutionOutput struct {
 	Summary ExecutionSummary `yaml:"summary"`
+}
+
+type ExecutionOutputWriter struct {
+	Output ExecutionOutput
+}
+
+func (w *ExecutionOutputWriter) Write(writer io.Writer) {
+	top(writer)
+	line(writer, "Running Time", fmt.Sprintf("%g s", w.Output.Summary.RunningTime/1000))
+	line(writer, "Throughput", fmt.Sprintf("%-v req/s", int64(w.Output.Summary.Requests.Rate)))
+	line(writer, "Total Requests", fmt.Sprintf("%v", w.Output.Summary.Requests.Total))
+	line(writer, "Number of Errors", fmt.Sprintf("%v", w.Output.Summary.Requests.Errors))
+	line(writer, "Availability", fmt.Sprintf("%.4v%%", w.Output.Summary.Requests.Availability*100))
+	line(writer, "Bytes Sent", fmt.Sprintf("%v", w.Output.Summary.Bytes.Sent.Sum))
+	line(writer, "Bytes Received", fmt.Sprintf("%v", w.Output.Summary.Bytes.Received.Sum))
+	if w.Output.Summary.ResponseTime.Mean > 0 {
+		line(writer, "Mean Response Time", fmt.Sprintf("%.4v ms", w.Output.Summary.ResponseTime.Mean))
+	} else {
+		line(writer, "Mean Response Time", fmt.Sprintf("%v ms", w.Output.Summary.ResponseTime.Mean))
+	}
+
+	line(writer, "Min Response Time", fmt.Sprintf("%v ms", w.Output.Summary.ResponseTime.Min))
+	line(writer, "Max Response Time", fmt.Sprintf("%v ms", w.Output.Summary.ResponseTime.Max))
+	tail(writer)
+}
+
+func top(writer io.Writer) {
+	fmt.Fprintln(writer, "╔═══════════════════════════════════════════════════════════════════╗")
+	fmt.Fprintln(writer, "║                           Summary                                 ║")
+	fmt.Fprintln(writer, "╠═══════════════════════════════════════════════════════════════════╣")
+}
+
+func tail(writer io.Writer) {
+	fmt.Fprintln(writer, "╚═══════════════════════════════════════════════════════════════════╝")
+}
+
+func line(writer io.Writer, label string, value string) {
+	fmt.Fprintf(writer, "║ %20s: %-43s ║\n", label, value)
 }

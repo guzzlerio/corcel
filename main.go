@@ -14,6 +14,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/gosuri/uiprogress"
 	"gopkg.in/yaml.v2"
 )
 
@@ -80,6 +81,8 @@ func Execute(config *Configuration, stats *Statistics) {
 	var waitGroup sync.WaitGroup
 
 	reader := NewRequestReader(config.FilePath)
+	uiprogress.Start()
+	bar := uiprogress.AddBar(100).AppendCompleted()
 
 	for i := 0; i < config.Workers; i++ {
 		waitGroup.Add(1)
@@ -112,6 +115,8 @@ func Execute(config *Configuration, stats *Statistics) {
 				request, err := stream.Next()
 				check(err)
 				ExecuteRequest(client, stats, request)
+
+				bar.Set(stream.Progress())
 
 				time.Sleep(config.WaitTime)
 			}

@@ -9,10 +9,10 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("RequestStream", func() {
+var _ = Describe("RequestStream", func() {
 	var (
-		list   []string
-		reader *RequestReader
+		list     []string
+		reader   *RequestReader
 		iterator RequestStream
 	)
 
@@ -53,11 +53,9 @@ var _ = FDescribe("RequestStream", func() {
 		})
 
 		It("calculates Progress", func() {
-			go func() {
-				for i := 0; i < len(list); i++ {
-					_, _ = iterator.Next()
-				}
-			}()
+			for i := 0; i < (len(list) / 2); i++ {
+				_, _ = iterator.Next()
+			}
 			Expect(iterator.Progress()).To(Equal(50))
 		})
 	})
@@ -89,7 +87,7 @@ var _ = FDescribe("RequestStream", func() {
 				}
 			}()
 			time.Sleep((100 * time.Millisecond))
-			Expect(iterator.Progress()).To(Equal(10))
+			Expect(iterator.Progress()).To(Equal(11))
 		})
 
 		It("calculates Size", func() {

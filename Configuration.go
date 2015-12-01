@@ -20,6 +20,7 @@ import (
 
 //Configuration ...
 type Configuration struct {
+	Quiet    bool          `yaml:"quiet"`
 	Random   bool          `yaml:"random"`
 	Summary  bool          `yaml:"summary"`
 	LogLevel log.Level     `yaml:"log-level"`
@@ -112,6 +113,7 @@ func cmdConfig(args []string) (Configuration, error) {
 	CommandLine.Flag("workers", "The number of workers to execute the requests").IntVar(&config.Workers)
 	CommandLine.Flag("random", "Select the url at random for each execution").BoolVar(&config.Random)
 	CommandLine.Flag("verbose", "verbosity").Short('v').Action(counter).Bool()
+	CommandLine.Flag("quiet", "Quiet console output").Short('q').Short('s').BoolVar(&config.Quiet)
 
 	_, err := CommandLine.Parse(args)
 
@@ -176,6 +178,7 @@ func defaultConfig() Configuration {
 	duration := time.Duration(0)
 	return Configuration{
 		Duration: duration,
+		Quiet:    false,
 		Random:   false,
 		Summary:  false,
 		Workers:  1,

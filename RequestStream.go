@@ -49,7 +49,7 @@ func (instance *SequentialRequestStream) Reset() {
 //Progress ...
 func (instance *SequentialRequestStream) Progress() int {
 	current := float64(instance.current) / float64(instance.Size())
-	return int(math.Floor(current*100))
+	return int(math.Floor(current * 100))
 }
 
 //Size ...
@@ -99,7 +99,7 @@ func (instance *RandomRequestStream) Reset() {
 //Progress ...
 func (instance *RandomRequestStream) Progress() int {
 	current := float64(instance.count) / float64(instance.Size())
-	return int(math.Floor(current*100))
+	return int(math.Floor(current * 100))
 }
 
 //Size ...
@@ -146,7 +146,7 @@ func (instance *TimeBasedRequestStream) Reset() {
 //Progress ...
 func (instance *TimeBasedRequestStream) Progress() int {
 	current := (float64(time.Since(instance.start).Nanoseconds()) / float64(instance.Size()))
-	return int(math.Ceil(current*100))
+	return int(math.Ceil(current * 100))
 }
 
 //Size ...

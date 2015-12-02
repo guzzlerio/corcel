@@ -20,13 +20,13 @@ import (
 
 //Configuration ...
 type Configuration struct {
-	Quiet    bool          `yaml:"quiet"`
 	Random   bool          `yaml:"random"`
 	Summary  bool          `yaml:"summary"`
 	LogLevel log.Level     `yaml:"log-level"`
 	Workers  int           `yaml:"workers"`
 	Duration time.Duration `yaml:"duration"`
 	WaitTime time.Duration `yaml:"wait-time"`
+	Progress string        `yaml:"progress"`
 	FilePath string
 }
 
@@ -113,7 +113,7 @@ func cmdConfig(args []string) (Configuration, error) {
 	CommandLine.Flag("workers", "The number of workers to execute the requests").IntVar(&config.Workers)
 	CommandLine.Flag("random", "Select the url at random for each execution").BoolVar(&config.Random)
 	CommandLine.Flag("verbose", "verbosity").Short('v').Action(counter).Bool()
-	CommandLine.Flag("quiet", "Quiet console output").Short('q').Short('s').BoolVar(&config.Quiet)
+	CommandLine.Flag("progress", "Progress reporter").EnumVar(&config.Progress, "bar", "logo", "none")
 
 	_, err := CommandLine.Parse(args)
 
@@ -178,12 +178,12 @@ func defaultConfig() Configuration {
 	duration := time.Duration(0)
 	return Configuration{
 		Duration: duration,
-		Quiet:    false,
 		Random:   false,
 		Summary:  false,
 		Workers:  1,
 		WaitTime: waitTime,
 		LogLevel: log.FatalLevel,
+		Progress: "logo",
 	}
 }
 

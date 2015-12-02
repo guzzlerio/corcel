@@ -4,18 +4,21 @@ import (
 	"github.com/gosuri/uiprogress"
 )
 
+//ProgressBar ...
 type ProgressBar interface {
 	Set(progress int) error
 }
 
+//ConsoleProgressBar ...
 type ConsoleProgressBar struct {
-	bar ProgressBar
+	bar    ProgressBar
 	config *Configuration
 }
 
-func NewProgressBar(size int, config *Configuration) *ConsoleProgressBar{
+//NewProgressBar ...
+func NewProgressBar(size int, config *Configuration) *ConsoleProgressBar {
 	var bar ProgressBar
-	switch config.Progress{
+	switch config.Progress {
 	case "bar":
 		uiprogress.Start()
 		bar = uiprogress.AddBar(size).AppendCompleted()
@@ -27,12 +30,15 @@ func NewProgressBar(size int, config *Configuration) *ConsoleProgressBar{
 	return &ConsoleProgressBar{bar, config}
 }
 
-func (b* ConsoleProgressBar) Set(progress int) error {
+//Set ...
+func (b *ConsoleProgressBar) Set(progress int) error {
 	return b.bar.Set(progress)
 }
 
-type NullProgress struct { }
+//NullProgress ...
+type NullProgress struct{}
 
+//Set ...
 func (b *NullProgress) Set(progress int) error {
 	return nil
 }

@@ -2,15 +2,18 @@ package main
 
 import (
 	"fmt"
-	"github.com/fatih/color"
 	"math"
+
+	"github.com/fatih/color"
 )
 
+//LogoProgress ...
 type LogoProgress struct {
 	lines []string
 	last  int
 }
 
+//NewLogoProgress ...
 func NewLogoProgress() *LogoProgress {
 	var lines []string
 
@@ -47,6 +50,7 @@ func NewLogoProgress() *LogoProgress {
 	return &LogoProgress{lines, -1}
 }
 
+//Set ...
 func (b *LogoProgress) Set(progress int) error {
 	a := float64(progress) / 100 * float64(len(b.lines))
 	index := int(math.Floor(a))

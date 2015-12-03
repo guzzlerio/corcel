@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/md5"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -35,7 +36,7 @@ func (instance *Configuration) validate() error {
 	}
 
 	if _, err := os.Stat(instance.FilePath); os.IsNotExist(err) {
-		return fmt.Errorf("required argument 'file' not provided")
+		return errors.New("required argument 'file' not provided")
 	}
 	return nil
 }
@@ -116,7 +117,6 @@ func cmdConfig(args []string) (Configuration, error) {
 	_, err := CommandLine.Parse(args)
 
 	if err != nil {
-		log.Error(err)
 		return Configuration{}, err
 	}
 	config.LogLevel = logLevel
@@ -126,7 +126,7 @@ func cmdConfig(args []string) (Configuration, error) {
 	}
 
 	if _, err = os.Stat(config.FilePath); os.IsNotExist(err) {
-		return Configuration{}, fmt.Errorf("required argument 'file' not provided")
+		return Configuration{}, errors.New("required argument 'file' not provided")
 	}
 
 	if validationErr := config.validate(); validationErr != nil {

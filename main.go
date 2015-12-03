@@ -135,7 +135,10 @@ func GenerateExecutionOutput(file string, stats *Statistics) {
 
 func main() {
 	config, err := ParseConfiguration(os.Args[1:])
-	check(err)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 
 	configureErrorMappings()
 	ConfigureLogging(config)

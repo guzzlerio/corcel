@@ -80,6 +80,7 @@ func Execute(config *Configuration, stats *Statistics) {
 	var waitGroup sync.WaitGroup
 
 	reader := NewRequestReader(config.FilePath)
+	bar := NewProgressBar(100, config)
 
 	for i := 0; i < config.Workers; i++ {
 		waitGroup.Add(1)
@@ -112,6 +113,8 @@ func Execute(config *Configuration, stats *Statistics) {
 				request, err := stream.Next()
 				check(err)
 				ExecuteRequest(client, stats, request)
+
+				bar.Set(stream.Progress())
 
 				time.Sleep(config.WaitTime)
 			}

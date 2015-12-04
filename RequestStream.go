@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"net/http"
 	"time"
 )
@@ -10,6 +11,8 @@ type RequestStream interface {
 	HasNext() bool
 	Next() (*http.Request, error)
 	Reset()
+	Progress() int
+	Size() int
 }
 
 //SequentialRequestStream ...
@@ -41,6 +44,17 @@ func (instance *SequentialRequestStream) Next() (*http.Request, error) {
 //Reset ...
 func (instance *SequentialRequestStream) Reset() {
 	instance.current = 0
+}
+
+//Progress ...
+func (instance *SequentialRequestStream) Progress() int {
+	current := float64(instance.current) / float64(instance.Size())
+	return int(math.Floor(current * 100))
+}
+
+//Size ...
+func (instance *SequentialRequestStream) Size() int {
+	return instance.reader.Size()
 }
 
 //RandomRequestStream ...
@@ -82,6 +96,17 @@ func (instance *RandomRequestStream) Reset() {
 	instance.count = 0
 }
 
+//Progress ...
+func (instance *RandomRequestStream) Progress() int {
+	current := float64(instance.count) / float64(instance.Size())
+	return int(math.Floor(current * 100))
+}
+
+//Size ...
+func (instance *RandomRequestStream) Size() int {
+	return instance.reader.Size()
+}
+
 //TimeBasedRequestStream ...
 type TimeBasedRequestStream struct {
 	stream   RequestStream
@@ -116,4 +141,15 @@ func (instance *TimeBasedRequestStream) Next() (*http.Request, error) {
 //Reset ...
 func (instance *TimeBasedRequestStream) Reset() {
 	instance.start = time.Time{}
+}
+
+//Progress ...
+func (instance *TimeBasedRequestStream) Progress() int {
+	current := (float64(time.Since(instance.start).Nanoseconds()) / float64(instance.Size()))
+	return int(math.Ceil(current * 100))
+}
+
+//Size ...
+func (instance *TimeBasedRequestStream) Size() int {
+	return int(instance.duration.Nanoseconds())
 }

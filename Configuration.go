@@ -26,6 +26,7 @@ type Configuration struct {
 	Workers  int           `yaml:"workers"`
 	Duration time.Duration `yaml:"duration"`
 	WaitTime time.Duration `yaml:"wait-time"`
+	Progress string        `yaml:"progress"`
 	FilePath string
 }
 
@@ -112,6 +113,7 @@ func cmdConfig(args []string) (Configuration, error) {
 	CommandLine.Flag("workers", "The number of workers to execute the requests").IntVar(&config.Workers)
 	CommandLine.Flag("random", "Select the url at random for each execution").BoolVar(&config.Random)
 	CommandLine.Flag("verbose", "verbosity").Short('v').Action(counter).Bool()
+	CommandLine.Flag("progress", "Progress reporter").EnumVar(&config.Progress, "bar", "logo", "none")
 
 	_, err := CommandLine.Parse(args)
 
@@ -181,6 +183,7 @@ func defaultConfig() Configuration {
 		Workers:  1,
 		WaitTime: waitTime,
 		LogLevel: log.FatalLevel,
+		Progress: "logo",
 	}
 }
 

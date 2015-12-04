@@ -40,6 +40,9 @@ var _ = Describe("Configuration", func() {
 			It("sets duration (--duration)", func() {
 				Expect(configuration.Duration).To(Equal(defaultDuration))
 			})
+			It("sets progress (--progress)", func() {
+				Expect(configuration.Progress).To(Equal("logo"))
+			})
 			It("sets random (--random)", func() {
 				Expect(configuration.Random).To(Equal(false))
 			})

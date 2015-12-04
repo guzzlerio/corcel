@@ -68,7 +68,9 @@ func InvokeCorcel(list []string, args ...string) ([]byte, error) {
 
 func SutExecute(list []string, args ...string) []byte {
 	output, err := InvokeCorcel(list, args...)
-	Expect(err).To(BeNil())
+	if err != nil {
+		Fail(string(output))
+	}
 	return output
 }
 
@@ -316,6 +318,21 @@ var _ = Describe("Main", func() {
 		Expect(executionOutput.Summary.RunningTime).To(BeNumerically(">", 0))
 	})
 
+	It("Halts execution if a payload input file is not found", func() {
+		list := []string{
+			fmt.Sprintf(`%s -X POST -d '{"name":"talula"}'`, URLForTestServer("/success")),
+			fmt.Sprintf(`%s -X POST -d @missing-file.json`, URLForTestServer("/success")),
+		}
+
+		output, _ := InvokeCorcel(list)
+		//Use this one when progress bar MR is complete
+		//output, _ := InvokeCorcel(list, "--progress", "none")
+		requestsSet := Requests(TestServer.requests[:])
+
+		Expect(len(requestsSet)).To(Equal(1))
+		Expect(string(output)).To(ContainSubstring("Request body file not found: missing-file.json"))
+	})
+
 	It("Generate statistics of data from the execution", func() {
 		list := []string{
 			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, URLForTestServer("/A")),
@@ -368,6 +385,18 @@ var _ = Describe("Main", func() {
 		for _, method := range HTTPMethodsWithRequestBody {
 			It(fmt.Sprintf("in the body for verb %s", method), func() {
 				data := "a=1&b=2&c=3"
+				list := []string{fmt.Sprintf(`%s -X %s -d %s`, URLForTestServer("/A"), method, data)}
+				SutExecute(list)
+
+				predicates := []HTTPRequestPredicate{}
+				predicates = append(predicates, RequestWithPath("/A"))
+				predicates = append(predicates, RequestWithMethod(method))
+				predicates = append(predicates, RequestWithBody(data))
+				Expect(TestServer.Find(predicates...)).To(Equal(true))
+			})
+
+			It(fmt.Sprintf("in the body from a file for verb %s", method), func() {
+				data := "@./list.txt"
 				list := []string{fmt.Sprintf(`%s -X %s -d %s`, URLForTestServer("/A"), method, data)}
 				SutExecute(list)
 

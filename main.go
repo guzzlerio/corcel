@@ -142,7 +142,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-
 	configureErrorMappings()
 	ConfigureLogging(config)
 

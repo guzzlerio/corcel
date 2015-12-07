@@ -63,7 +63,7 @@ func ParseConfiguration(args []string) (*Configuration, error) {
 		return nil, err
 	}
 
-	eachConfig := []interface{}{&cmd, &pwd, &usr, &defaults}
+	eachConfig := []interface{}{cmd, pwd, usr, &defaults}
 	for _, item := range eachConfig {
 		if err := mergo.Merge(&config, item); err != nil {
 			return nil, err
@@ -101,7 +101,7 @@ func counter(c *kingpin.ParseContext) error {
 	return nil
 }
 
-func cmdConfig(args []string) (Configuration, error) {
+func cmdConfig(args []string) (*Configuration, error) {
 	CommandLine := kingpin.New("corcel", "")
 
 	CommandLine.Version(applicationVersion)
@@ -119,44 +119,44 @@ func cmdConfig(args []string) (Configuration, error) {
 	_, err := CommandLine.Parse(args)
 
 	if err != nil {
-		return Configuration{}, err
+		return nil, err
 	}
 	config.LogLevel = logLevel
 
 	if err = config.handleHTTPEndpointForURLFile(); err != nil {
-		return Configuration{}, err
+		return nil, err
 	}
 
 	if _, err = os.Stat(config.FilePath); os.IsNotExist(err) {
-		return Configuration{}, errors.New("required argument 'file' not provided")
+		return nil, errors.New("required argument 'file' not provided")
 	}
 
 	if validationErr := config.validate(); validationErr != nil {
-		return Configuration{}, validationErr
+		return nil, validationErr
 	}
-	return config, nil
+	return &config, nil
 }
 
-func pwdConfig() (Configuration, error) {
+func pwdConfig() (*Configuration, error) {
 	pwd, _ := os.Getwd()
 	// can we get the application name programatically?
 	filename := path.Join(pwd, fmt.Sprintf(".%src", "corcel"))
 
 	contents, err := configFileReader(filename)
 	if err != nil {
-		return Configuration{}, err
+		return nil, err
 	}
 	var config Configuration
 	if err := config.parse(contents); err != nil {
-		return Configuration{}, err
+		return nil, err
 	}
-	return config, nil
+	return &config, nil
 }
 
-func userDirConfig() (Configuration, error) {
+func userDirConfig() (*Configuration, error) {
 	dir, err := homedir.Dir()
 	if err != nil {
-		return Configuration{}, err
+		return nil, err
 	}
 	home, err := homedir.Expand(dir)
 	// can we get the application name programatically?
@@ -164,13 +164,13 @@ func userDirConfig() (Configuration, error) {
 
 	contents, err := configFileReader(filename)
 	if err != nil {
-		return Configuration{}, err
+		return nil, err
 	}
 	var config Configuration
 	if err := config.parse(contents); err != nil {
-		return Configuration{}, err
+		return nil, err
 	}
-	return config, nil
+	return &config, nil
 }
 
 func defaultConfig() Configuration {

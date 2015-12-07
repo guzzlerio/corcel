@@ -61,10 +61,12 @@ type ExecutionOutput struct {
 	Summary ExecutionSummary `yaml:"summary"`
 }
 
+//ExecutionOutputWriter ...
 type ExecutionOutputWriter struct {
 	Output ExecutionOutput
 }
 
+//Write ...
 func (w *ExecutionOutputWriter) Write(writer io.Writer) {
 	top(writer)
 	line(writer, "Running Time", fmt.Sprintf("%g s", w.Output.Summary.RunningTime/1000))

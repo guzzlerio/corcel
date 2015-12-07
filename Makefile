@@ -1,4 +1,4 @@
-all: install clean ui build lint test
+all: clean build lint test
 
 clean:
 	go clean

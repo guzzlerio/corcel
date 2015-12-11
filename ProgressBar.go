@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/gosuri/uiprogress"
+
+	"ci.guzzler.io/guzzler/corcel/config"
 )
 
 //ProgressBar ...
@@ -12,11 +14,11 @@ type ProgressBar interface {
 //ConsoleProgressBar ...
 type ConsoleProgressBar struct {
 	bar    ProgressBar
-	config *Configuration
+	config *config.Configuration
 }
 
 //NewProgressBar ...
-func NewProgressBar(size int, config *Configuration) *ConsoleProgressBar {
+func NewProgressBar(size int, config *config.Configuration) *ConsoleProgressBar {
 	var bar ProgressBar
 	switch config.Progress {
 	case "bar":

@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"crypto/md5"
@@ -17,6 +17,10 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
+)
+
+var (
+	applicationVersion = "0.1.1-alpha"
 )
 
 //Configuration ...
@@ -190,7 +194,7 @@ func defaultConfig() Configuration {
 func (instance *Configuration) handleHTTPEndpointForURLFile() error {
 	u, e := url.ParseRequestURI(instance.FilePath)
 	if e == nil && u.Scheme != "" {
-		Log.Printf("Dowloading URL file from %s ...\n", instance.FilePath)
+		log.Printf("Dowloading URL file from %s ...\n", instance.FilePath)
 		file, _ := createTemporaryFile(instance.FilePath)
 		out, _ := os.Create(file.Name())
 		defer func() {
@@ -240,4 +244,10 @@ var downloadURLFileFromEndpoint = func(endpoint string) (io.ReadCloser, error) {
 var createTemporaryFile = func(filePath string) (*os.File, error) {
 	hashed := md5.Sum([]byte(filePath))
 	return ioutil.TempFile(os.TempDir(), fmt.Sprintf("%x", hashed))
+}
+
+func check(err error) {
+	if err != nil {
+		log.Fatalf("UNKNOWN ERROR: %v", err)
+	}
 }

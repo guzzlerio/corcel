@@ -15,10 +15,11 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"gopkg.in/yaml.v2"
+
+	"ci.guzzler.io/guzzler/corcel/config"
 )
 
 var (
-	applicationVersion = "0.1.1-alpha"
 	//Log ...
 	Log *log.Logger
 	//RandomSource ...
@@ -42,7 +43,7 @@ func check(err error) {
 }
 
 //ConfigureLogging ...
-func ConfigureLogging(config *Configuration) {
+func ConfigureLogging(config *config.Configuration) {
 	Log = log.New()
 	Log.Level = config.LogLevel
 	//TODO probably have another ticket to support outputting logs to a file
@@ -76,7 +77,7 @@ func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Reques
 }
 
 //Execute ...
-func Execute(config *Configuration, stats *Statistics) {
+func Execute(config *config.Configuration, stats *Statistics) {
 	var waitGroup sync.WaitGroup
 
 	reader := NewRequestReader(config.FilePath)
@@ -137,7 +138,7 @@ func GenerateExecutionOutput(file string, stats *Statistics) {
 }
 
 func main() {
-	config, err := ParseConfiguration(os.Args[1:])
+	config, err := config.ParseConfiguration(os.Args[1:])
 	if err != nil {
 		log.Fatal(err)
 	}

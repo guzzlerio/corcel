@@ -1,14 +1,13 @@
 package main
 
 import (
-	"io"
-	"io/ioutil"
-	"net/http"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"io"
+	"io/ioutil"
 	"fmt"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -16,6 +15,8 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
+
+	"ci.guzzler.io/guzzler/corcel/config"
 )
 
 var (
@@ -34,7 +35,7 @@ func URLForTestServer(path string) string {
 }
 
 var _ = BeforeSuite(func() {
-	ConfigureLogging(&Configuration{})
+	ConfigureLogging(&config.Configuration{})
 	logrus.SetOutput(ioutil.Discard)
 	Log.Out = ioutil.Discard
 	TestServer = CreateRequestRecordingServer(TestPort)
@@ -45,52 +46,7 @@ var _ = AfterSuite(func() {
 	TestServer.Stop()
 })
 
-func InvokeCorcel(list []string, args ...string) ([]byte, error) {
-	exePath, err := filepath.Abs("./corcel")
-	check(err)
-	configFileReader = func(path string) ([]byte, error) {
-		return []byte(""), nil
-	}
-	file := CreateFileFromLines(list)
-	defer func() {
-		err := os.Remove(file.Name())
-		if err != nil {
-			Log.Printf("Error removing file %v", err)
-		}
-	}()
-	cmd := exec.Command(exePath, append(args, file.Name())...)
-	output, err := cmd.CombinedOutput()
-	if len(output) > 0 {
-		Log.Println(fmt.Sprintf("%s", output))
-	}
-	return output, err
-}
-
-func SutExecute(list []string, args ...string) []byte {
-	output, err := InvokeCorcel(list, args...)
-	if err != nil {
-		Fail(string(output))
-	}
-	return output
-}
-
-func Requests(recordedRequests []RecordedRequest) (result []*http.Request) {
-	for _, recordedRequest := range recordedRequests {
-		result = append(result, recordedRequest.request)
-	}
-	return
-}
-
-func ConcatRequestPaths(requests []*http.Request) string {
-	result := ""
-	for _, request := range requests {
-		result = result + request.URL.Path
-	}
-	return result
-}
-
 var _ = Describe("Main", func() {
-
 	BeforeEach(func() {
 		err := os.Remove("./output.yml")
 		if err != nil {
@@ -423,6 +379,12 @@ var _ = Describe("Main", func() {
 	})
 
 	for _, method := range SupportedHTTPMethods {
+		It(fmt.Sprintf("Makes a http %s request", method), func() {
+			list := []string{fmt.Sprintf(`%s -X %s`, URLForTestServer("/A"), method)}
+			SutExecute(list)
+			Expect(TestServer.Find(RequestWithPath("/A"), RequestWithMethod(method))).To(Equal(true))
+		})
+
 		It(fmt.Sprintf("Makes a http %s request with http headers", method), func() {
 			applicationJSON := "Content-Type:application/json"
 			applicationSoapXML := "Accept:application/soap+xml"
@@ -452,14 +414,6 @@ var _ = Describe("Main", func() {
 		Expect(TestServer.Find(predicates...)).To(Equal(true))
 	})
 
-	for _, method := range SupportedHTTPMethods {
-		It(fmt.Sprintf("Makes a http %s request", method), func() {
-			list := []string{fmt.Sprintf(`%s -X %s`, URLForTestServer("/A"), method)}
-			SutExecute(list)
-			Expect(TestServer.Find(RequestWithPath("/A"), RequestWithMethod(method))).To(Equal(true))
-		})
-	}
-
 	It("Makes a http get request to each url in a file", func() {
 		list := []string{
 			URLForTestServer("/A"),
@@ -474,3 +428,44 @@ var _ = Describe("Main", func() {
 		Expect(TestServer.Find(RequestWithPath("/C"))).To(Equal(true))
 	})
 })
+
+func InvokeCorcel(list []string, args ...string) ([]byte, error) {
+	exePath, err := filepath.Abs("./corcel")
+	check(err)
+	file := CreateFileFromLines(list)
+	defer func() {
+		err := os.Remove(file.Name())
+		if err != nil {
+			Log.Printf("Error removing file %v", err)
+		}
+	}()
+	cmd := exec.Command(exePath, append(args, file.Name())...)
+	output, err := cmd.CombinedOutput()
+	if len(output) > 0 {
+		Log.Println(fmt.Sprintf("%s", output))
+	}
+	return output, err
+}
+
+func SutExecute(list []string, args ...string) []byte {
+	output, err := InvokeCorcel(list, args...)
+	if err != nil {
+		Fail(string(output))
+	}
+	return output
+}
+
+func Requests(recordedRequests []RecordedRequest) (result []*http.Request) {
+	for _, recordedRequest := range recordedRequests {
+		result = append(result, recordedRequest.request)
+	}
+	return
+}
+
+func ConcatRequestPaths(requests []*http.Request) string {
+	result := ""
+	for _, request := range requests {
+		result = result + request.URL.Path
+	}
+	return result
+}

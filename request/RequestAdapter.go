@@ -1,4 +1,4 @@
-package main
+package request
 
 import (
 	"bytes"
@@ -6,8 +6,15 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"ci.guzzler.io/guzzler/corcel/logger"
 )
 
+func check(err error) {
+	if err != nil {
+		logger.Log.Fatalf("UNKNOWN ERROR: %v", err)
+	}
+}
 //RequestAdapter ...
 type RequestAdapter struct {
 	Handlers map[string]RequestConfigHandler
@@ -56,7 +63,7 @@ func HandlerForData(options []string, index int, req *http.Request) (outReq *htt
 		if strings.HasPrefix(rawBody, "@") {
 			body = loadRequestBodyFromFile(string(bytes.TrimLeft(bodyBytes, "@")))
 		} else {
-			Log.Println("body from request")
+			logger.Log.Println("body from request")
 			body = bytes.NewBuffer(bodyBytes)
 		}
 		outReq, err = http.NewRequest(req.Method, req.URL.String(), body)
@@ -93,12 +100,12 @@ func (instance RequestAdapter) Create(line string) RequestFunc {
 
 var loadRequestBodyFromFile = func(filepath string) *bytes.Buffer {
 	if _, err := os.Stat(filepath); os.IsNotExist(err) {
-		Log.Fatalf("Request body file not found: %s\n", filepath)
+		logger.Log.Fatalf("Request body file not found: %s\n", filepath)
 		return nil
 	}
 	data, err := ioutil.ReadFile(filepath)
 	if err != nil {
-		Log.Fatalf("Unable to read Request body file: %s\n", filepath)
+		logger.Log.Fatalf("Unable to read Request body file: %s\n", filepath)
 		return nil
 	}
 	return bytes.NewBuffer(data)

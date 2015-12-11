@@ -1,4 +1,4 @@
-package main
+package request
 
 import (
 	"fmt"
@@ -8,11 +8,13 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"time"
+
+	"ci.guzzler.io/guzzler/corcel/logger"
 )
 
 //RecordedRequest ...
 type RecordedRequest struct {
-	request *http.Request
+	Request *http.Request
 	body    string
 }
 
@@ -30,7 +32,7 @@ type UseWithPredicates struct {
 
 //RequestRecordingServer ...
 type RequestRecordingServer struct {
-	requests []RecordedRequest
+	Requests []RecordedRequest
 	port     int
 	server   *httptest.Server
 	use      []UseWithPredicates
@@ -39,7 +41,7 @@ type RequestRecordingServer struct {
 //CreateRequestRecordingServer ...
 func CreateRequestRecordingServer(port int) *RequestRecordingServer {
 	return &RequestRecordingServer{
-		requests: []RecordedRequest{},
+		Requests: []RecordedRequest{},
 		port:     port,
 		use:      []UseWithPredicates{},
 	}
@@ -67,10 +69,10 @@ func (instance *RequestRecordingServer) Start() {
 		body, err := ioutil.ReadAll(r.Body)
 		check(err)
 		recordedRequest := RecordedRequest{
-			request: r,
+			Request: r,
 			body:    string(body),
 		}
-		instance.requests = append(instance.requests, recordedRequest)
+		instance.Requests = append(instance.Requests, recordedRequest)
 		if instance.use != nil {
 			instance.evaluatePredicates(recordedRequest, w)
 		} else {
@@ -90,7 +92,7 @@ func (instance *RequestRecordingServer) Stop() {
 
 //Clear ...
 func (instance *RequestRecordingServer) Clear() {
-	instance.requests = []RecordedRequest{}
+	instance.Requests = []RecordedRequest{}
 	instance.use = []UseWithPredicates{}
 }
 
@@ -112,7 +114,7 @@ func (instance *RequestRecordingServer) Evaluate(request RecordedRequest, predic
 
 //Find ...
 func (instance *RequestRecordingServer) Find(predicates ...HTTPRequestPredicate) bool {
-	for _, request := range instance.requests {
+	for _, request := range instance.Requests {
 		if instance.Evaluate(request) {
 			return true
 		}
@@ -140,9 +142,9 @@ func (instance *RequestRecordingServer) For(predicates ...HTTPRequestPredicate) 
 //RequestWithPath ...
 func RequestWithPath(path string) HTTPRequestPredicate {
 	return HTTPRequestPredicate(func(r RecordedRequest) bool {
-		result := r.request.URL.Path == path
+		result := r.Request.URL.Path == path
 		if !result {
-			Log.Println(fmt.Sprintf("path does not equal %s it equals %s", path, r.request.URL.Path))
+			logger.Log.Println(fmt.Sprintf("path does not equal %s it equals %s", path, r.Request.URL.Path))
 		}
 		return result
 	})
@@ -151,9 +153,9 @@ func RequestWithPath(path string) HTTPRequestPredicate {
 //RequestWithMethod ...
 func RequestWithMethod(method string) HTTPRequestPredicate {
 	return HTTPRequestPredicate(func(r RecordedRequest) bool {
-		result := r.request.Method == method
+		result := r.Request.Method == method
 		if !result {
-			Log.Println("request method does not equal " + method)
+			logger.Log.Println("request method does not equal " + method)
 		}
 		return result
 	})
@@ -162,9 +164,9 @@ func RequestWithMethod(method string) HTTPRequestPredicate {
 //RequestWithHeader ...
 func RequestWithHeader(key string, value string) HTTPRequestPredicate {
 	return HTTPRequestPredicate(func(r RecordedRequest) bool {
-		result := r.request.Header.Get(key) == value
+		result := r.Request.Header.Get(key) == value
 		if !result {
-			Log.Println(fmt.Sprintf("request method does not contain header with key %s and value %s actual %s", key, value, r.request.Header.Get(key)))
+			logger.Log.Println(fmt.Sprintf("request method does not contain header with key %s and value %s actual %s", key, value, r.Request.Header.Get(key)))
 		}
 		return result
 	})
@@ -175,7 +177,7 @@ func RequestWithBody(value string) HTTPRequestPredicate {
 	return HTTPRequestPredicate(func(r RecordedRequest) bool {
 		result := string(r.body) == value
 		if !result {
-			Log.Println(fmt.Sprintf("request body does not equal %s it equals %s", value, r.body))
+			logger.Log.Println(fmt.Sprintf("request body does not equal %s it equals %s", value, r.body))
 		}
 		return result
 	})
@@ -184,9 +186,9 @@ func RequestWithBody(value string) HTTPRequestPredicate {
 //RequestWithQuerystring ...
 func RequestWithQuerystring(value string) HTTPRequestPredicate {
 	return HTTPRequestPredicate(func(r RecordedRequest) bool {
-		result := r.request.URL.RawQuery == value
+		result := r.Request.URL.RawQuery == value
 		if !result {
-			Log.Println("request query does not equal " + value + " | it equals " + r.request.URL.RawQuery)
+			logger.Log.Println("request query does not equal " + value + " | it equals " + r.Request.URL.RawQuery)
 		}
 		return result
 	})

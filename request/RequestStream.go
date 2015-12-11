@@ -1,9 +1,17 @@
-package main
+package request
 
 import (
 	"math"
+	"math/rand"
 	"net/http"
 	"time"
+)
+
+var (
+	//RandomSource ...
+	RandomSource = rand.NewSource(time.Now().UnixNano())
+	//Random ...
+	Random = rand.New(RandomSource)
 )
 
 //RequestStream ...

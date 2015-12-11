@@ -17,12 +17,14 @@ import (
 	"github.com/Sirupsen/logrus"
 
 	"ci.guzzler.io/guzzler/corcel/config"
+	"ci.guzzler.io/guzzler/corcel/logger"
+	req "ci.guzzler.io/guzzler/corcel/request"
 )
 
 var (
 	SupportedHTTPMethods       = []string{"GET", "POST", "PUT", "DELETE"}
 	HTTPMethodsWithRequestBody = []string{"POST", "PUT", "DELETE"}
-	TestServer                 *RequestRecordingServer
+	TestServer                 *req.RequestRecordingServer
 	TestPort                   = 8000
 	ResponseCodes400           = []int{400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418}
 	ResponseCodes500           = []int{500, 501, 502, 503, 504, 505}
@@ -35,10 +37,10 @@ func URLForTestServer(path string) string {
 }
 
 var _ = BeforeSuite(func() {
-	ConfigureLogging(&config.Configuration{})
+	logger.ConfigureLogging(&config.Configuration{})
 	logrus.SetOutput(ioutil.Discard)
-	Log.Out = ioutil.Discard
-	TestServer = CreateRequestRecordingServer(TestPort)
+	logger.Log.Out = ioutil.Discard
+	TestServer = req.CreateRequestRecordingServer(TestPort)
 	TestServer.Start()
 })
 
@@ -50,7 +52,7 @@ var _ = Describe("Main", func() {
 	BeforeEach(func() {
 		err := os.Remove("./output.yml")
 		if err != nil {
-			Log.Printf("Error removing file %v", err)
+			logger.Log.Printf("Error removing file %v", err)
 		}
 	})
 
@@ -94,10 +96,10 @@ var _ = Describe("Main", func() {
 		}
 
 		SutExecute(list, "--random")
-		requestsSet1 := Requests(TestServer.requests[:])
+		requestsSet1 := Requests(TestServer.Requests[:])
 		TestServer.Clear()
 		SutExecute(list, "--random")
-		requestsSet2 := Requests(TestServer.requests[:])
+		requestsSet2 := Requests(TestServer.Requests[:])
 
 		Expect(ConcatRequestPaths(requestsSet1)).ToNot(Equal(ConcatRequestPaths(requestsSet2)))
 	})
@@ -159,9 +161,9 @@ var _ = Describe("Main", func() {
 			fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
 		}
 
-		TestServer.Use(HTTPResponseFactory(func(w http.ResponseWriter) {
+		TestServer.Use(req.HTTPResponseFactory(func(w http.ResponseWriter) {
 			w.WriteHeader(500)
-		})).For(RequestWithPath("/error"))
+		})).For(req.RequestWithPath("/error"))
 
 		output := SutExecute(list, "--summary")
 
@@ -195,7 +197,7 @@ var _ = Describe("Main", func() {
 
 		It("Records the availability", func() {
 			count := 0
-			TestServer.Use(HTTPResponseFactory(func(w http.ResponseWriter) {
+			TestServer.Use(req.HTTPResponseFactory(func(w http.ResponseWriter) {
 				count++
 				if count%2 == 0 {
 					w.WriteHeader(500)
@@ -215,7 +217,7 @@ var _ = Describe("Main", func() {
 
 		for _, code := range append(ResponseCodes500, ResponseCodes400...) {
 			It(fmt.Sprintf("Records error for HTTP %v response code range", code), func() {
-				TestServer.Use(HTTPResponseFactory(func(w http.ResponseWriter) {
+				TestServer.Use(req.HTTPResponseFactory(func(w http.ResponseWriter) {
 					w.WriteHeader(code)
 				}))
 
@@ -249,7 +251,7 @@ var _ = Describe("Main", func() {
 		}
 
 		count := 1
-		TestServer.Use(HTTPResponseFactory(func(w http.ResponseWriter) {
+		TestServer.Use(req.HTTPResponseFactory(func(w http.ResponseWriter) {
 			time.Sleep(time.Duration(count) * time.Millisecond)
 			count++
 		}))
@@ -283,7 +285,7 @@ var _ = Describe("Main", func() {
 		output, _ := InvokeCorcel(list)
 		//Use this one when progress bar MR is complete
 		//output, _ := InvokeCorcel(list, "--progress", "none")
-		requestsSet := Requests(TestServer.requests[:])
+		requestsSet := Requests(TestServer.Requests[:])
 
 		Expect(len(requestsSet)).To(Equal(1))
 		Expect(string(output)).To(ContainSubstring("Request body file not found: missing-file.json"))
@@ -298,7 +300,7 @@ var _ = Describe("Main", func() {
 		}
 
 		responseBody := "-"
-		TestServer.Use(HTTPResponseFactory(func(w http.ResponseWriter) {
+		TestServer.Use(req.HTTPResponseFactory(func(w http.ResponseWriter) {
 			_, err := io.WriteString(w, fmt.Sprintf("%s", responseBody))
 			check(err)
 			responseBody = responseBody + "-"
@@ -344,10 +346,10 @@ var _ = Describe("Main", func() {
 				list := []string{fmt.Sprintf(`%s -X %s -d %s`, URLForTestServer("/A"), method, data)}
 				SutExecute(list)
 
-				predicates := []HTTPRequestPredicate{}
-				predicates = append(predicates, RequestWithPath("/A"))
-				predicates = append(predicates, RequestWithMethod(method))
-				predicates = append(predicates, RequestWithBody(data))
+				predicates := []req.HTTPRequestPredicate{}
+				predicates = append(predicates, req.RequestWithPath("/A"))
+				predicates = append(predicates, req.RequestWithMethod(method))
+				predicates = append(predicates, req.RequestWithBody(data))
 				Expect(TestServer.Find(predicates...)).To(Equal(true))
 			})
 
@@ -356,10 +358,10 @@ var _ = Describe("Main", func() {
 				list := []string{fmt.Sprintf(`%s -X %s -d %s`, URLForTestServer("/A"), method, data)}
 				SutExecute(list)
 
-				predicates := []HTTPRequestPredicate{}
-				predicates = append(predicates, RequestWithPath("/A"))
-				predicates = append(predicates, RequestWithMethod(method))
-				predicates = append(predicates, RequestWithBody(data))
+				predicates := []req.HTTPRequestPredicate{}
+				predicates = append(predicates, req.RequestWithPath("/A"))
+				predicates = append(predicates, req.RequestWithMethod(method))
+				predicates = append(predicates, req.RequestWithBody(data))
 				Expect(TestServer.Find(predicates...)).To(Equal(true))
 			})
 		}
@@ -370,10 +372,10 @@ var _ = Describe("Main", func() {
 			list := []string{fmt.Sprintf(`%s -X %s -d %s"`, URLForTestServer("/A"), method, data)}
 			SutExecute(list)
 
-			predicates := []HTTPRequestPredicate{}
-			predicates = append(predicates, RequestWithPath("/A"))
-			predicates = append(predicates, RequestWithMethod(method))
-			predicates = append(predicates, RequestWithQuerystring(data))
+			predicates := []req.HTTPRequestPredicate{}
+			predicates = append(predicates, req.RequestWithPath("/A"))
+			predicates = append(predicates, req.RequestWithMethod(method))
+			predicates = append(predicates, req.RequestWithQuerystring(data))
 			Expect(TestServer.Find(predicates...)).To(Equal(true))
 		})
 	})
@@ -382,7 +384,7 @@ var _ = Describe("Main", func() {
 		It(fmt.Sprintf("Makes a http %s request", method), func() {
 			list := []string{fmt.Sprintf(`%s -X %s`, URLForTestServer("/A"), method)}
 			SutExecute(list)
-			Expect(TestServer.Find(RequestWithPath("/A"), RequestWithMethod(method))).To(Equal(true))
+			Expect(TestServer.Find(req.RequestWithPath("/A"), req.RequestWithMethod(method))).To(Equal(true))
 		})
 
 		It(fmt.Sprintf("Makes a http %s request with http headers", method), func() {
@@ -391,11 +393,11 @@ var _ = Describe("Main", func() {
 			list := []string{fmt.Sprintf(`%s -X %s -H "%s" -H "%s"`, URLForTestServer("/A"), method, applicationJSON, applicationSoapXML)}
 			SutExecute(list)
 
-			predicates := []HTTPRequestPredicate{}
-			predicates = append(predicates, RequestWithPath("/A"))
-			predicates = append(predicates, RequestWithMethod(method))
-			predicates = append(predicates, RequestWithHeader("Content-Type", "application/json"))
-			predicates = append(predicates, RequestWithHeader("Accept", "application/soap+xml"))
+			predicates := []req.HTTPRequestPredicate{}
+			predicates = append(predicates, req.RequestWithPath("/A"))
+			predicates = append(predicates, req.RequestWithMethod(method))
+			predicates = append(predicates, req.RequestWithHeader("Content-Type", "application/json"))
+			predicates = append(predicates, req.RequestWithHeader("Accept", "application/soap+xml"))
 			Expect(TestServer.Find(predicates...)).To(Equal(true))
 		})
 	}
@@ -407,10 +409,10 @@ var _ = Describe("Main", func() {
 		list := []string{fmt.Sprintf(`%s -X %s -A "%s"`, URLForTestServer("/A"), method, userAgent)}
 		SutExecute(list)
 
-		predicates := []HTTPRequestPredicate{}
-		predicates = append(predicates, RequestWithPath("/A"))
-		predicates = append(predicates, RequestWithMethod(method))
-		predicates = append(predicates, RequestWithHeader("User-Agent", userAgent))
+		predicates := []req.HTTPRequestPredicate{}
+		predicates = append(predicates, req.RequestWithPath("/A"))
+		predicates = append(predicates, req.RequestWithMethod(method))
+		predicates = append(predicates, req.RequestWithHeader("User-Agent", userAgent))
 		Expect(TestServer.Find(predicates...)).To(Equal(true))
 	})
 
@@ -423,9 +425,9 @@ var _ = Describe("Main", func() {
 
 		SutExecute(list)
 
-		Expect(TestServer.Find(RequestWithPath("/A"))).To(Equal(true))
-		Expect(TestServer.Find(RequestWithPath("/B"))).To(Equal(true))
-		Expect(TestServer.Find(RequestWithPath("/C"))).To(Equal(true))
+		Expect(TestServer.Find(req.RequestWithPath("/A"))).To(Equal(true))
+		Expect(TestServer.Find(req.RequestWithPath("/B"))).To(Equal(true))
+		Expect(TestServer.Find(req.RequestWithPath("/C"))).To(Equal(true))
 	})
 })
 
@@ -436,13 +438,13 @@ func InvokeCorcel(list []string, args ...string) ([]byte, error) {
 	defer func() {
 		err := os.Remove(file.Name())
 		if err != nil {
-			Log.Printf("Error removing file %v", err)
+			logger.Log.Printf("Error removing file %v", err)
 		}
 	}()
 	cmd := exec.Command(exePath, append(args, file.Name())...)
 	output, err := cmd.CombinedOutput()
 	if len(output) > 0 {
-		Log.Println(fmt.Sprintf("%s", output))
+		logger.Log.Println(fmt.Sprintf("%s", output))
 	}
 	return output, err
 }
@@ -455,9 +457,9 @@ func SutExecute(list []string, args ...string) []byte {
 	return output
 }
 
-func Requests(recordedRequests []RecordedRequest) (result []*http.Request) {
+func Requests(recordedRequests []req.RecordedRequest) (result []*http.Request) {
 	for _, recordedRequest := range recordedRequests {
-		result = append(result, recordedRequest.request)
+		result = append(result, recordedRequest.Request)
 	}
 	return
 }

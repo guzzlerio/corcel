@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"net/http/httputil"
 	"os"
@@ -13,19 +12,14 @@ import (
 	"sync"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 
 	"ci.guzzler.io/guzzler/corcel/config"
+	req "ci.guzzler.io/guzzler/corcel/request"
+	"ci.guzzler.io/guzzler/corcel/logger"
 )
 
 var (
-	//Log ...
-	Log *log.Logger
-	//RandomSource ...
-	RandomSource = rand.NewSource(time.Now().UnixNano())
-	//Random ...
-	Random = rand.New(RandomSource)
 	//ErrorMappings ...
 	ErrorMappings = map[string]ErrorCode{}
 )
@@ -38,21 +32,13 @@ func check(err error) {
 				os.Exit(errorCode.Code)
 			}
 		}
-		Log.Fatalf("UNKNOWN ERROR: %v", err)
+		logger.Log.Fatalf("UNKNOWN ERROR: %v", err)
 	}
-}
-
-//ConfigureLogging ...
-func ConfigureLogging(config *config.Configuration) {
-	Log = log.New()
-	Log.Level = config.LogLevel
-	//TODO probably have another ticket to support outputting logs to a file
-	//Log.Formatter = config.Logging.Formatter
 }
 
 //ExecuteRequest ...
 func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Request) {
-	Log.Infof("%s to %s", request.Method, request.URL)
+	logger.Log.Infof("%s to %s", request.Method, request.URL)
 	start := time.Now()
 	response, responseError := client.Do(request)
 	duration := time.Since(start) / time.Millisecond
@@ -61,7 +47,7 @@ func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Reques
 	defer func() {
 		err := response.Body.Close()
 		if err != nil {
-			Log.Warnf("Error closing response Body %v", err)
+			logger.Log.Warnf("Error closing response Body %v", err)
 		}
 	}()
 	responseBytes, _ := httputil.DumpResponse(response, true)
@@ -80,7 +66,7 @@ func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Reques
 func Execute(config *config.Configuration, stats *Statistics) {
 	var waitGroup sync.WaitGroup
 
-	reader := NewRequestReader(config.FilePath)
+	reader := req.NewRequestReader(config.FilePath)
 	bar := NewProgressBar(100, config)
 
 	for i := 0; i < config.Workers; i++ {
@@ -89,9 +75,9 @@ func Execute(config *config.Configuration, stats *Statistics) {
 			defer func() { //catch or finally
 				if err := recover(); err != nil { //catch
 					if strings.Contains(fmt.Sprintf("%v", err), "too many open files") {
-						Log.Fatalf("Too many workers man!")
+						logger.Log.Fatalf("Too many workers man!")
 					} else {
-						Log.Fatalf("UNKNOWN ERROR: %v", err)
+						logger.Log.Fatalf("UNKNOWN ERROR: %v", err)
 					}
 				}
 			}()
@@ -100,15 +86,15 @@ func Execute(config *config.Configuration, stats *Statistics) {
 					MaxIdleConnsPerHost: 50,
 				},
 			}
-			var stream RequestStream
+			var stream req.RequestStream
 
 			if config.Random {
-				stream = NewRandomRequestStream(reader)
+				stream = req.NewRandomRequestStream(reader)
 			} else {
-				stream = NewSequentialRequestStream(reader)
+				stream = req.NewSequentialRequestStream(reader)
 			}
 			if config.Duration > 0 {
-				stream = NewTimeBasedRequestStream(stream, config.Duration)
+				stream = req.NewTimeBasedRequestStream(stream, config.Duration)
 			}
 			for stream.HasNext() {
 				request, err := stream.Next()
@@ -140,11 +126,11 @@ func GenerateExecutionOutput(file string, stats *Statistics) {
 func main() {
 	config, err := config.ParseConfiguration(os.Args[1:])
 	if err != nil {
-		log.Fatal(err)
+		logger.Log.Fatal(err)
 	}
 
 	configureErrorMappings()
-	ConfigureLogging(config)
+	logger.ConfigureLogging(config)
 
 	absolutePath, err := filepath.Abs(config.FilePath)
 	check(err)
@@ -152,7 +138,7 @@ func main() {
 	defer func() {
 		err := file.Close()
 		if err != nil {
-			Log.Printf("Error closing file %v", err)
+			logger.Log.Printf("Error closing file %v", err)
 		}
 	}()
 	check(err)

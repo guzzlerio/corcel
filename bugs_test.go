@@ -7,6 +7,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"ci.guzzler.io/guzzler/corcel/logger"
 )
 
 var _ = Describe("Bugs replication", func() {
@@ -14,7 +16,7 @@ var _ = Describe("Bugs replication", func() {
 	BeforeEach(func() {
 		err := os.Remove("./output.yml")
 		if err != nil {
-			Log.Printf("Error removing file %v", err)
+			logger.Log.Printf("Error removing file %v", err)
 		}
 	})
 

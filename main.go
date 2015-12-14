@@ -1,21 +1,17 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"net/http"
-	"net/http/httputil"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 
 	"gopkg.in/yaml.v2"
 
 	"ci.guzzler.io/guzzler/corcel/config"
-	req "ci.guzzler.io/guzzler/corcel/request"
 	"ci.guzzler.io/guzzler/corcel/logger"
 )
 
@@ -36,87 +32,116 @@ func check(err error) {
 	}
 }
 
-//ExecuteRequest ...
-func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Request) {
-	logger.Log.Infof("%s to %s", request.Method, request.URL)
-	start := time.Now()
-	response, responseError := client.Do(request)
-	duration := time.Since(start) / time.Millisecond
-	check(responseError)
-
-	defer func() {
-		err := response.Body.Close()
-		if err != nil {
-			logger.Log.Warnf("Error closing response Body %v", err)
-		}
-	}()
-	responseBytes, _ := httputil.DumpResponse(response, true)
-	stats.BytesReceived(int64(len(responseBytes)))
-	if response.StatusCode >= 400 && response.StatusCode < 600 {
-		responseError = errors.New("5XX Response Code")
-	}
-
-	stats.ResponseTime(int64(duration))
-	requestBytes, _ := httputil.DumpRequest(request, true)
-	stats.BytesSent(int64(len(requestBytes)))
-	stats.Request(responseError)
+type ExecutionId struct {
+	value string
 }
 
-//Execute ...
-func Execute(config *config.Configuration, stats *Statistics) {
-	var waitGroup sync.WaitGroup
+func (id ExecutionId) String() string {
+	return fmt.Sprintf("%s", id.value)
+}
 
-	reader := req.NewRequestReader(config.FilePath)
-	bar := NewProgressBar(100, config)
+func NewExecutionId() ExecutionId {
+	//TODO generate random string here
+	rand.Seed(time.Now().UnixNano())
+	id := RandString(12)
+	return ExecutionId{id}
+}
 
-	for i := 0; i < config.Workers; i++ {
-		waitGroup.Add(1)
-		go func() {
-			defer func() { //catch or finally
-				if err := recover(); err != nil { //catch
-					if strings.Contains(fmt.Sprintf("%v", err), "too many open files") {
-						logger.Log.Fatalf("Too many workers man!")
-					} else {
-						logger.Log.Fatalf("UNKNOWN ERROR: %v", err)
-					}
-				}
-			}()
-			client := &http.Client{
-				Transport: &http.Transport{
-					MaxIdleConnsPerHost: 50,
-				},
-			}
-			var stream req.RequestStream
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+const (
+	letterIdxBits = 6                    // 6 bits to represent a letter index
+	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
+	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
+)
 
-			if config.Random {
-				stream = req.NewRandomRequestStream(reader)
-			} else {
-				stream = req.NewSequentialRequestStream(reader)
-			}
-			if config.Duration > 0 {
-				stream = req.NewTimeBasedRequestStream(stream, config.Duration)
-			}
-			for stream.HasNext() {
-				request, err := stream.Next()
-				check(err)
-				ExecuteRequest(client, stats, request)
-
-				bar.Set(stream.Progress())
-
-				time.Sleep(config.WaitTime)
-			}
-			waitGroup.Done()
-		}()
+func RandString(n int) string {
+	b := make([]byte, n)
+	// A rand.Int63() generates 63 random bits, enough for letterIdxMax letters!
+	for i, cache, remain := n-1, rand.Int63(), letterIdxMax; i >= 0; {
+		if remain == 0 {
+			cache, remain = rand.Int63(), letterIdxMax
+		}
+		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
+			b[i] = letterBytes[idx]
+			i--
+		}
+		cache >>= letterIdxBits
+		remain--
 	}
 
-	waitGroup.Wait()
+	return string(b)
+}
+
+type Control interface {
+	Start(*config.Configuration) (ExecutionId, error)
+	Stop() ExecutionOutput
+	Status(*ExecutionId) ExecutionOutput
+	History() []*ExecutionId
+	Events() <-chan string
+
+	Statistics() Statistics
+}
+
+type Controller struct {
+	stats      *Statistics
+	executions map[ExecutionId]*Executor
+}
+
+func (instance *Controller) Start(config *config.Configuration) (ExecutionId, error) {
+	instance.stats.Start()
+	executor := Executor{config, instance.stats}
+	id := NewExecutionId()
+	fmt.Printf("Execution ID: %s\n", id)
+	instance.executions[id] = &executor
+	executor.Execute()
+	return id, nil
+}
+func (instance *Controller) Stop() ExecutionOutput {
+	instance.stats.Stop()
+	return instance.stats.ExecutionOutput()
+}
+func (instance *Controller) Status(*ExecutionId) ExecutionOutput {
+	return ExecutionOutput{}
+}
+func (instance *Controller) History() []*ExecutionId {
+	return nil
+}
+func (instance *Controller) Events() <-chan string {
+	return nil
+}
+func (instance *Controller) Statistics() Statistics {
+	return *instance.stats
+}
+
+func NewControl() Control {
+	stats := CreateStatistics()
+	control := Controller{stats: stats, executions: make(map[ExecutionId]*Executor)}
+	return &control
+}
+
+type Host interface {
+	SetControl(*Control)
+}
+
+type ConsoleHost struct {
+	Control Control
+}
+
+func (host *ConsoleHost) SetControl(control Control) {
+	host.Control = control
+}
+
+func NewConsoleHost() ConsoleHost {
+	host := ConsoleHost{}
+	control := NewControl()
+	host.SetControl(control)
+	return host
 }
 
 //GenerateExecutionOutput ...
-func GenerateExecutionOutput(file string, stats *Statistics) {
+func GenerateExecutionOutput(file string, output ExecutionOutput) {
 	outputPath, err := filepath.Abs(file)
 	check(err)
-	output := stats.ExecutionOutput()
 	yamlOutput, err := yaml.Marshal(&output)
 	check(err)
 	err = ioutil.WriteFile(outputPath, yamlOutput, 0644)
@@ -143,18 +168,13 @@ func main() {
 	}()
 	check(err)
 
-	stats := CreateStatistics()
-	stats.Start()
+	host := NewConsoleHost()
+	host.Control.Start(config) //will this block?
+	output := host.Control.Stop()
 
-	Execute(config, stats)
-
-	stats.Stop()
-
-	check(err)
-	GenerateExecutionOutput("./output.yml", stats)
+	GenerateExecutionOutput("./output.yml", output)
 
 	if config.Summary {
-		output := stats.ExecutionOutput()
 		consoleWriter := ExecutionOutputWriter{output}
 		consoleWriter.Write(os.Stdout)
 	}

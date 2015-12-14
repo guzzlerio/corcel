@@ -1,8 +1,8 @@
 image: golang:1.5.1
 
 before_script:
-    - cp -r ../../guzzler $GOPATH/src/ci.guzzler.io
-    - ls -la $GOPATH/src/ci.guzzler.io
+    - mkdir -p $GOPATH/src/ci.guzzler.io/guzzler
+    - cp -r ../../guzzler $GOPATH/src/ci.guzzler.io/guzzler
     - cd $GOPATH/src/ci.guzzler.io/guzzler/corcel
 
 stages:

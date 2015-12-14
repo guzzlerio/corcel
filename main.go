@@ -41,20 +41,19 @@ func (id ExecutionId) String() string {
 }
 
 func NewExecutionId() ExecutionId {
-	//TODO generate random string here
-	rand.Seed(time.Now().UnixNano())
-	id := RandString(12)
+	id := RandString(16)
 	return ExecutionId{id}
 }
 
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-const (
-	letterIdxBits = 6                    // 6 bits to represent a letter index
-	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
-	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
-)
-
 func RandString(n int) string {
+	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+	const (
+		letterIdxBits = 6                    // 6 bits to represent a letter index
+		letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
+		letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
+	)
+
+	rand.Seed(time.Now().UnixNano())
 	b := make([]byte, n)
 	// A rand.Int63() generates 63 random bits, enough for letterIdxMax letters!
 	for i, cache, remain := n-1, rand.Int63(), letterIdxMax; i >= 0; {
@@ -79,6 +78,7 @@ type Control interface {
 	History() []*ExecutionId
 	Events() <-chan string
 
+	//TODO Shouldn't need to expose this out, but required for transition
 	Statistics() Statistics
 }
 
@@ -172,6 +172,7 @@ func main() {
 	host.Control.Start(config) //will this block?
 	output := host.Control.Stop()
 
+	//TODO these should probably be pushed behind the host.Control.Stop afterall the host is a cmd host
 	GenerateExecutionOutput("./output.yml", output)
 
 	if config.Summary {

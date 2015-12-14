@@ -18,7 +18,7 @@ var ()
 
 type Executor struct {
 	config *config.Configuration
-	stats *Statistics
+	stats  *Statistics
 }
 
 //Execute ...
@@ -60,7 +60,7 @@ func (instance *Executor) Execute() {
 				check(err)
 				instance.executeRequest(client, request)
 
-				bar.Set(stream.Progress())
+				_ = bar.Set(stream.Progress())
 
 				time.Sleep(instance.config.WaitTime)
 			}

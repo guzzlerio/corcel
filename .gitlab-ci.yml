@@ -2,8 +2,7 @@ image: golang:1.5.1
 
 before_script:
     - mkdir -p $GOPATH/src/ci.guzzler.io/guzzler
-    - cp -r ../../guzzler $GOPATH/src/ci.guzzler.io/guzzler
-    - find $GOPATH/src/ci.guzzler.io/guzzler -type d
+    - cp -r ../../guzzler $GOPATH/src/ci.guzzler.io
     - cd $GOPATH/src/ci.guzzler.io/guzzler/corcel
 
 stages:

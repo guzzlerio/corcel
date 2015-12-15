@@ -19,6 +19,7 @@ var ()
 type Executor struct {
 	config *config.Configuration
 	stats  *Statistics
+	bar ProgressBar
 }
 
 //Execute ...
@@ -26,7 +27,6 @@ func (instance *Executor) Execute() {
 	var waitGroup sync.WaitGroup
 
 	reader := req.NewRequestReader(instance.config.FilePath)
-	bar := NewProgressBar(100, instance.config)
 
 	for i := 0; i < instance.config.Workers; i++ {
 		waitGroup.Add(1)
@@ -60,7 +60,7 @@ func (instance *Executor) Execute() {
 				check(err)
 				instance.executeRequest(client, request)
 
-				_ = bar.Set(stream.Progress())
+				_ = instance.bar.Set(stream.Progress())
 
 				time.Sleep(instance.config.WaitTime)
 			}

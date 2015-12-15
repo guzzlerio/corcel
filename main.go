@@ -85,13 +85,14 @@ type Control interface {
 type Controller struct {
 	stats      *Statistics
 	executions map[ExecutionId]*Executor
+	bar ProgressBar
 }
 
 func (instance *Controller) Start(config *config.Configuration) (ExecutionId, error) {
 	instance.stats.Start()
-	executor := Executor{config, instance.stats}
 	id := NewExecutionId()
 	fmt.Printf("Execution ID: %s\n", id)
+	executor := Executor{config, instance.stats, instance.bar}
 	instance.executions[id] = &executor
 	executor.Execute()
 	return id, nil
@@ -113,9 +114,9 @@ func (instance *Controller) Statistics() Statistics {
 	return *instance.stats
 }
 
-func NewControl() Control {
+func NewControl(bar ProgressBar) Control {
 	stats := CreateStatistics()
-	control := Controller{stats: stats, executions: make(map[ExecutionId]*Executor)}
+	control := Controller{stats: stats, executions: make(map[ExecutionId]*Executor), bar: bar}
 	return &control
 }
 
@@ -131,9 +132,10 @@ func (host *ConsoleHost) SetControl(control Control) {
 	host.Control = control
 }
 
-func NewConsoleHost() ConsoleHost {
+func NewConsoleHost(config *config.Configuration) ConsoleHost {
 	host := ConsoleHost{}
-	control := NewControl()
+	bar := NewProgressBar(100, config)
+	control := NewControl(bar)
 	host.SetControl(control)
 	return host
 }
@@ -168,7 +170,7 @@ func main() {
 	}()
 	check(err)
 
-	host := NewConsoleHost()
+	host := NewConsoleHost(config)
 	host.Control.Start(config) //will this block?
 	output := host.Control.Stop()
 

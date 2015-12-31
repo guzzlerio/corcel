@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"ci.guzzler.io/guzzler/corcel/logger"
+	"ci.guzzler.io/guzzler/corcel/processor"
 )
 
 func check(err error) {
@@ -80,7 +81,7 @@ func HandlerForUserAgent(options []string, index int, req *http.Request) (*http.
 //Create ...
 func (instance RequestAdapter) Create(line string) RequestFunc {
 	return RequestFunc(func() (*http.Request, error) {
-		commandLineLexer := NewCommandLineLexer()
+		commandLineLexer := processor.NewCommandLineLexer()
 		lineSplit := commandLineLexer.Lex(line)
 		req, err := http.NewRequest("GET", lineSplit[0], nil)
 		if err != nil {

@@ -12,13 +12,14 @@ import (
 
 	"ci.guzzler.io/guzzler/corcel/config"
 	"ci.guzzler.io/guzzler/corcel/logger"
+	"ci.guzzler.io/guzzler/corcel/processor"
 	req "ci.guzzler.io/guzzler/corcel/request"
 )
 
 // Executor ...
 type Executor struct {
 	config *config.Configuration
-	stats  *Statistics
+	stats  *processor.Statistics
 	bar    ProgressBar
 }
 
@@ -99,7 +100,7 @@ func (instance *Executor) executeRequest(client *http.Client, request *http.Requ
 }
 
 // Output ...
-func (instance *Executor) Output() ExecutionOutput {
+func (instance *Executor) Output() processor.ExecutionOutput {
 	return instance.stats.ExecutionOutput()
 }
 

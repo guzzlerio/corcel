@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"ci.guzzler.io/guzzler/corcel/logger"
+	"ci.guzzler.io/guzzler/corcel/processor"
 )
 
 var _ = Describe("Bugs replication", func() {
@@ -35,7 +36,7 @@ var _ = Describe("Bugs replication", func() {
 
 		SutExecute(list[:1], "--random", "--summary", "--workers", strconv.Itoa(numberOfWorkers))
 
-		var executionOutput ExecutionOutput
+		var executionOutput processor.ExecutionOutput
 		UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
 		Expect(executionOutput.Summary.Requests.Total).To(Equal(int64(2)))

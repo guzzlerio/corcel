@@ -18,6 +18,7 @@ import (
 
 	"ci.guzzler.io/guzzler/corcel/config"
 	"ci.guzzler.io/guzzler/corcel/logger"
+	"ci.guzzler.io/guzzler/corcel/processor"
 	req "ci.guzzler.io/guzzler/corcel/request"
 )
 
@@ -73,7 +74,7 @@ var _ = Describe("Main", func() {
 
 			SutExecute(list, "--duration", "5s")
 
-			var executionOutput ExecutionOutput
+			var executionOutput processor.ExecutionOutput
 			UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
 			Expect(int64(executionOutput.Summary.RunningTime)).To(BeNumerically(">=", int64(5000)), "RunningTime should be greater than 5 seconds")
@@ -117,7 +118,7 @@ var _ = Describe("Main", func() {
 
 			SutExecute(list, "--workers", strconv.Itoa(numberOfWorkers))
 
-			var executionOutput ExecutionOutput
+			var executionOutput processor.ExecutionOutput
 			UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
 			Expect(executionOutput.Summary.Requests.Total).To(Equal(int64(len(list) * numberOfWorkers)))
@@ -167,7 +168,7 @@ var _ = Describe("Main", func() {
 
 		output := SutExecute(list, "--summary")
 
-		var executionOutput ExecutionOutput
+		var executionOutput processor.ExecutionOutput
 		UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Running Time: %v s", executionOutput.Summary.RunningTime/1000)))
@@ -208,7 +209,7 @@ var _ = Describe("Main", func() {
 
 			SutExecute(list)
 
-			var executionOutput ExecutionOutput
+			var executionOutput processor.ExecutionOutput
 			UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
 			expectedAvailability := 1 - (float64(executionOutput.Summary.Requests.Errors) / float64(executionOutput.Summary.Requests.Total))
@@ -223,7 +224,7 @@ var _ = Describe("Main", func() {
 
 				SutExecute(list)
 
-				var executionOutput ExecutionOutput
+				var executionOutput processor.ExecutionOutput
 				UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
 				Expect(executionOutput.Summary.Requests.Errors).To(Equal(int64(len(list))))
@@ -234,7 +235,7 @@ var _ = Describe("Main", func() {
 		It("Requests per second", func() {
 			SutExecute(list)
 
-			var executionOutput ExecutionOutput
+			var executionOutput processor.ExecutionOutput
 			UnmarshalYamlFromFile("./output.yml", &executionOutput)
 			Expect(executionOutput.Summary.Requests.Rate).To(BeNumerically(">", 0))
 			Expect(executionOutput.Summary.Requests.Total).To(Equal(int64(len(list))))
@@ -258,7 +259,7 @@ var _ = Describe("Main", func() {
 
 		SutExecute(list)
 
-		var executionOutput ExecutionOutput
+		var executionOutput processor.ExecutionOutput
 
 		UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
@@ -310,7 +311,7 @@ var _ = Describe("Main", func() {
 
 		Expect(PathExists("./output.yml")).To(Equal(true))
 
-		var executionOutput ExecutionOutput
+		var executionOutput processor.ExecutionOutput
 
 		UnmarshalYamlFromFile("./output.yml", &executionOutput)
 

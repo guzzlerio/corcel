@@ -11,6 +11,7 @@ import (
 
 	"ci.guzzler.io/guzzler/corcel/config"
 	"ci.guzzler.io/guzzler/corcel/logger"
+	"ci.guzzler.io/guzzler/corcel/processor"
 )
 
 var (
@@ -31,7 +32,7 @@ func check(err error) {
 }
 
 //GenerateExecutionOutput ...
-func GenerateExecutionOutput(file string, output ExecutionOutput) {
+func GenerateExecutionOutput(file string, output processor.ExecutionOutput) {
 	outputPath, err := filepath.Abs(file)
 	check(err)
 	yamlOutput, err := yaml.Marshal(&output)
@@ -68,7 +69,7 @@ func main() {
 	GenerateExecutionOutput("./output.yml", output)
 
 	if config.Summary {
-		consoleWriter := ExecutionOutputWriter{output}
+		consoleWriter := processor.ExecutionOutputWriter{output}
 		consoleWriter.Write(os.Stdout)
 	}
 }

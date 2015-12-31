@@ -4,9 +4,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"fmt"
 	"io"
 	"io/ioutil"
-	"fmt"
 	"net/http"
 	"os"
 	"os/exec"

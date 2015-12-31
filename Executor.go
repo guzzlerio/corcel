@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/http/httputil"
 	"strings"
@@ -14,16 +15,16 @@ import (
 	req "ci.guzzler.io/guzzler/corcel/request"
 )
 
-var ()
-
+// Executor ...
 type Executor struct {
 	config *config.Configuration
 	stats  *Statistics
-	bar ProgressBar
+	bar    ProgressBar
 }
 
-//Execute ...
+// Execute ...
 func (instance *Executor) Execute() {
+	instance.stats.Start()
 	var waitGroup sync.WaitGroup
 
 	reader := req.NewRequestReader(instance.config.FilePath)
@@ -69,6 +70,7 @@ func (instance *Executor) Execute() {
 	}
 
 	waitGroup.Wait()
+	instance.stats.Stop()
 }
 
 func (instance *Executor) executeRequest(client *http.Client, request *http.Request) {
@@ -94,4 +96,51 @@ func (instance *Executor) executeRequest(client *http.Client, request *http.Requ
 	requestBytes, _ := httputil.DumpRequest(request, true)
 	instance.stats.BytesSent(int64(len(requestBytes)))
 	instance.stats.Request(responseError)
+}
+
+// Output ...
+func (instance *Executor) Output() ExecutionOutput {
+	return instance.stats.ExecutionOutput()
+}
+
+// ExecutionId ...
+type ExecutionId struct {
+	value string
+}
+
+// String ...
+func (id ExecutionId) String() string {
+	return fmt.Sprintf("%s", id.value)
+}
+
+// NewExecutionId ...
+func NewExecutionId() ExecutionId {
+	id := randString(16)
+	return ExecutionId{id}
+}
+
+func randString(n int) string {
+	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+	const (
+		letterIdxBits = 6                    // 6 bits to represent a letter index
+		letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
+		letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
+	)
+
+	rand.Seed(time.Now().UnixNano())
+	b := make([]byte, n)
+	// A rand.Int63() generates 63 random bits, enough for letterIdxMax letters!
+	for i, cache, remain := n-1, rand.Int63(), letterIdxMax; i >= 0; {
+		if remain == 0 {
+			cache, remain = rand.Int63(), letterIdxMax
+		}
+		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
+			b[i] = letterBytes[idx]
+			i--
+		}
+		cache >>= letterIdxBits
+		remain--
+	}
+
+	return string(b)
 }

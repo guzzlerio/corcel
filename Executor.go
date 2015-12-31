@@ -103,20 +103,20 @@ func (instance *Executor) Output() ExecutionOutput {
 	return instance.stats.ExecutionOutput()
 }
 
-// ExecutionId ...
-type ExecutionId struct {
+// ExecutionID ...
+type ExecutionID struct {
 	value string
 }
 
 // String ...
-func (id ExecutionId) String() string {
+func (id ExecutionID) String() string {
 	return fmt.Sprintf("%s", id.value)
 }
 
-// NewExecutionId ...
-func NewExecutionId() ExecutionId {
+// NewExecutionID ...
+func NewExecutionID() ExecutionID {
 	id := randString(16)
-	return ExecutionId{id}
+	return ExecutionID{id}
 }
 
 func randString(n int) string {

@@ -8,10 +8,10 @@ import (
 
 // Control ...
 type Control interface {
-	Start(*config.Configuration) (*ExecutionId, error)
-	Stop(*ExecutionId) ExecutionOutput
-	Status(*ExecutionId) ExecutionOutput
-	History() []*ExecutionId
+	Start(*config.Configuration) (*ExecutionID, error)
+	Stop(*ExecutionID) ExecutionOutput
+	Status(*ExecutionID) ExecutionOutput
+	History() []*ExecutionID
 	Events() <-chan string
 
 	//TODO Shouldn't need to expose this out, but required for transition
@@ -21,13 +21,13 @@ type Control interface {
 // Controller ...
 type Controller struct {
 	stats      *Statistics
-	executions map[*ExecutionId]*Executor
+	executions map[*ExecutionID]*Executor
 	bar        ProgressBar
 }
 
 // Start ...
-func (instance *Controller) Start(config *config.Configuration) (*ExecutionId, error) {
-	id := NewExecutionId()
+func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, error) {
+	id := NewExecutionID()
 	fmt.Printf("Execution ID: %s\n", id)
 	executor := Executor{config, instance.stats, instance.bar}
 	instance.executions[&id] = &executor
@@ -36,17 +36,17 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionId, e
 }
 
 // Stop ...
-func (instance *Controller) Stop(id *ExecutionId) ExecutionOutput {
+func (instance *Controller) Stop(id *ExecutionID) ExecutionOutput {
 	return instance.executions[id].Output()
 }
 
 // Status ...
-func (instance *Controller) Status(*ExecutionId) ExecutionOutput {
+func (instance *Controller) Status(*ExecutionID) ExecutionOutput {
 	return ExecutionOutput{}
 }
 
 // History ...
-func (instance *Controller) History() []*ExecutionId {
+func (instance *Controller) History() []*ExecutionID {
 	return nil
 }
 
@@ -63,6 +63,6 @@ func (instance *Controller) Statistics() Statistics {
 // NewControl ...
 func NewControl(bar ProgressBar) Control {
 	stats := CreateStatistics()
-	control := Controller{stats: stats, executions: make(map[*ExecutionId]*Executor), bar: bar}
+	control := Controller{stats: stats, executions: make(map[*ExecutionID]*Executor), bar: bar}
 	return &control
 }

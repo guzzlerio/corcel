@@ -9,6 +9,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
+	"ci.guzzler.io/guzzler/corcel/cmd"
 	"ci.guzzler.io/guzzler/corcel/config"
 	"ci.guzzler.io/guzzler/corcel/logger"
 	"ci.guzzler.io/guzzler/corcel/processor"
@@ -61,7 +62,7 @@ func main() {
 	}()
 	check(err)
 
-	host := NewConsoleHost(config)
+	host := cmd.NewConsoleHost(config)
 	id, _ := host.Control.Start(config) //will this block?
 	output := host.Control.Stop(id)
 

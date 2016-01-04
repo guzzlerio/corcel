@@ -1,25 +1,21 @@
-package main
+package cmd
 
 import (
 	"github.com/gosuri/uiprogress"
 
 	"ci.guzzler.io/guzzler/corcel/config"
+	"ci.guzzler.io/guzzler/corcel/processor"
 )
-
-//ProgressBar ...
-type ProgressBar interface {
-	Set(progress int) error
-}
 
 //ConsoleProgressBar ...
 type ConsoleProgressBar struct {
-	bar    ProgressBar
+	bar    processor.ProgressBar
 	config *config.Configuration
 }
 
 //NewProgressBar ...
 func NewProgressBar(size int, config *config.Configuration) *ConsoleProgressBar {
-	var bar ProgressBar
+	var bar processor.ProgressBar
 	switch config.Progress {
 	case "bar":
 		uiprogress.Start()

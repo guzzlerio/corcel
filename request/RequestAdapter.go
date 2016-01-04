@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"ci.guzzler.io/guzzler/corcel/logger"
-	"ci.guzzler.io/guzzler/corcel/processor"
 )
 
 func check(err error) {
@@ -19,10 +18,11 @@ func check(err error) {
 //RequestAdapter ...
 type RequestAdapter struct {
 	Handlers map[string]RequestConfigHandler
+	lexer Lexer
 }
 
 //NewRequestAdapter ...
-func NewRequestAdapter() RequestAdapter {
+func NewRequestAdapter(lexer Lexer) RequestAdapter {
 	return RequestAdapter{
 		Handlers: map[string]RequestConfigHandler{
 			"-X": RequestConfigHandler(HandlerForMethod),
@@ -81,8 +81,7 @@ func HandlerForUserAgent(options []string, index int, req *http.Request) (*http.
 //Create ...
 func (instance RequestAdapter) Create(line string) RequestFunc {
 	return RequestFunc(func() (*http.Request, error) {
-		commandLineLexer := processor.NewCommandLineLexer()
-		lineSplit := commandLineLexer.Lex(line)
+		lineSplit := instance.lexer.Lex(line)
 		req, err := http.NewRequest("GET", lineSplit[0], nil)
 		if err != nil {
 			return nil, err

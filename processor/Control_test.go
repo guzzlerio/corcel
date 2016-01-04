@@ -1,4 +1,4 @@
-package main_test
+package processor_test
 
 import (
 	//. "ci.guzzler.io/guzzler/corcel"

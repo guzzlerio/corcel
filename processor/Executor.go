@@ -1,9 +1,8 @@
-package main
+package processor
 
 import (
 	"errors"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"net/http/httputil"
 	"strings"
@@ -12,23 +11,23 @@ import (
 
 	"ci.guzzler.io/guzzler/corcel/config"
 	"ci.guzzler.io/guzzler/corcel/logger"
-	"ci.guzzler.io/guzzler/corcel/processor"
 	req "ci.guzzler.io/guzzler/corcel/request"
 )
 
 // Executor ...
 type Executor struct {
 	config *config.Configuration
-	stats  *processor.Statistics
+	stats  *Statistics
 	bar    ProgressBar
 }
 
 // Execute ...
-func (instance *Executor) Execute() {
+func (instance *Executor) Execute() error {
 	instance.stats.Start()
 	var waitGroup sync.WaitGroup
 
-	reader := req.NewRequestReader(instance.config.FilePath)
+	lexer := NewCommandLineLexer()
+	reader := req.NewRequestReader(instance.config.FilePath, lexer)
 
 	for i := 0; i < instance.config.Workers; i++ {
 		waitGroup.Add(1)
@@ -59,8 +58,9 @@ func (instance *Executor) Execute() {
 			}
 			for stream.HasNext() {
 				request, err := stream.Next()
-				check(err)
-				instance.executeRequest(client, request)
+				if err = instance.executeRequest(client, request); err != nil {
+					logger.Log.Panic(err)
+				}
 
 				_ = instance.bar.Set(stream.Progress())
 
@@ -72,14 +72,15 @@ func (instance *Executor) Execute() {
 
 	waitGroup.Wait()
 	instance.stats.Stop()
+	return nil
 }
 
-func (instance *Executor) executeRequest(client *http.Client, request *http.Request) {
+func (instance *Executor) executeRequest(client *http.Client, request *http.Request) error {
 	logger.Log.Infof("%s to %s", request.Method, request.URL)
 	start := time.Now()
 	response, responseError := client.Do(request)
 	duration := time.Since(start) / time.Millisecond
-	check(responseError)
+	return responseError
 
 	defer func() {
 		err := response.Body.Close()
@@ -97,51 +98,11 @@ func (instance *Executor) executeRequest(client *http.Client, request *http.Requ
 	requestBytes, _ := httputil.DumpRequest(request, true)
 	instance.stats.BytesSent(int64(len(requestBytes)))
 	instance.stats.Request(responseError)
+	return nil
 }
 
 // Output ...
-func (instance *Executor) Output() processor.ExecutionOutput {
+func (instance *Executor) Output() ExecutionOutput {
 	return instance.stats.ExecutionOutput()
 }
 
-// ExecutionID ...
-type ExecutionID struct {
-	value string
-}
-
-// String ...
-func (id ExecutionID) String() string {
-	return fmt.Sprintf("%s", id.value)
-}
-
-// NewExecutionID ...
-func NewExecutionID() ExecutionID {
-	id := randString(16)
-	return ExecutionID{id}
-}
-
-func randString(n int) string {
-	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-	const (
-		letterIdxBits = 6                    // 6 bits to represent a letter index
-		letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
-		letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
-	)
-
-	rand.Seed(time.Now().UnixNano())
-	b := make([]byte, n)
-	// A rand.Int63() generates 63 random bits, enough for letterIdxMax letters!
-	for i, cache, remain := n-1, rand.Int63(), letterIdxMax; i >= 0; {
-		if remain == 0 {
-			cache, remain = rand.Int63(), letterIdxMax
-		}
-		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
-			b[i] = letterBytes[idx]
-			i--
-		}
-		cache >>= letterIdxBits
-		remain--
-	}
-
-	return string(b)
-}

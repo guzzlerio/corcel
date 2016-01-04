@@ -8,6 +8,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"ci.guzzler.io/guzzler/corcel/processor"
 )
 
 var _ = Describe("RequestAdapter", func() {
@@ -26,7 +28,7 @@ var _ = Describe("RequestAdapter", func() {
 		line += " -X POST"
 		line += ` -H "Content-type: application/json"`
 		line += fmt.Sprintf(` -A "%s"`, userAgent)
-		adapter = NewRequestAdapter()
+		adapter = NewRequestAdapter(processor.NewCommandLineLexer())
 		reqFunc := adapter.Create(line)
 		req, err = reqFunc()
 		Expect(err).To(BeNil())
@@ -50,7 +52,7 @@ var _ = Describe("RequestAdapter", func() {
 			line = url
 			line += " -X GET"
 			line += fmt.Sprintf(` -d "%s"`, data)
-			adapter = NewRequestAdapter()
+			adapter = NewRequestAdapter(processor.NewCommandLineLexer())
 			reqFunc := adapter.Create(line)
 			req, err = reqFunc()
 			Expect(err).To(BeNil())
@@ -63,7 +65,7 @@ var _ = Describe("RequestAdapter", func() {
 				line = url
 				line += fmt.Sprintf(" -X %s", method)
 				line += fmt.Sprintf(` -d "%s"`, data)
-				adapter = NewRequestAdapter()
+				adapter = NewRequestAdapter(processor.NewCommandLineLexer())
 				reqFunc := adapter.Create(line)
 				req, err = reqFunc()
 				Expect(err).To(BeNil())
@@ -82,7 +84,7 @@ var _ = Describe("RequestAdapter", func() {
 				line = url
 				line += fmt.Sprintf(" -X %s", method)
 				line += " -d @./file"
-				adapter = NewRequestAdapter()
+				adapter = NewRequestAdapter(processor.NewCommandLineLexer())
 				reqFunc := adapter.Create(line)
 				req, err = reqFunc()
 				Expect(err).To(BeNil())
@@ -97,7 +99,7 @@ var _ = Describe("RequestAdapter", func() {
 
 	It("Parses URLs with leading whitespace", func() {
 		line = "      " + url
-		adapter = NewRequestAdapter()
+		adapter = NewRequestAdapter(processor.NewCommandLineLexer())
 		reqFunc := adapter.Create(line)
 		req, err = reqFunc()
 		Expect(req.URL.String()).To(Equal(url))

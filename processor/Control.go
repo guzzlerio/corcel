@@ -1,27 +1,26 @@
-package main
+package processor
 
 import (
 	"fmt"
 
 	"ci.guzzler.io/guzzler/corcel/config"
-	"ci.guzzler.io/guzzler/corcel/processor"
 )
 
 // Control ...
 type Control interface {
 	Start(*config.Configuration) (*ExecutionID, error)
-	Stop(*ExecutionID) processor.ExecutionOutput
-	Status(*ExecutionID) processor.ExecutionOutput
+	Stop(*ExecutionID) ExecutionOutput
+	Status(*ExecutionID) ExecutionOutput
 	History() []*ExecutionID
 	Events() <-chan string
 
 	//TODO Shouldn't need to expose this out, but required for transition
-	Statistics() processor.Statistics
+	Statistics() Statistics
 }
 
 // Controller ...
 type Controller struct {
-	stats      *processor.Statistics
+	stats      *Statistics
 	executions map[*ExecutionID]*Executor
 	bar        ProgressBar
 }
@@ -32,18 +31,18 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 	fmt.Printf("Execution ID: %s\n", id)
 	executor := Executor{config, instance.stats, instance.bar}
 	instance.executions[&id] = &executor
-	executor.Execute()
-	return &id, nil
+	err := executor.Execute();
+	return &id, err
 }
 
 // Stop ...
-func (instance *Controller) Stop(id *ExecutionID) processor.ExecutionOutput {
+func (instance *Controller) Stop(id *ExecutionID) ExecutionOutput {
 	return instance.executions[id].Output()
 }
 
 // Status ...
-func (instance *Controller) Status(*ExecutionID) processor.ExecutionOutput {
-	return processor.ExecutionOutput{}
+func (instance *Controller) Status(*ExecutionID) ExecutionOutput {
+	return ExecutionOutput{}
 }
 
 // History ...
@@ -57,13 +56,13 @@ func (instance *Controller) Events() <-chan string {
 }
 
 // Statistics ...
-func (instance *Controller) Statistics() processor.Statistics {
+func (instance *Controller) Statistics() Statistics {
 	return *instance.stats
 }
 
 // NewControl ...
 func NewControl(bar ProgressBar) Control {
-	stats := processor.CreateStatistics()
+	stats := CreateStatistics()
 	control := Controller{stats: stats, executions: make(map[*ExecutionID]*Executor), bar: bar}
 	return &control
 }

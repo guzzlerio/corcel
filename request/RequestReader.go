@@ -16,7 +16,7 @@ type RequestReader struct {
 }
 
 //NewRequestReader ...
-func NewRequestReader(filePath string, lexer Lexer) *RequestReader {
+func NewRequestReader(filePath string) *RequestReader {
 	file, err := os.Open(filePath)
 	defer func() {
 		err := file.Close()
@@ -26,7 +26,7 @@ func NewRequestReader(filePath string, lexer Lexer) *RequestReader {
 	}()
 	check(err)
 	requests := []RequestFunc{}
-	requestAdapter := NewRequestAdapter(lexer)
+	requestAdapter := NewRequestAdapter()
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()

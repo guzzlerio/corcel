@@ -59,7 +59,7 @@ var _ = Describe("Bugs replication", func() {
 			fmt.Sprintf(`-Something`),
 		}
 
-		output, err := InvokeCorcel(list)
+		output, err := InvokeCorcel(list, "-vvv")
 
 		Expect(err).ToNot(BeNil())
 		Expect(string(output)).To(ContainSubstring("Your urls in the test specification must be valid urls"))

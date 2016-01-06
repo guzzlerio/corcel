@@ -2,14 +2,13 @@ package processor
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httputil"
-	"strings"
 	"sync"
 	"time"
 
 	"ci.guzzler.io/guzzler/corcel/config"
+	"ci.guzzler.io/guzzler/corcel/errormanager"
 	"ci.guzzler.io/guzzler/corcel/logger"
 	req "ci.guzzler.io/guzzler/corcel/request"
 )
@@ -26,19 +25,14 @@ func (instance *Executor) Execute() error {
 	instance.stats.Start()
 	var waitGroup sync.WaitGroup
 
-	lexer := NewCommandLineLexer()
-	reader := req.NewRequestReader(instance.config.FilePath, lexer)
+	reader := req.NewRequestReader(instance.config.FilePath)
 
 	for i := 0; i < instance.config.Workers; i++ {
 		waitGroup.Add(1)
 		go func() {
 			defer func() { //catch or finally
 				if err := recover(); err != nil { //catch
-					if strings.Contains(fmt.Sprintf("%v", err), "too many open files") {
-						logger.Log.Fatalf("Too many workers man!")
-					} else {
-						logger.Log.Fatalf("UNKNOWN ERROR: %v", err)
-					}
+					errormanager.Log(err)
 				}
 			}()
 			client := &http.Client{
@@ -57,10 +51,8 @@ func (instance *Executor) Execute() error {
 				stream = req.NewTimeBasedRequestStream(stream, instance.config.Duration)
 			}
 			for stream.HasNext() {
-				request, err := stream.Next()
-				if err = instance.executeRequest(client, request); err != nil {
-					logger.Log.Panic(err)
-				}
+				request, _ := stream.Next()
+				instance.executeRequest(client, request)
 
 				_ = instance.bar.Set(stream.Progress())
 
@@ -75,12 +67,15 @@ func (instance *Executor) Execute() error {
 	return nil
 }
 
-func (instance *Executor) executeRequest(client *http.Client, request *http.Request) error {
+func (instance *Executor) executeRequest(client *http.Client, request *http.Request) {
 	logger.Log.Infof("%s to %s", request.Method, request.URL)
 	start := time.Now()
 	response, responseError := client.Do(request)
 	duration := time.Since(start) / time.Millisecond
-	return responseError
+	if responseError != nil {
+		errormanager.Log(responseError)
+		return
+	}
 
 	defer func() {
 		err := response.Body.Close()
@@ -98,11 +93,9 @@ func (instance *Executor) executeRequest(client *http.Client, request *http.Requ
 	requestBytes, _ := httputil.DumpRequest(request, true)
 	instance.stats.BytesSent(int64(len(requestBytes)))
 	instance.stats.Request(responseError)
-	return nil
 }
 
 // Output ...
 func (instance *Executor) Output() ExecutionOutput {
 	return instance.stats.ExecutionOutput()
 }
-

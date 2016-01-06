@@ -283,9 +283,7 @@ var _ = Describe("Main", func() {
 			fmt.Sprintf(`%s -X POST -d @missing-file.json`, URLForTestServer("/success")),
 		}
 
-		output, _ := InvokeCorcel(list)
-		//Use this one when progress bar MR is complete
-		//output, _ := InvokeCorcel(list, "--progress", "none")
+		output, _ := InvokeCorcel(list, "--progress", "none")
 		requestsSet := Requests(TestServer.Requests[:])
 
 		Expect(len(requestsSet)).To(Equal(1))

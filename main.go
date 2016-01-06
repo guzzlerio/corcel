@@ -1,34 +1,22 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"gopkg.in/yaml.v2"
 
 	"ci.guzzler.io/guzzler/corcel/cmd"
 	"ci.guzzler.io/guzzler/corcel/config"
+	"ci.guzzler.io/guzzler/corcel/errormanager"
 	"ci.guzzler.io/guzzler/corcel/logger"
 	"ci.guzzler.io/guzzler/corcel/processor"
 )
 
-var (
-	//ErrorMappings ...
-	ErrorMappings = map[string]ErrorCode{}
-)
-
 func check(err error) {
 	if err != nil {
-		for mapping, errorCode := range ErrorMappings {
-			if strings.Contains(fmt.Sprintf("%v", err), mapping) {
-				fmt.Println(errorCode.Message)
-				os.Exit(errorCode.Code)
-			}
-		}
-		logger.Log.Fatalf("UNKNOWN ERROR: %v", err)
+		errormanager.Log(err)
 	}
 }
 
@@ -48,7 +36,6 @@ func main() {
 		logger.Log.Fatal(err)
 	}
 
-	configureErrorMappings()
 	logger.ConfigureLogging(config)
 
 	absolutePath, err := filepath.Abs(config.FilePath)

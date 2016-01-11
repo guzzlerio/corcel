@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 
+	"ci.guzzler.io/guzzler/corcel/global"
 	. "ci.guzzler.io/guzzler/corcel/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -129,7 +130,7 @@ var _ = Describe("RequestRecordingServer", func() {
 
 			TestServer.Use(factory)
 
-			response, body, err := HTTPRequestDo("GET", fmt.Sprintf("http://localhost:%d", TestPort), nil, nil)
+			response, body, err := HTTPRequestDo("GET", fmt.Sprintf("http://localhost:%d", global.TestPort), nil, nil)
 
 			Expect(err).To(BeNil())
 			Expect(response.StatusCode).To(Equal(http.StatusOK))
@@ -145,7 +146,7 @@ var _ = Describe("RequestRecordingServer", func() {
 			TestServer.Use(factory)
 			TestServer.Clear()
 
-			response, body, err := HTTPRequestDo("GET", fmt.Sprintf("http://localhost:%d", TestPort), nil, nil)
+			response, body, err := HTTPRequestDo("GET", fmt.Sprintf("http://localhost:%d", global.TestPort), nil, nil)
 
 			Expect(err).To(BeNil())
 			Expect(response.StatusCode).To(Equal(http.StatusOK))
@@ -167,13 +168,13 @@ var _ = Describe("RequestRecordingServer", func() {
 
 			TestServer.Use(factory).For(predicates...)
 
-			pathMatching := fmt.Sprintf("http://localhost:%d/talula", TestPort)
+			pathMatching := fmt.Sprintf("http://localhost:%d/talula", global.TestPort)
 			verbMatching := "POST"
 			responseMatching, bodyMatching, errMatching := HTTPRequestDo(verbMatching, pathMatching, nil, func(request *http.Request) {
 				request.Header.Set("Content-Type", "application/json")
 			})
 
-			pathNonMatching := fmt.Sprintf("http://localhost:%d", TestPort)
+			pathNonMatching := fmt.Sprintf("http://localhost:%d", global.TestPort)
 			verbNonMatching := "GET"
 			responseNonMatching, bodyNonMatching, errNonMatching := HTTPRequestDo(verbNonMatching, pathNonMatching, nil, nil)
 

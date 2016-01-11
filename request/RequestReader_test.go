@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"ci.guzzler.io/guzzler/corcel/global"
 	. "ci.guzzler.io/guzzler/corcel/utils"
 )
 
@@ -48,7 +49,7 @@ var _ = Describe("RequestReader", func() {
 		Expect(len(requests)).To(Equal(len(list)))
 	})
 
-	for _, numberOfWorkers := range NumberOfWorkersToTest {
+	for _, numberOfWorkers := range global.NumberOfWorkersToTest {
 		It(fmt.Sprintf("Multiple readers totalling %v iterates over lines in a file", numberOfWorkers), func() {
 			var wg sync.WaitGroup
 			var mutex = &sync.Mutex{}

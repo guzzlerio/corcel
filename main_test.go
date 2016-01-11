@@ -17,6 +17,7 @@ import (
 	"github.com/Sirupsen/logrus"
 
 	"ci.guzzler.io/guzzler/corcel/config"
+	"ci.guzzler.io/guzzler/corcel/global"
 	"ci.guzzler.io/guzzler/corcel/logger"
 	"ci.guzzler.io/guzzler/corcel/processor"
 	req "ci.guzzler.io/guzzler/corcel/request"
@@ -24,33 +25,19 @@ import (
 )
 
 var (
-	//SupportedHTTPMethods ...
-	SupportedHTTPMethods = []string{"GET", "POST", "PUT", "DELETE"}
-	//HTTPMethodsWithRequestBody ...
-	HTTPMethodsWithRequestBody = []string{"POST", "PUT", "DELETE"}
 	//TestServer ...
 	TestServer *req.RequestRecordingServer
-	//TestPort ...
-	TestPort = 8000
-	//ResponseCodes400 ...
-	ResponseCodes400 = []int{400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418}
-	//ResponseCodes500 ...
-	ResponseCodes500 = []int{500, 501, 502, 503, 504, 505}
-	//WaitTimeTests ...
-	WaitTimeTests = []string{"1ms", "2ms", "4ms", "8ms", "16ms", "32ms", "64ms", "128ms"}
-	//NumberOfWorkersToTest ...
-	NumberOfWorkersToTest = []int{1, 2, 4, 8, 16, 32, 64, 128, 256}
 )
 
 func URLForTestServer(path string) string {
-	return fmt.Sprintf("http://localhost:%d%s", TestPort, path)
+	return fmt.Sprintf("http://localhost:%d%s", global.TestPort, path)
 }
 
 var _ = BeforeSuite(func() {
 	logger.ConfigureLogging(&config.Configuration{})
 	logrus.SetOutput(ioutil.Discard)
 	logger.Log.Out = ioutil.Discard
-	TestServer = req.CreateRequestRecordingServer(TestPort)
+	TestServer = req.CreateRequestRecordingServer(global.TestPort)
 	TestServer.Start()
 })
 
@@ -114,7 +101,7 @@ var _ = Describe("Main", func() {
 		Expect(ConcatRequestPaths(requestsSet1)).ToNot(Equal(ConcatRequestPaths(requestsSet2)))
 	})
 
-	for _, numberOfWorkers := range NumberOfWorkersToTest {
+	for _, numberOfWorkers := range global.NumberOfWorkersToTest {
 		It(fmt.Sprintf("Support %v workers", numberOfWorkers), func() {
 			list := []string{
 				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
@@ -136,7 +123,7 @@ var _ = Describe("Main", func() {
 		})
 	}
 
-	for _, waitTime := range WaitTimeTests {
+	for _, waitTime := range global.WaitTimeTests {
 		It(fmt.Sprintf("Support wait time of %v between each execution in the list", waitTime), func() {
 			waitTimeTolerance := 0.50
 
@@ -225,7 +212,7 @@ var _ = Describe("Main", func() {
 			Expect(executionOutput.Summary.Requests.Availability).To(Equal(expectedAvailability))
 		})
 
-		for _, code := range append(ResponseCodes500, ResponseCodes400...) {
+		for _, code := range append(global.ResponseCodes500, global.ResponseCodes400...) {
 			It(fmt.Sprintf("Records error for HTTP %v response code range", code), func() {
 				TestServer.Use(req.HTTPResponseFactory(func(w http.ResponseWriter) {
 					w.WriteHeader(code)
@@ -348,7 +335,7 @@ var _ = Describe("Main", func() {
 	})
 
 	Describe("Support sending data with http request", func() {
-		for _, method := range HTTPMethodsWithRequestBody {
+		for _, method := range global.HTTPMethodsWithRequestBody {
 			It(fmt.Sprintf("in the body for verb %s", method), func() {
 				data := "a=1&b=2&c=3"
 				list := []string{fmt.Sprintf(`%s -X %s -d %s`, URLForTestServer("/A"), method, data)}
@@ -388,7 +375,7 @@ var _ = Describe("Main", func() {
 		})
 	})
 
-	for _, method := range SupportedHTTPMethods {
+	for _, method := range global.SupportedHTTPMethods {
 		It(fmt.Sprintf("Makes a http %s request", method), func() {
 			list := []string{fmt.Sprintf(`%s -X %s`, URLForTestServer("/A"), method)}
 			SutExecute(list)

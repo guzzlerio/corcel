@@ -6,31 +6,14 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"ci.guzzler.io/guzzler/corcel/global"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-var (
-	//SupportedHTTPMethods ...
-	SupportedHTTPMethods = []string{"GET", "POST", "PUT", "DELETE"}
-	//HTTPMethodsWithRequestBody ...
-	HTTPMethodsWithRequestBody = []string{"POST", "PUT", "DELETE"}
-	//TestServer ...
-	TestServer *RequestRecordingServer
-	//TestPort ...
-	TestPort = 8000
-	//ResponseCodes400 ...
-	ResponseCodes400 = []int{400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418}
-	//ResponseCodes500 ...
-	ResponseCodes500 = []int{500, 501, 502, 503, 504, 505}
-	//WaitTimeTests ...
-	WaitTimeTests = []string{"1ms", "2ms", "4ms", "8ms", "16ms", "32ms", "64ms", "128ms"}
-	//NumberOfWorkersToTest ...
-	NumberOfWorkersToTest = []int{1, 2, 4, 8, 16, 32, 64, 128, 256}
-)
-
 func URLForTestServer(path string) string {
-	return fmt.Sprintf("http://localhost:%d%s", TestPort, path)
+	return fmt.Sprintf("http://localhost:%d%s", global.TestPort, path)
 }
 
 var _ = Describe("RequestAdapter", func() {
@@ -80,7 +63,7 @@ var _ = Describe("RequestAdapter", func() {
 			Expect(req.URL.RawQuery).To(Equal(data))
 		})
 
-		for _, method := range HTTPMethodsWithRequestBody {
+		for _, method := range global.HTTPMethodsWithRequestBody {
 			It(fmt.Sprintf("For %s request is in the actual request body", method), func() {
 				data := "a=1&b=2"
 				line = url

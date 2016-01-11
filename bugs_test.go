@@ -10,6 +10,7 @@ import (
 
 	"ci.guzzler.io/guzzler/corcel/logger"
 	"ci.guzzler.io/guzzler/corcel/processor"
+	. "ci.guzzler.io/guzzler/corcel/utils"
 )
 
 var _ = Describe("Bugs replication", func() {

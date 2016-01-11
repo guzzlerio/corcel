@@ -1,4 +1,4 @@
-package main
+package utils
 
 func containsString(list []string, expected string) bool {
 	for _, current := range list {

@@ -57,7 +57,9 @@ func main() {
 	GenerateExecutionOutput("./output.yml", output)
 
 	if config.Summary {
-		consoleWriter := processor.ExecutionOutputWriter{output}
+		consoleWriter := processor.ExecutionOutputWriter{
+			Output: output,
+		}
 		consoleWriter.Write(os.Stdout)
 	}
 }

@@ -7,6 +7,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	. "ci.guzzler.io/guzzler/corcel/utils"
 )
 
 var _ = Describe("RequestReader", func() {

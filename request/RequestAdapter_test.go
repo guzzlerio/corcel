@@ -8,9 +8,30 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"ci.guzzler.io/guzzler/corcel/processor"
 )
+
+var (
+	//SupportedHTTPMethods ...
+	SupportedHTTPMethods = []string{"GET", "POST", "PUT", "DELETE"}
+	//HTTPMethodsWithRequestBody ...
+	HTTPMethodsWithRequestBody = []string{"POST", "PUT", "DELETE"}
+	//TestServer ...
+	TestServer *RequestRecordingServer
+	//TestPort ...
+	TestPort = 8000
+	//ResponseCodes400 ...
+	ResponseCodes400 = []int{400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418}
+	//ResponseCodes500 ...
+	ResponseCodes500 = []int{500, 501, 502, 503, 504, 505}
+	//WaitTimeTests ...
+	WaitTimeTests = []string{"1ms", "2ms", "4ms", "8ms", "16ms", "32ms", "64ms", "128ms"}
+	//NumberOfWorkersToTest ...
+	NumberOfWorkersToTest = []int{1, 2, 4, 8, 16, 32, 64, 128, 256}
+)
+
+func URLForTestServer(path string) string {
+	return fmt.Sprintf("http://localhost:%d%s", TestPort, path)
+}
 
 var _ = Describe("RequestAdapter", func() {
 	var (
@@ -28,7 +49,7 @@ var _ = Describe("RequestAdapter", func() {
 		line += " -X POST"
 		line += ` -H "Content-type: application/json"`
 		line += fmt.Sprintf(` -A "%s"`, userAgent)
-		adapter = NewRequestAdapter(processor.NewCommandLineLexer())
+		adapter = NewRequestAdapter()
 		reqFunc := adapter.Create(line)
 		req, err = reqFunc()
 		Expect(err).To(BeNil())
@@ -52,7 +73,7 @@ var _ = Describe("RequestAdapter", func() {
 			line = url
 			line += " -X GET"
 			line += fmt.Sprintf(` -d "%s"`, data)
-			adapter = NewRequestAdapter(processor.NewCommandLineLexer())
+			adapter = NewRequestAdapter()
 			reqFunc := adapter.Create(line)
 			req, err = reqFunc()
 			Expect(err).To(BeNil())
@@ -65,7 +86,7 @@ var _ = Describe("RequestAdapter", func() {
 				line = url
 				line += fmt.Sprintf(" -X %s", method)
 				line += fmt.Sprintf(` -d "%s"`, data)
-				adapter = NewRequestAdapter(processor.NewCommandLineLexer())
+				adapter = NewRequestAdapter()
 				reqFunc := adapter.Create(line)
 				req, err = reqFunc()
 				Expect(err).To(BeNil())
@@ -84,7 +105,7 @@ var _ = Describe("RequestAdapter", func() {
 				line = url
 				line += fmt.Sprintf(" -X %s", method)
 				line += " -d @./file"
-				adapter = NewRequestAdapter(processor.NewCommandLineLexer())
+				adapter = NewRequestAdapter()
 				reqFunc := adapter.Create(line)
 				req, err = reqFunc()
 				Expect(err).To(BeNil())
@@ -99,7 +120,7 @@ var _ = Describe("RequestAdapter", func() {
 
 	It("Parses URLs with leading whitespace", func() {
 		line = "      " + url
-		adapter = NewRequestAdapter(processor.NewCommandLineLexer())
+		adapter = NewRequestAdapter()
 		reqFunc := adapter.Create(line)
 		req, err = reqFunc()
 		Expect(req.URL.String()).To(Equal(url))

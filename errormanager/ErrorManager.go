@@ -2,11 +2,18 @@ package errormanager
 
 import (
 	"fmt"
-	"strings"
 	"os"
+	"strings"
 
 	"ci.guzzler.io/guzzler/corcel/logger"
 )
+
+//Check ...
+func Check(err error) {
+	if err != nil {
+		Log(err)
+	}
+}
 
 //ErrorCode ...
 type ErrorCode struct {

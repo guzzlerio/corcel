@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"fmt"
@@ -6,25 +6,26 @@ import (
 	"os"
 	"path/filepath"
 
+	"ci.guzzler.io/guzzler/corcel/errormanager"
 	"gopkg.in/yaml.v2"
 )
 
 //CreateFileFromLines ...
 func CreateFileFromLines(lines []string) *os.File {
 	file, err := ioutil.TempFile(os.TempDir(), "prefix")
-	check(err)
+	errormanager.Check(err)
 	for _, line := range lines {
 		_, err := file.WriteString(fmt.Sprintf("%s\n", line))
-		check(err)
+		errormanager.Check(err)
 	}
-	check(file.Sync())
+	errormanager.Check(file.Sync())
 	return file
 }
 
 //PathExists ...
 func PathExists(value string) bool {
 	path, pathErr := filepath.Abs(value)
-	check(pathErr)
+	errormanager.Check(pathErr)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return false
 	}
@@ -34,9 +35,9 @@ func PathExists(value string) bool {
 //UnmarshalYamlFromFile ...
 func UnmarshalYamlFromFile(path string, output interface{}) {
 	absPath, err := filepath.Abs(path)
-	check(err)
+	errormanager.Check(err)
 	data, err := ioutil.ReadFile(absPath)
-	check(err)
+	errormanager.Check(err)
 	err = yaml.Unmarshal(data, output)
-	check(err)
+	errormanager.Check(err)
 }

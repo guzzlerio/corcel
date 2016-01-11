@@ -20,17 +20,26 @@ import (
 	"ci.guzzler.io/guzzler/corcel/logger"
 	"ci.guzzler.io/guzzler/corcel/processor"
 	req "ci.guzzler.io/guzzler/corcel/request"
+	. "ci.guzzler.io/guzzler/corcel/utils"
 )
 
 var (
-	SupportedHTTPMethods       = []string{"GET", "POST", "PUT", "DELETE"}
+	//SupportedHTTPMethods ...
+	SupportedHTTPMethods = []string{"GET", "POST", "PUT", "DELETE"}
+	//HTTPMethodsWithRequestBody ...
 	HTTPMethodsWithRequestBody = []string{"POST", "PUT", "DELETE"}
-	TestServer                 *req.RequestRecordingServer
-	TestPort                   = 8000
-	ResponseCodes400           = []int{400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418}
-	ResponseCodes500           = []int{500, 501, 502, 503, 504, 505}
-	WaitTimeTests              = []string{"1ms", "2ms", "4ms", "8ms", "16ms", "32ms", "64ms", "128ms"}
-	NumberOfWorkersToTest      = []int{1, 2, 4, 8, 16, 32, 64, 128, 256}
+	//TestServer ...
+	TestServer *req.RequestRecordingServer
+	//TestPort ...
+	TestPort = 8000
+	//ResponseCodes400 ...
+	ResponseCodes400 = []int{400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418}
+	//ResponseCodes500 ...
+	ResponseCodes500 = []int{500, 501, 502, 503, 504, 505}
+	//WaitTimeTests ...
+	WaitTimeTests = []string{"1ms", "2ms", "4ms", "8ms", "16ms", "32ms", "64ms", "128ms"}
+	//NumberOfWorkersToTest ...
+	NumberOfWorkersToTest = []int{1, 2, 4, 8, 16, 32, 64, 128, 256}
 )
 
 func URLForTestServer(path string) string {
@@ -129,7 +138,7 @@ var _ = Describe("Main", func() {
 
 	for _, waitTime := range WaitTimeTests {
 		It(fmt.Sprintf("Support wait time of %v between each execution in the list", waitTime), func() {
-			waitTimeTolerance := 0.25
+			waitTimeTolerance := 0.50
 
 			list := []string{
 				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
@@ -461,12 +470,4 @@ func Requests(recordedRequests []req.RecordedRequest) (result []*http.Request) {
 		result = append(result, recordedRequest.Request)
 	}
 	return
-}
-
-func ConcatRequestPaths(requests []*http.Request) string {
-	result := ""
-	for _, request := range requests {
-		result = result + request.URL.Path
-	}
-	return result
 }

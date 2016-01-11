@@ -7,13 +7,15 @@ build: clean
 	go build
 
 test: build lint
-	go test
+	ginkgo -r
 
 lint:
 	bash scripts/lint.sh
 
 install:
-	go get -t
+	go get -t ./...
+	go get github.com/onsi/ginkgo/ginkgo
+	go get github.com/onsi/gomega
 	go get github.com/alecthomas/gometalinter
 	go get -u github.com/jteeuwen/go-bindata/...
 	gometalinter --install --update

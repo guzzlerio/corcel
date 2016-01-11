@@ -6,9 +6,15 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"ci.guzzler.io/guzzler/corcel/global"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
+
+func URLForTestServer(path string) string {
+	return fmt.Sprintf("http://localhost:%d%s", global.TestPort, path)
+}
 
 var _ = Describe("RequestAdapter", func() {
 	var (
@@ -57,7 +63,7 @@ var _ = Describe("RequestAdapter", func() {
 			Expect(req.URL.RawQuery).To(Equal(data))
 		})
 
-		for _, method := range HTTPMethodsWithRequestBody {
+		for _, method := range global.HTTPMethodsWithRequestBody {
 			It(fmt.Sprintf("For %s request is in the actual request body", method), func() {
 				data := "a=1&b=2"
 				line = url

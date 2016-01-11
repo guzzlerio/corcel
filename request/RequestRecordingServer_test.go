@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 
+	"ci.guzzler.io/guzzler/corcel/global"
+	. "ci.guzzler.io/guzzler/corcel/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -28,8 +30,8 @@ var _ = Describe("RequestRecordingServer", func() {
 				sampleURL = URLForTestServer("/Fubar?" + data)
 				request, _ = http.NewRequest("GET", sampleURL, bytes.NewBuffer([]byte(data)))
 				request.Header.Set("Content-type", "application/json")
-				TestServer.requests = append(TestServer.requests, RecordedRequest{
-					request: request,
+				TestServer.Requests = append(TestServer.Requests, RecordedRequest{
+					Request: request,
 					body:    data,
 				})
 			})
@@ -51,8 +53,8 @@ var _ = Describe("RequestRecordingServer", func() {
 			It("Body", func() {
 				request, _ = http.NewRequest("POST", sampleURL, bytes.NewBuffer([]byte(data)))
 				TestServer.Clear()
-				TestServer.requests = append(TestServer.requests, RecordedRequest{
-					request: request,
+				TestServer.Requests = append(TestServer.Requests, RecordedRequest{
+					Request: request,
 					body:    data,
 				})
 				Expect(TestServer.Find(RequestWithBody(data))).To(Equal(true))
@@ -74,14 +76,14 @@ var _ = Describe("RequestRecordingServer", func() {
 				sampleURL = URLForTestServer("/Fubar")
 				request, _ := http.NewRequest("GET", sampleURL, nil)
 				request.Header.Set("Content-type", "application/json")
-				TestServer.requests = append(TestServer.requests, RecordedRequest{
-					request: request,
+				TestServer.Requests = append(TestServer.Requests, RecordedRequest{
+					Request: request,
 				})
 
 				data = "a=1&b=2"
 				postRequest, _ := http.NewRequest("POST", sampleURL, bytes.NewBuffer([]byte(data)))
-				TestServer.requests = append(TestServer.requests, RecordedRequest{
-					request: postRequest,
+				TestServer.Requests = append(TestServer.Requests, RecordedRequest{
+					Request: postRequest,
 					body:    data,
 				})
 			})
@@ -128,7 +130,7 @@ var _ = Describe("RequestRecordingServer", func() {
 
 			TestServer.Use(factory)
 
-			response, body, err := HTTPRequestDo("GET", fmt.Sprintf("http://localhost:%d", TestPort), nil, nil)
+			response, body, err := HTTPRequestDo("GET", fmt.Sprintf("http://localhost:%d", global.TestPort), nil, nil)
 
 			Expect(err).To(BeNil())
 			Expect(response.StatusCode).To(Equal(http.StatusOK))
@@ -144,7 +146,7 @@ var _ = Describe("RequestRecordingServer", func() {
 			TestServer.Use(factory)
 			TestServer.Clear()
 
-			response, body, err := HTTPRequestDo("GET", fmt.Sprintf("http://localhost:%d", TestPort), nil, nil)
+			response, body, err := HTTPRequestDo("GET", fmt.Sprintf("http://localhost:%d", global.TestPort), nil, nil)
 
 			Expect(err).To(BeNil())
 			Expect(response.StatusCode).To(Equal(http.StatusOK))
@@ -166,13 +168,13 @@ var _ = Describe("RequestRecordingServer", func() {
 
 			TestServer.Use(factory).For(predicates...)
 
-			pathMatching := fmt.Sprintf("http://localhost:%d/talula", TestPort)
+			pathMatching := fmt.Sprintf("http://localhost:%d/talula", global.TestPort)
 			verbMatching := "POST"
 			responseMatching, bodyMatching, errMatching := HTTPRequestDo(verbMatching, pathMatching, nil, func(request *http.Request) {
 				request.Header.Set("Content-Type", "application/json")
 			})
 
-			pathNonMatching := fmt.Sprintf("http://localhost:%d", TestPort)
+			pathNonMatching := fmt.Sprintf("http://localhost:%d", global.TestPort)
 			verbNonMatching := "GET"
 			responseNonMatching, bodyNonMatching, errNonMatching := HTTPRequestDo(verbNonMatching, pathNonMatching, nil, nil)
 

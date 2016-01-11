@@ -7,12 +7,13 @@ import (
 	"os"
 	"strings"
 
+	"ci.guzzler.io/guzzler/corcel/errormanager"
 	"ci.guzzler.io/guzzler/corcel/logger"
 )
 
 func check(err error) {
 	if err != nil {
-		logger.Log.Fatalf("UNKNOWN ERROR: %v", err)
+		errormanager.Log(err)
 	}
 }
 //RequestAdapter ...
@@ -80,8 +81,8 @@ func HandlerForUserAgent(options []string, index int, req *http.Request) (*http.
 //Create ...
 func (instance RequestAdapter) Create(line string) RequestFunc {
 	return RequestFunc(func() (*http.Request, error) {
-		commandLineLexer := NewCommandLineLexer()
-		lineSplit := commandLineLexer.Lex(line)
+		lexer := NewCommandLineLexer()
+		lineSplit := lexer.Lex(line)
 		req, err := http.NewRequest("GET", lineSplit[0], nil)
 		if err != nil {
 			return nil, err

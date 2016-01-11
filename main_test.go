@@ -4,9 +4,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"fmt"
 	"io"
 	"io/ioutil"
-	"fmt"
 	"net/http"
 	"os"
 	"os/exec"
@@ -17,30 +17,27 @@ import (
 	"github.com/Sirupsen/logrus"
 
 	"ci.guzzler.io/guzzler/corcel/config"
+	"ci.guzzler.io/guzzler/corcel/global"
 	"ci.guzzler.io/guzzler/corcel/logger"
+	"ci.guzzler.io/guzzler/corcel/processor"
 	req "ci.guzzler.io/guzzler/corcel/request"
+	. "ci.guzzler.io/guzzler/corcel/utils"
 )
 
 var (
-	SupportedHTTPMethods       = []string{"GET", "POST", "PUT", "DELETE"}
-	HTTPMethodsWithRequestBody = []string{"POST", "PUT", "DELETE"}
-	TestServer                 *req.RequestRecordingServer
-	TestPort                   = 8000
-	ResponseCodes400           = []int{400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418}
-	ResponseCodes500           = []int{500, 501, 502, 503, 504, 505}
-	WaitTimeTests              = []string{"1ms", "2ms", "4ms", "8ms", "16ms", "32ms", "64ms", "128ms"}
-	NumberOfWorkersToTest      = []int{1, 2, 4, 8, 16, 32, 64, 128, 256}
+	//TestServer ...
+	TestServer *req.RequestRecordingServer
 )
 
 func URLForTestServer(path string) string {
-	return fmt.Sprintf("http://localhost:%d%s", TestPort, path)
+	return fmt.Sprintf("http://localhost:%d%s", global.TestPort, path)
 }
 
 var _ = BeforeSuite(func() {
 	logger.ConfigureLogging(&config.Configuration{})
 	logrus.SetOutput(ioutil.Discard)
 	logger.Log.Out = ioutil.Discard
-	TestServer = req.CreateRequestRecordingServer(TestPort)
+	TestServer = req.CreateRequestRecordingServer(global.TestPort)
 	TestServer.Start()
 })
 
@@ -73,7 +70,7 @@ var _ = Describe("Main", func() {
 
 			SutExecute(list, "--duration", "5s")
 
-			var executionOutput ExecutionOutput
+			var executionOutput processor.ExecutionOutput
 			UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
 			Expect(int64(executionOutput.Summary.RunningTime)).To(BeNumerically(">=", int64(5000)), "RunningTime should be greater than 5 seconds")
@@ -104,7 +101,7 @@ var _ = Describe("Main", func() {
 		Expect(ConcatRequestPaths(requestsSet1)).ToNot(Equal(ConcatRequestPaths(requestsSet2)))
 	})
 
-	for _, numberOfWorkers := range NumberOfWorkersToTest {
+	for _, numberOfWorkers := range global.NumberOfWorkersToTest {
 		It(fmt.Sprintf("Support %v workers", numberOfWorkers), func() {
 			list := []string{
 				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
@@ -117,7 +114,7 @@ var _ = Describe("Main", func() {
 
 			SutExecute(list, "--workers", strconv.Itoa(numberOfWorkers))
 
-			var executionOutput ExecutionOutput
+			var executionOutput processor.ExecutionOutput
 			UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
 			Expect(executionOutput.Summary.Requests.Total).To(Equal(int64(len(list) * numberOfWorkers)))
@@ -126,9 +123,9 @@ var _ = Describe("Main", func() {
 		})
 	}
 
-	for _, waitTime := range WaitTimeTests {
+	for _, waitTime := range global.WaitTimeTests {
 		It(fmt.Sprintf("Support wait time of %v between each execution in the list", waitTime), func() {
-			waitTimeTolerance := 0.25
+			waitTimeTolerance := 0.50
 
 			list := []string{
 				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
@@ -167,7 +164,7 @@ var _ = Describe("Main", func() {
 
 		output := SutExecute(list, "--summary")
 
-		var executionOutput ExecutionOutput
+		var executionOutput processor.ExecutionOutput
 		UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Running Time: %v s", executionOutput.Summary.RunningTime/1000)))
@@ -208,14 +205,14 @@ var _ = Describe("Main", func() {
 
 			SutExecute(list)
 
-			var executionOutput ExecutionOutput
+			var executionOutput processor.ExecutionOutput
 			UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
 			expectedAvailability := 1 - (float64(executionOutput.Summary.Requests.Errors) / float64(executionOutput.Summary.Requests.Total))
 			Expect(executionOutput.Summary.Requests.Availability).To(Equal(expectedAvailability))
 		})
 
-		for _, code := range append(ResponseCodes500, ResponseCodes400...) {
+		for _, code := range append(global.ResponseCodes500, global.ResponseCodes400...) {
 			It(fmt.Sprintf("Records error for HTTP %v response code range", code), func() {
 				TestServer.Use(req.HTTPResponseFactory(func(w http.ResponseWriter) {
 					w.WriteHeader(code)
@@ -223,7 +220,7 @@ var _ = Describe("Main", func() {
 
 				SutExecute(list)
 
-				var executionOutput ExecutionOutput
+				var executionOutput processor.ExecutionOutput
 				UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
 				Expect(executionOutput.Summary.Requests.Errors).To(Equal(int64(len(list))))
@@ -234,7 +231,7 @@ var _ = Describe("Main", func() {
 		It("Requests per second", func() {
 			SutExecute(list)
 
-			var executionOutput ExecutionOutput
+			var executionOutput processor.ExecutionOutput
 			UnmarshalYamlFromFile("./output.yml", &executionOutput)
 			Expect(executionOutput.Summary.Requests.Rate).To(BeNumerically(">", 0))
 			Expect(executionOutput.Summary.Requests.Total).To(Equal(int64(len(list))))
@@ -258,7 +255,7 @@ var _ = Describe("Main", func() {
 
 		SutExecute(list)
 
-		var executionOutput ExecutionOutput
+		var executionOutput processor.ExecutionOutput
 
 		UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
@@ -282,9 +279,7 @@ var _ = Describe("Main", func() {
 			fmt.Sprintf(`%s -X POST -d @missing-file.json`, URLForTestServer("/success")),
 		}
 
-		output, _ := InvokeCorcel(list)
-		//Use this one when progress bar MR is complete
-		//output, _ := InvokeCorcel(list, "--progress", "none")
+		output, _ := InvokeCorcel(list, "--progress", "none")
 		requestsSet := Requests(TestServer.Requests[:])
 
 		Expect(len(requestsSet)).To(Equal(1))
@@ -310,7 +305,7 @@ var _ = Describe("Main", func() {
 
 		Expect(PathExists("./output.yml")).To(Equal(true))
 
-		var executionOutput ExecutionOutput
+		var executionOutput processor.ExecutionOutput
 
 		UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
@@ -340,7 +335,7 @@ var _ = Describe("Main", func() {
 	})
 
 	Describe("Support sending data with http request", func() {
-		for _, method := range HTTPMethodsWithRequestBody {
+		for _, method := range global.HTTPMethodsWithRequestBody {
 			It(fmt.Sprintf("in the body for verb %s", method), func() {
 				data := "a=1&b=2&c=3"
 				list := []string{fmt.Sprintf(`%s -X %s -d %s`, URLForTestServer("/A"), method, data)}
@@ -380,7 +375,7 @@ var _ = Describe("Main", func() {
 		})
 	})
 
-	for _, method := range SupportedHTTPMethods {
+	for _, method := range global.SupportedHTTPMethods {
 		It(fmt.Sprintf("Makes a http %s request", method), func() {
 			list := []string{fmt.Sprintf(`%s -X %s`, URLForTestServer("/A"), method)}
 			SutExecute(list)
@@ -462,12 +457,4 @@ func Requests(recordedRequests []req.RecordedRequest) (result []*http.Request) {
 		result = append(result, recordedRequest.Request)
 	}
 	return
-}
-
-func ConcatRequestPaths(requests []*http.Request) string {
-	result := ""
-	for _, request := range requests {
-		result = result + request.URL.Path
-	}
-	return result
 }

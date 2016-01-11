@@ -28,7 +28,7 @@ var _ = Describe("Configuration", func() {
 	BeforeEach(func() {
 		args = []string{filename}
 		logrus.SetOutput(ioutil.Discard)
-		Log.Out = ioutil.Discard
+		//Log.Out = ioutil.Discard
 		configFileReader = func(path string) ([]byte, error) {
 			return []byte(""), nil
 		}

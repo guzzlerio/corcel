@@ -49,3 +49,8 @@ func (instance *RequestReader) Size() int {
 func (instance *RequestReader) Read(index int) RequestFunc {
 	return instance.Requests[index]
 }
+
+
+type Lexer interface {
+	Lex(args string) []string
+}

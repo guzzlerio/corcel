@@ -9,6 +9,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	"ci.guzzler.io/guzzler/corcel/logger"
+	"ci.guzzler.io/guzzler/corcel/processor"
+	. "ci.guzzler.io/guzzler/corcel/utils"
 )
 
 var _ = Describe("Bugs replication", func() {
@@ -35,7 +37,7 @@ var _ = Describe("Bugs replication", func() {
 
 		SutExecute(list[:1], "--random", "--summary", "--workers", strconv.Itoa(numberOfWorkers))
 
-		var executionOutput ExecutionOutput
+		var executionOutput processor.ExecutionOutput
 		UnmarshalYamlFromFile("./output.yml", &executionOutput)
 
 		Expect(executionOutput.Summary.Requests.Total).To(Equal(int64(2)))
@@ -47,7 +49,7 @@ var _ = Describe("Bugs replication", func() {
 			fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
 		}
 
-		output, err := InvokeCorcel(list, "--workers", strconv.Itoa(numberOfWorkers))
+		output, err := InvokeCorcel(list, "--workers", strconv.Itoa(numberOfWorkers), "--progress", "none")
 
 		Expect(err).ToNot(BeNil())
 		Expect(string(output)).To(ContainSubstring("Your workers value is set to high.  Either increase the system limit for open files or reduce the value of the workers"))
@@ -58,7 +60,7 @@ var _ = Describe("Bugs replication", func() {
 			fmt.Sprintf(`-Something`),
 		}
 
-		output, err := InvokeCorcel(list)
+		output, err := InvokeCorcel(list, "--progress", "none")
 
 		Expect(err).ToNot(BeNil())
 		Expect(string(output)).To(ContainSubstring("Your urls in the test specification must be valid urls"))

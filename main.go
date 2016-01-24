@@ -38,15 +38,7 @@ func main() {
 
 	logger.ConfigureLogging(config)
 
-	absolutePath, err := filepath.Abs(config.FilePath)
-	check(err)
-	file, err := os.Open(absolutePath)
-	defer func() {
-		err := file.Close()
-		if err != nil {
-			logger.Log.Printf("Error closing file %v", err)
-		}
-	}()
+	_, err = filepath.Abs(config.FilePath)
 	check(err)
 
 	host := cmd.NewConsoleHost(config)

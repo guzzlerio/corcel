@@ -44,6 +44,7 @@ func configure() {
 
 //Log ...
 func Log(err interface{}) {
+	fmt.Printf("err %v", err)
 	if mappings == nil {
 		configure()
 	}

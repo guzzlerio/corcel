@@ -51,7 +51,7 @@ func ParseConfiguration(args []string) (*Configuration, error) {
 	verbosity = 0
 	logLevel = log.FatalLevel
 	config := Configuration{}
-	defaults := defaultConfig()
+	defaults := DefaultConfig()
 	cmd, err := cmdConfig(args)
 	if err != nil {
 		return nil, err
@@ -177,7 +177,8 @@ func userDirConfig() (*Configuration, error) {
 	return &config, nil
 }
 
-func defaultConfig() Configuration {
+//DefaultConfig ...
+func DefaultConfig() Configuration {
 	waitTime := time.Duration(0)
 	duration := time.Duration(0)
 	return Configuration{

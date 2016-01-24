@@ -6,6 +6,8 @@ import (
 )
 
 // ConsoleHost ...
+// This ConsoleHost should also be responsible for parsing any command line arguments
+// which have been passed in
 type ConsoleHost struct {
 	Control processor.Control
 }

@@ -1,4 +1,3 @@
-//ConcatRequestPaths ...
 package processor
 
 import (

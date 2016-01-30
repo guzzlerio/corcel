@@ -1,10 +1,12 @@
 package processor
 
 import (
-	//	"github.com/robertkrimen/otto"
 	"fmt"
 	"net/http"
+	"net/http/httputil"
 	"time"
+
+	"ci.guzzler.io/guzzler/corcel/logger"
 
 	"gopkg.in/yaml.v2"
 )
@@ -26,26 +28,42 @@ func (instance *HTTPRequestExecutionAction) initialize() {
 }
 
 //Execute ...
-func (instance *HTTPRequestExecutionAction) Execute() (ExecutionResult, error) {
+func (instance *HTTPRequestExecutionAction) Execute() ExecutionResult {
 	if instance.Client == nil {
 		instance.initialize()
 	}
 
-	req, _ := http.NewRequest(instance.Method, instance.URL, nil)
-	/*
-		if len(instance.Headers) > 0 {
-			for key, value := range instance.Headers {
-				req.Header.Set(key, value)
-			}
-		}
-	*/
-	req.Header = instance.Headers
-	response, _ := instance.Client.Do(req)
-	value := ExecutionResult{
-		"http:request:headers": req.Header,
-		"http:response:status": response.StatusCode,
+	result := ExecutionResult{}
+
+	req, err := http.NewRequest(instance.Method, instance.URL, nil)
+	if err != nil {
+		result["http:request:error"] = err
+		return result
 	}
-	return value, nil
+
+	req.Header = instance.Headers
+	response, err := instance.Client.Do(req)
+	if err != nil {
+		result["http:response:error"] = err
+		return result
+	}
+
+	defer func() {
+		err := response.Body.Close()
+		if err != nil {
+			logger.Log.Warnf("Error closing response Body %v", err)
+		}
+	}()
+
+	requestBytes, _ := httputil.DumpRequest(req, true)
+	responseBytes, _ := httputil.DumpResponse(response, true)
+
+	result["http:request:bytes"] = len(requestBytes)
+	result["http:response:bytes"] = len(responseBytes)
+	result["http:request:headers"] = req.Header
+	result["http:response:status"] = response.StatusCode
+
+	return result
 }
 
 //YamlHTTPRequestParser ...
@@ -143,7 +161,7 @@ type AssertionResult map[string]interface{}
 
 //Action ...
 type Action interface {
-	Execute() (ExecutionResult, error)
+	Execute() ExecutionResult
 }
 
 //Assertion ...
@@ -171,25 +189,6 @@ type Plan struct {
 	Workers  int
 	WaitTime time.Duration
 	Jobs     []Job
-}
-
-//Execute ...
-func (instance *Plan) Execute() error {
-	//resultChannel := make(chan ExecutionResult)
-
-	for _, job := range instance.Jobs {
-		func(talula Job) {
-			for _, step := range talula.Steps {
-				executionResult, _ := step.Action.Execute()
-				for _, assertion := range step.Assertions {
-					assertionResult := assertion.Assert(executionResult)
-					executionResult[assertion.ResultKey()] = assertionResult
-				}
-			}
-		}(job)
-	}
-
-	return nil
 }
 
 //ExecutionPlanParser ...
@@ -274,39 +273,3 @@ func PrintYamlExecutionPlan(plan YamlExecutionPlan) {
 	fmt.Println(fmt.Sprintf("%v", plan.Name))
 	fmt.Println(fmt.Sprintf("%v", plan.Jobs[0].Name))
 }
-
-/*
-func main() {
-	path := "./test-data.yml"
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		log.Panic("BOOOOOOM")
-	}
-	data, _ := ioutil.ReadFile(path)
-
-	var parser ExecutionPlanParser
-	parser.AddActionParser("HttpRequest", YamlHTTPRequestParser{})
-	parser.AddAssertionParser("ExactAssertion", YamlExactAssertionParser{})
-
-	executionPlan, err := parser.Parse(string(data))
-
-	if err != nil {
-		fmt.Println(fmt.Sprintf("%v", err))
-	}
-
-	err = executionPlan.Execute()
-
-	//Each job gets its own go routine
-	//    In each job it iterates over the steps until it should stop
-	//      - One iteration = One Job iterating every step
-	//        - run 5 times that would be run every step in each job 5 times.
-	//      - run for 10 seconds will stop any step when the time elpses
-	//      - random makes one job randomise the order of execution for its steps
-	//
-	//      - TODO: support x number of iterations
-
-	if err != nil {
-		fmt.Println(fmt.Sprintf("%v", err))
-	}
-
-}
-*/

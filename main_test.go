@@ -37,12 +37,12 @@ var _ = BeforeSuite(func() {
 	logger.ConfigureLogging(&config.Configuration{})
 	logrus.SetOutput(ioutil.Discard)
 	logger.Log.Out = ioutil.Discard
-	TestServer = req.CreateRequestRecordingServer(global.TestPort)
-	TestServer.Start()
+	//TestServer = req.CreateRequestRecordingServer(global.TestPort)
+	//TestServer.Start()
 })
 
 var _ = AfterSuite(func() {
-	TestServer.Stop()
+	//TestServer.Stop()
 })
 
 var _ = Describe("Main", func() {

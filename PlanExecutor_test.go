@@ -16,10 +16,13 @@ import (
 	"github.com/REAANDREW/rizo"
 )
 
-var _ = Describe("Plan Executor", func() {
+var _ = FDescribe("Plan Executor", func() {
 	var list []string
 	var file *os.File
+	var stats *processor.Statistics
 	var server *rizo.RequestRecordingServer
+	var configuration config.Configuration
+	var bar processor.ProgressBar
 
 	BeforeEach(func() {
 		server = rizo.CreateRequestRecordingServer(5001)
@@ -35,7 +38,11 @@ var _ = Describe("Plan Executor", func() {
 			fmt.Sprintf(`%s -X POST `, server.CreateURL("/9")),
 			fmt.Sprintf(`%s -X POST `, server.CreateURL("/10")),
 		}
+		configuration = config.DefaultConfig()
 		file = CreateFileFromLines(list)
+		configuration.FilePath = file.Name()
+		bar = cmd.NewProgressBar(100, &configuration)
+		stats = processor.CreateStatistics()
 		server.Start()
 	})
 
@@ -47,12 +54,7 @@ var _ = Describe("Plan Executor", func() {
 		server.Stop()
 	})
 
-	It("Does something", func() {
-		configuration := config.DefaultConfig()
-		configuration.FilePath = file.Name()
-		bar := cmd.NewProgressBar(100, &configuration)
-		stats := processor.CreateStatistics()
-
+	It("URL File", func() {
 		executor := processor.PlanExecutor{
 			Config: &configuration,
 			Bar:    bar,
@@ -63,9 +65,19 @@ var _ = Describe("Plan Executor", func() {
 		Expect(len(server.Requests)).To(Equal(len(list)))
 	})
 
-	PIt("URL File", func() {})
+	FIt("URL File updates the Statistics", func() {
+		executor := processor.PlanExecutor{
+			Config: &configuration,
+			Bar:    bar,
+			Stats:  stats,
+		}
+		executor.Execute()
+		output := stats.ExecutionOutput()
+		Expect(output.Summary.Requests.Total).To(Equal(int64(len(list))))
+	})
+
 	PIt("URL File with duration", func() {})
 	PIt("URL File with random selection", func() {})
 	PIt("URL File with more than one worker", func() {})
 	PIt("URL File with wait time", func() {})
-})
+)

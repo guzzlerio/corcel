@@ -14,19 +14,19 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/REAANDREW/rizo"
 	"github.com/Sirupsen/logrus"
 
 	"ci.guzzler.io/guzzler/corcel/config"
 	"ci.guzzler.io/guzzler/corcel/global"
 	"ci.guzzler.io/guzzler/corcel/logger"
 	"ci.guzzler.io/guzzler/corcel/processor"
-	req "ci.guzzler.io/guzzler/corcel/request"
 	. "ci.guzzler.io/guzzler/corcel/utils"
 )
 
 var (
 	//TestServer ...
-	TestServer *req.RequestRecordingServer
+	TestServer *rizo.RequestRecordingServer
 )
 
 func URLForTestServer(path string) string {
@@ -37,12 +37,12 @@ var _ = BeforeSuite(func() {
 	logger.ConfigureLogging(&config.Configuration{})
 	logrus.SetOutput(ioutil.Discard)
 	logger.Log.Out = ioutil.Discard
-	//TestServer = req.CreateRequestRecordingServer(global.TestPort)
-	//TestServer.Start()
+	TestServer = rizo.CreateRequestRecordingServer(global.TestPort)
+	TestServer.Start()
 })
 
 var _ = AfterSuite(func() {
-	//TestServer.Stop()
+	TestServer.Stop()
 })
 
 var _ = Describe("Main", func() {
@@ -158,9 +158,9 @@ var _ = Describe("Main", func() {
 			fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
 		}
 
-		TestServer.Use(req.HTTPResponseFactory(func(w http.ResponseWriter) {
+		TestServer.Use(rizo.HTTPResponseFactory(func(w http.ResponseWriter) {
 			w.WriteHeader(500)
-		})).For(req.RequestWithPath("/error"))
+		})).For(rizo.RequestWithPath("/error"))
 
 		output := SutExecute(list, "--summary")
 
@@ -194,7 +194,7 @@ var _ = Describe("Main", func() {
 
 		It("Records the availability", func() {
 			count := 0
-			TestServer.Use(req.HTTPResponseFactory(func(w http.ResponseWriter) {
+			TestServer.Use(rizo.HTTPResponseFactory(func(w http.ResponseWriter) {
 				count++
 				if count%2 == 0 {
 					w.WriteHeader(500)
@@ -214,7 +214,7 @@ var _ = Describe("Main", func() {
 
 		for _, code := range append(global.ResponseCodes500, global.ResponseCodes400...) {
 			It(fmt.Sprintf("Records error for HTTP %v response code range", code), func() {
-				TestServer.Use(req.HTTPResponseFactory(func(w http.ResponseWriter) {
+				TestServer.Use(rizo.HTTPResponseFactory(func(w http.ResponseWriter) {
 					w.WriteHeader(code)
 				}))
 
@@ -248,7 +248,7 @@ var _ = Describe("Main", func() {
 		}
 
 		count := 1
-		TestServer.Use(req.HTTPResponseFactory(func(w http.ResponseWriter) {
+		TestServer.Use(rizo.HTTPResponseFactory(func(w http.ResponseWriter) {
 			time.Sleep(time.Duration(count) * time.Millisecond)
 			count++
 		}))
@@ -295,7 +295,7 @@ var _ = Describe("Main", func() {
 		}
 
 		responseBody := "-"
-		TestServer.Use(req.HTTPResponseFactory(func(w http.ResponseWriter) {
+		TestServer.Use(rizo.HTTPResponseFactory(func(w http.ResponseWriter) {
 			_, err := io.WriteString(w, fmt.Sprintf("%s", responseBody))
 			check(err)
 			responseBody = responseBody + "-"
@@ -341,10 +341,10 @@ var _ = Describe("Main", func() {
 				list := []string{fmt.Sprintf(`%s -X %s -d %s`, URLForTestServer("/A"), method, data)}
 				SutExecute(list)
 
-				predicates := []req.HTTPRequestPredicate{}
-				predicates = append(predicates, req.RequestWithPath("/A"))
-				predicates = append(predicates, req.RequestWithMethod(method))
-				predicates = append(predicates, req.RequestWithBody(data))
+				predicates := []rizo.HTTPRequestPredicate{}
+				predicates = append(predicates, rizo.RequestWithPath("/A"))
+				predicates = append(predicates, rizo.RequestWithMethod(method))
+				predicates = append(predicates, rizo.RequestWithBody(data))
 				Expect(TestServer.Find(predicates...)).To(Equal(true))
 			})
 
@@ -353,10 +353,10 @@ var _ = Describe("Main", func() {
 				list := []string{fmt.Sprintf(`%s -X %s -d %s`, URLForTestServer("/A"), method, data)}
 				SutExecute(list)
 
-				predicates := []req.HTTPRequestPredicate{}
-				predicates = append(predicates, req.RequestWithPath("/A"))
-				predicates = append(predicates, req.RequestWithMethod(method))
-				predicates = append(predicates, req.RequestWithBody(data))
+				predicates := []rizo.HTTPRequestPredicate{}
+				predicates = append(predicates, rizo.RequestWithPath("/A"))
+				predicates = append(predicates, rizo.RequestWithMethod(method))
+				predicates = append(predicates, rizo.RequestWithBody(data))
 				Expect(TestServer.Find(predicates...)).To(Equal(true))
 			})
 		}
@@ -367,10 +367,10 @@ var _ = Describe("Main", func() {
 			list := []string{fmt.Sprintf(`%s -X %s -d %s"`, URLForTestServer("/A"), method, data)}
 			SutExecute(list)
 
-			predicates := []req.HTTPRequestPredicate{}
-			predicates = append(predicates, req.RequestWithPath("/A"))
-			predicates = append(predicates, req.RequestWithMethod(method))
-			predicates = append(predicates, req.RequestWithQuerystring(data))
+			predicates := []rizo.HTTPRequestPredicate{}
+			predicates = append(predicates, rizo.RequestWithPath("/A"))
+			predicates = append(predicates, rizo.RequestWithMethod(method))
+			predicates = append(predicates, rizo.RequestWithQuerystring(data))
 			Expect(TestServer.Find(predicates...)).To(Equal(true))
 		})
 	})
@@ -379,7 +379,7 @@ var _ = Describe("Main", func() {
 		It(fmt.Sprintf("Makes a http %s request", method), func() {
 			list := []string{fmt.Sprintf(`%s -X %s`, URLForTestServer("/A"), method)}
 			SutExecute(list)
-			Expect(TestServer.Find(req.RequestWithPath("/A"), req.RequestWithMethod(method))).To(Equal(true))
+			Expect(TestServer.Find(rizo.RequestWithPath("/A"), rizo.RequestWithMethod(method))).To(Equal(true))
 		})
 
 		It(fmt.Sprintf("Makes a http %s request with http headers", method), func() {
@@ -388,11 +388,11 @@ var _ = Describe("Main", func() {
 			list := []string{fmt.Sprintf(`%s -X %s -H "%s" -H "%s"`, URLForTestServer("/A"), method, applicationJSON, applicationSoapXML)}
 			SutExecute(list)
 
-			predicates := []req.HTTPRequestPredicate{}
-			predicates = append(predicates, req.RequestWithPath("/A"))
-			predicates = append(predicates, req.RequestWithMethod(method))
-			predicates = append(predicates, req.RequestWithHeader("Content-Type", "application/json"))
-			predicates = append(predicates, req.RequestWithHeader("Accept", "application/soap+xml"))
+			predicates := []rizo.HTTPRequestPredicate{}
+			predicates = append(predicates, rizo.RequestWithPath("/A"))
+			predicates = append(predicates, rizo.RequestWithMethod(method))
+			predicates = append(predicates, rizo.RequestWithHeader("Content-Type", "application/json"))
+			predicates = append(predicates, rizo.RequestWithHeader("Accept", "application/soap+xml"))
 			Expect(TestServer.Find(predicates...)).To(Equal(true))
 		})
 	}
@@ -404,10 +404,10 @@ var _ = Describe("Main", func() {
 		list := []string{fmt.Sprintf(`%s -X %s -A "%s"`, URLForTestServer("/A"), method, userAgent)}
 		SutExecute(list)
 
-		predicates := []req.HTTPRequestPredicate{}
-		predicates = append(predicates, req.RequestWithPath("/A"))
-		predicates = append(predicates, req.RequestWithMethod(method))
-		predicates = append(predicates, req.RequestWithHeader("User-Agent", userAgent))
+		predicates := []rizo.HTTPRequestPredicate{}
+		predicates = append(predicates, rizo.RequestWithPath("/A"))
+		predicates = append(predicates, rizo.RequestWithMethod(method))
+		predicates = append(predicates, rizo.RequestWithHeader("User-Agent", userAgent))
 		Expect(TestServer.Find(predicates...)).To(Equal(true))
 	})
 
@@ -420,9 +420,9 @@ var _ = Describe("Main", func() {
 
 		SutExecute(list)
 
-		Expect(TestServer.Find(req.RequestWithPath("/A"))).To(Equal(true))
-		Expect(TestServer.Find(req.RequestWithPath("/B"))).To(Equal(true))
-		Expect(TestServer.Find(req.RequestWithPath("/C"))).To(Equal(true))
+		Expect(TestServer.Find(rizo.RequestWithPath("/A"))).To(Equal(true))
+		Expect(TestServer.Find(rizo.RequestWithPath("/B"))).To(Equal(true))
+		Expect(TestServer.Find(rizo.RequestWithPath("/C"))).To(Equal(true))
 	})
 })
 
@@ -452,7 +452,7 @@ func SutExecute(list []string, args ...string) []byte {
 	return output
 }
 
-func Requests(recordedRequests []req.RecordedRequest) (result []*http.Request) {
+func Requests(recordedRequests []rizo.RecordedRequest) (result []*http.Request) {
 	for _, recordedRequest := range recordedRequests {
 		result = append(result, recordedRequest.Request)
 	}

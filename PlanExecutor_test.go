@@ -12,38 +12,36 @@ import (
 	"ci.guzzler.io/guzzler/corcel/logger"
 	"ci.guzzler.io/guzzler/corcel/processor"
 	. "ci.guzzler.io/guzzler/corcel/utils"
-
-	"github.com/REAANDREW/rizo"
 )
 
 var _ = FDescribe("Plan Executor", func() {
 	var list []string
 	var file *os.File
 	var stats *processor.Statistics
-	var server *rizo.RequestRecordingServer
+	//var server *rizo.RequestRecordingServer
 	var configuration config.Configuration
 	var bar processor.ProgressBar
 
 	BeforeEach(func() {
-		server = rizo.CreateRequestRecordingServer(5001)
+		//server = rizo.CreateRequestRecordingServer(5001)
 		list = []string{
-			fmt.Sprintf(`%s -X POST `, server.CreateURL("/1")),
-			fmt.Sprintf(`%s -X POST `, server.CreateURL("/2")),
-			fmt.Sprintf(`%s -X POST `, server.CreateURL("/3")),
-			fmt.Sprintf(`%s -X POST `, server.CreateURL("/4")),
-			fmt.Sprintf(`%s -X POST `, server.CreateURL("/5")),
-			fmt.Sprintf(`%s -X POST `, server.CreateURL("/6")),
-			fmt.Sprintf(`%s -X POST `, server.CreateURL("/7")),
-			fmt.Sprintf(`%s -X POST `, server.CreateURL("/8")),
-			fmt.Sprintf(`%s -X POST `, server.CreateURL("/9")),
-			fmt.Sprintf(`%s -X POST `, server.CreateURL("/10")),
+			fmt.Sprintf(`%s -X POST `, TestServer.CreateURL("/1")),
+			fmt.Sprintf(`%s -X POST `, TestServer.CreateURL("/2")),
+			fmt.Sprintf(`%s -X POST `, TestServer.CreateURL("/3")),
+			fmt.Sprintf(`%s -X POST `, TestServer.CreateURL("/4")),
+			fmt.Sprintf(`%s -X POST `, TestServer.CreateURL("/5")),
+			fmt.Sprintf(`%s -X POST `, TestServer.CreateURL("/6")),
+			fmt.Sprintf(`%s -X POST `, TestServer.CreateURL("/7")),
+			fmt.Sprintf(`%s -X POST `, TestServer.CreateURL("/8")),
+			fmt.Sprintf(`%s -X POST `, TestServer.CreateURL("/9")),
+			fmt.Sprintf(`%s -X POST `, TestServer.CreateURL("/10")),
 		}
 		configuration = config.DefaultConfig()
 		file = CreateFileFromLines(list)
 		configuration.FilePath = file.Name()
 		bar = cmd.NewProgressBar(100, &configuration)
 		stats = processor.CreateStatistics()
-		server.Start()
+		//server.Start()
 	})
 
 	AfterEach(func() {
@@ -51,7 +49,7 @@ var _ = FDescribe("Plan Executor", func() {
 		if err != nil {
 			logger.Log.Printf("Error removing file %v", err)
 		}
-		server.Stop()
+		//server.Stop()
 	})
 
 	It("URL File", func() {
@@ -62,7 +60,7 @@ var _ = FDescribe("Plan Executor", func() {
 		}
 		executor.Execute()
 
-		Expect(len(server.Requests)).To(Equal(len(list)))
+		Expect(len(TestServer.Requests)).To(Equal(len(list)))
 	})
 
 	FIt("URL File updates the Statistics", func() {
@@ -80,4 +78,4 @@ var _ = FDescribe("Plan Executor", func() {
 	PIt("URL File with random selection", func() {})
 	PIt("URL File with more than one worker", func() {})
 	PIt("URL File with wait time", func() {})
-)
+})

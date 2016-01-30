@@ -14,9 +14,11 @@ import (
 
 //PlanExecutor ...
 type PlanExecutor struct {
-	Config *config.Configuration
-	Stats  *Statistics
-	Bar    ProgressBar
+	Config    *config.Configuration
+	Stats     *Statistics
+	Bar       ProgressBar
+	start     time.Time
+	publisher telegraph.LinkedPublisher
 }
 
 func (instance *PlanExecutor) createPlan() Plan {
@@ -89,38 +91,55 @@ var resultHandlers = map[string]func(obj interface{}, statistics *Statistics){
 	},
 }
 
+func (instance *PlanExecutor) executeStep(step Step) ExecutionResult {
+	start := time.Now()
+	executionResult := step.Action.Execute()
+	duration := time.Since(start) / time.Millisecond
+	executionResult["action:duration"] = duration
+	for _, assertion := range step.Assertions {
+		assertionResult := assertion.Assert(executionResult)
+		executionResult[assertion.ResultKey()] = assertionResult
+	}
+	return executionResult
+}
+
+func (instance *PlanExecutor) executeJobs(jobs []Job) {
+	for _, job := range jobs {
+		func(talula Job) {
+			for _, step := range talula.Steps {
+				executionResult := instance.executeStep(step)
+				instance.publisher.Publish(executionResult)
+				if instance.Config.Duration > 0 && time.Since(instance.start) > instance.Config.Duration {
+					break
+				}
+			}
+		}(job)
+		if instance.Config.Duration > 0 && time.Since(instance.start) < instance.Config.Duration {
+			instance.executeJobs(jobs)
+		} else {
+			break
+		}
+	}
+}
+
 // Execute ...
 func (instance *PlanExecutor) Execute() {
-	broadcaster := telegraph.NewLinkedPublisher()
+	instance.start = time.Now()
+	instance.publisher = telegraph.NewLinkedPublisher()
 	plan := instance.createPlan()
 
 	go func() {
-		broadcaster.Publish(ExecutionStarted{})
-		for _, job := range plan.Jobs {
-			func(talula Job) {
-				for _, step := range talula.Steps {
-					start := time.Now()
-					executionResult := step.Action.Execute()
-					duration := time.Since(start) / time.Millisecond
-					executionResult["action:duration"] = duration
-					for _, assertion := range step.Assertions {
-						assertionResult := assertion.Assert(executionResult)
-						executionResult[assertion.ResultKey()] = assertionResult
-					}
-					broadcaster.Publish(executionResult)
-				}
-			}(job)
-		}
-		fmt.Println("Stopping")
-		broadcaster.Publish(ExecutionStopped{})
+		instance.publisher.Publish(ExecutionStarted{})
+		instance.executeJobs(plan.Jobs)
+		instance.publisher.Publish(ExecutionStopped{})
 	}()
 
-	subscription := broadcaster.Subscribe()
+	subscription := instance.publisher.Subscribe()
 	for message := range subscription.Channel {
 		switch message := message.(type) {
 		case ExecutionStarted:
 		case ExecutionStopped:
-			subscription.RemoveFrom(broadcaster)
+			subscription.RemoveFrom(instance.publisher)
 		case ExecutionResult:
 			executionResult := message
 			for key, value := range executionResult {

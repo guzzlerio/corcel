@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -14,7 +15,7 @@ import (
 	. "ci.guzzler.io/guzzler/corcel/utils"
 )
 
-var _ = FDescribe("Plan Executor", func() {
+var _ = Describe("Plan Executor", func() {
 	var list []string
 	var file *os.File
 	var stats *processor.Statistics
@@ -63,7 +64,7 @@ var _ = FDescribe("Plan Executor", func() {
 		Expect(len(TestServer.Requests)).To(Equal(len(list)))
 	})
 
-	FIt("URL File updates the Statistics", func() {
+	It("URL File updates the Statistics", func() {
 		executor := processor.PlanExecutor{
 			Config: &configuration,
 			Bar:    bar,
@@ -74,7 +75,22 @@ var _ = FDescribe("Plan Executor", func() {
 		Expect(output.Summary.Requests.Total).To(Equal(int64(len(list))))
 	})
 
-	PIt("URL File with duration", func() {})
+	It("URL File with duration", func() {
+		start := time.Now()
+		configuration.Duration = time.Duration(5 * time.Second)
+
+		executor := processor.PlanExecutor{
+			Config: &configuration,
+			Bar:    bar,
+			Stats:  stats,
+		}
+
+		executor.Execute()
+		stats.ExecutionOutput()
+
+		duration := time.Since(start)
+		Expect(int(duration / time.Second)).To(Equal(5))
+	})
 	PIt("URL File with random selection", func() {})
 	PIt("URL File with more than one worker", func() {})
 	PIt("URL File with wait time", func() {})

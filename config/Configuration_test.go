@@ -199,7 +199,7 @@ var _ = Describe("Configuration", func() {
 		}
 	})
 
-	Describe("When commandline args are provided", func() {
+	PDescribe("When commandline args are provided", func() {
 		Describe("overriding the default configuration", func() {
 			Describe("for duration (--duration)", func() {
 				BeforeEach(func() {

@@ -26,7 +26,7 @@ type Controller struct {
 }
 
 func (instance *Controller) createExecutionBranch(config *config.Configuration) ExecutionBranch {
-	useNew := false
+	useNew := true
 
 	if useNew {
 		return CreatePlanExecutor(config, instance.stats, instance.bar)

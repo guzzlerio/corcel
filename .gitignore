@@ -8,3 +8,4 @@ corcel
 output.yml
 ui/public
 ui.generated.go
+urls.txt

@@ -30,7 +30,7 @@ var (
 )
 
 func URLForTestServer(path string) string {
-	return fmt.Sprintf("http://localhost:%d%s", global.TestPort, path)
+	return TestServer.CreateURL(path)
 }
 
 var _ = BeforeSuite(func() {
@@ -102,7 +102,8 @@ var _ = Describe("Main", func() {
 	})
 
 	for _, numberOfWorkers := range global.NumberOfWorkersToTest {
-		It(fmt.Sprintf("Support %v workers", numberOfWorkers), func() {
+		name := fmt.Sprintf("Support %v workers", numberOfWorkers)
+		It(name, func() {
 			list := []string{
 				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
 				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
@@ -280,9 +281,7 @@ var _ = Describe("Main", func() {
 		}
 
 		output, _ := InvokeCorcel(list, "--progress", "none")
-		requestsSet := Requests(TestServer.Requests[:])
 
-		Expect(len(requestsSet)).To(Equal(1))
 		Expect(string(output)).To(ContainSubstring("Request body file not found: missing-file.json"))
 	})
 

@@ -13,7 +13,7 @@ import (
 var _ = Describe("RequestStream", func() {
 	var (
 		list     []string
-		reader   *RequestReader
+		reader   *Reader
 		iterator RequestStream
 	)
 

@@ -24,6 +24,11 @@ type ErrorCode struct {
 //ErrorManager ...
 var mappings map[string]ErrorCode
 
+const (
+	//LogMessageVaidURLs ...
+	LogMessageVaidURLs = "Your urls in the test specification must be absolute and valid urls"
+)
+
 //New ...
 func configure() {
 	mappings = make(map[string]ErrorCode)
@@ -34,17 +39,20 @@ func configure() {
 	}
 	mappings[`unsupported protocol scheme ""`] = ErrorCode{
 		Code:    5002,
-		Message: "Your urls in the test specification must be valid urls",
+		Message: LogMessageVaidURLs,
 	}
 	mappings["too many open files"] = ErrorCode{
 		Code:    5003,
 		Message: "Too many workers man!",
 	}
+	mappings["invalid URI for request"] = ErrorCode{
+		Code:    5004,
+		Message: LogMessageVaidURLs,
+	}
 }
 
 //Log ...
 func Log(err interface{}) {
-	fmt.Printf("err %v", err)
 	if mappings == nil {
 		configure()
 	}

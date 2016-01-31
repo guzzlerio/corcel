@@ -53,13 +53,6 @@ var _ = Describe("Plan Executor", func() {
 		//server.Stop()
 	})
 
-	It("URL File", func() {
-		executor := processor.CreatePlanExecutor(&configuration, stats, bar)
-		executor.Execute()
-
-		Expect(len(TestServer.Requests)).To(Equal(len(list)))
-	})
-
 	It("URL File updates the Statistics", func() {
 
 		executor := processor.CreatePlanExecutor(&configuration, stats, bar)

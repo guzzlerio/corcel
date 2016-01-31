@@ -36,6 +36,13 @@ func (instance *HTTPRequestExecutionAction) Execute() ExecutionResult {
 	result := ExecutionResult{}
 
 	req, err := http.NewRequest(instance.Method, instance.URL, nil)
+	//This should be a configuration item.  It allows the client to work
+	//in a way similar to a server which does not support HTTP KeepAlive
+	//After each request the client channel is closed.  When set to true
+	//the performance overhead is large in terms of Network IO throughput
+
+	//req.Close = true
+
 	if err != nil {
 		result["http:request:error"] = err
 		return result
@@ -47,7 +54,6 @@ func (instance *HTTPRequestExecutionAction) Execute() ExecutionResult {
 		result["http:response:error"] = err
 		return result
 	}
-
 	defer func() {
 		err := response.Body.Close()
 		if err != nil {

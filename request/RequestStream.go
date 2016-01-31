@@ -25,12 +25,12 @@ type RequestStream interface {
 
 //SequentialRequestStream ...
 type SequentialRequestStream struct {
-	reader  *RequestReader
+	reader  *Reader
 	current int
 }
 
 //NewSequentialRequestStream ...
-func NewSequentialRequestStream(reader *RequestReader) RequestStream {
+func NewSequentialRequestStream(reader *Reader) RequestStream {
 	return &SequentialRequestStream{
 		reader:  reader,
 		current: 0,
@@ -67,12 +67,12 @@ func (instance *SequentialRequestStream) Size() int {
 
 //RandomRequestStream ...
 type RandomRequestStream struct {
-	reader *RequestReader
+	reader *Reader
 	count  int
 }
 
 //NewRandomRequestStream ...
-func NewRandomRequestStream(reader *RequestReader) RequestStream {
+func NewRandomRequestStream(reader *Reader) RequestStream {
 	return &RandomRequestStream{
 		reader: reader,
 		count:  0,

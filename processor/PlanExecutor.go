@@ -1,12 +1,13 @@
 package processor
 
 import (
+	"errors"
 	"fmt"
-	"net/http"
 	"sync"
 	"time"
 
 	"ci.guzzler.io/guzzler/corcel/config"
+	"ci.guzzler.io/guzzler/corcel/errormanager"
 	"ci.guzzler.io/guzzler/corcel/logger"
 	"ci.guzzler.io/guzzler/corcel/request"
 
@@ -48,18 +49,15 @@ func (instance *PlanExecutor) createPlan() Plan {
 
 	stream := request.NewSequentialRequestStream(reader)
 
-	client := &http.Client{
-		Transport: &http.Transport{
-			MaxIdleConnsPerHost: 50,
-		},
-	}
-
 	for stream.HasNext() {
-		request, _ := stream.Next()
+		request, err := stream.Next()
+		if err != nil {
+			errormanager.Check(err)
+		}
 		step := Step{}
 
 		action := &HTTPRequestExecutionAction{
-			Client:  client,
+			//Client:  client,
 			URL:     request.URL.String(),
 			Method:  request.Method,
 			Headers: request.Header,
@@ -73,12 +71,6 @@ func (instance *PlanExecutor) createPlan() Plan {
 
 	return plan
 }
-
-//ExecutionStarted ...
-type ExecutionStarted struct{}
-
-//ExecutionStopped ...
-type ExecutionStopped struct{}
 
 var resultHandlers = map[string]func(obj interface{}, statistics *Statistics){
 	"http:request:error": func(obj interface{}, statistics *Statistics) {
@@ -94,7 +86,12 @@ var resultHandlers = map[string]func(obj interface{}, statistics *Statistics){
 		statistics.BytesReceived(int64(obj.(int)))
 	},
 	"http:response:status": func(obj interface{}, statistics *Statistics) {
-		statistics.Request(nil)
+		statusCode := obj.(int)
+		var responseErr error
+		if statusCode >= 400 && statusCode < 600 {
+			responseErr = errors.New("5XX Response Code")
+		}
+		statistics.Request(responseErr)
 	},
 	"action:duration": func(obj interface{}, statistics *Statistics) {
 		statistics.ResponseTime(int64(obj.(time.Duration)))
@@ -116,6 +113,11 @@ func (instance *PlanExecutor) executeStep(step Step) ExecutionResult {
 func (instance *PlanExecutor) workerExecuteJobs(jobs []Job) {
 	for _, job := range jobs {
 		func(talula Job) {
+			defer func() { //catch or finally
+				if err := recover(); err != nil { //catch
+					errormanager.Log(err)
+				}
+			}()
 			var stepStream StepStream
 			stepStream = CreateStepSequentialStream(talula.Steps)
 			if instance.Config.Random {
@@ -124,32 +126,46 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []Job) {
 			if instance.Config.WaitTime > time.Duration(0) {
 				stepStream = CreateStepDelayStream(stepStream, instance.Config.WaitTime)
 			}
+
+			if instance.Config.Duration > time.Duration(0) {
+				stepStream = CreateStepDurationStream(stepStream, instance.Config.Duration)
+			}
+
 			for stepStream.HasNext() {
 				_ = instance.Bar.Set(stepStream.Progress())
 				step := stepStream.Next()
 				executionResult := instance.executeStep(step)
-				instance.publisher.Publish(executionResult)
-				if instance.Config.Duration > 0 && time.Since(instance.start) > instance.Config.Duration {
-					break
+
+				for key, value := range executionResult {
+					if handler, ok := resultHandlers[key]; ok {
+						handler(value, instance.Stats)
+					} else {
+						logger.Log.Println(fmt.Sprintf("No handler for %s", key))
+					}
 				}
+
+				//instance.publisher.Publish(executionResult)
 			}
 		}(job)
-		if instance.Config.Duration > 0 && time.Since(instance.start) < instance.Config.Duration {
-			instance.executeJobs(jobs)
-		} else {
-			break
-		}
+		/*
+			if instance.Config.Duration > 0 && time.Since(instance.start) < instance.Config.Duration {
+				instance.workerExecuteJobs(jobs)
+			} else {
+				break
+			}
+		*/
 	}
 }
 
-func (instance *PlanExecutor) executeJobs(jobs []Job) {
+func (instance *PlanExecutor) executeJobs() {
 	var wg sync.WaitGroup
 	for i := 0; i < instance.Config.Workers; i++ {
 		wg.Add(1)
-		go func(jobsForWorker []Job) {
-			instance.workerExecuteJobs(jobsForWorker)
+		go func() {
+			plan := instance.createPlan()
+			instance.workerExecuteJobs(plan.Jobs)
 			wg.Done()
-		}(jobs)
+		}()
 	}
 	wg.Wait()
 }
@@ -157,34 +173,14 @@ func (instance *PlanExecutor) executeJobs(jobs []Job) {
 // Execute ...
 func (instance *PlanExecutor) Execute() error {
 	instance.start = time.Now()
-	instance.publisher = telegraph.NewLinkedPublisher()
-	plan := instance.createPlan()
+	instance.Stats.Start()
+	//instance.publisher = telegraph.NewLinkedPublisher()
 
-	go func() {
-		instance.publisher.Publish(ExecutionStarted{})
-		instance.executeJobs(plan.Jobs)
-		instance.publisher.Publish(ExecutionStopped{})
-	}()
+	//instance.publisher.Publish(ExecutionStarted{})
+	instance.executeJobs()
+	//instance.publisher.Publish(ExecutionStopped{})
 
-	subscription := instance.publisher.Subscribe()
-	for message := range subscription.Channel {
-		switch message := message.(type) {
-		case ExecutionStarted:
-		case ExecutionStopped:
-			subscription.RemoveFrom(instance.publisher)
-		case ExecutionResult:
-			executionResult := message
-			for key, value := range executionResult {
-				if handler, ok := resultHandlers[key]; ok {
-					handler(value, instance.Stats)
-				} else {
-					logger.Log.Println(fmt.Sprintf("No handler for %s", key))
-				}
-			}
-		default:
-		}
-	}
-
+	instance.Stats.Stop()
 	return nil
 }
 

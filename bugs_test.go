@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"ci.guzzler.io/guzzler/corcel/errormanager"
 	"ci.guzzler.io/guzzler/corcel/logger"
 	"ci.guzzler.io/guzzler/corcel/processor"
 	. "ci.guzzler.io/guzzler/corcel/utils"
@@ -61,8 +62,9 @@ var _ = Describe("Bugs replication", func() {
 		}
 
 		output, err := InvokeCorcel(list, "--progress", "none")
+		fmt.Println(string(output))
 
 		Expect(err).ToNot(BeNil())
-		Expect(string(output)).To(ContainSubstring("Your urls in the test specification must be valid urls"))
+		Expect(string(output)).To(ContainSubstring(errormanager.LogMessageVaidURLs))
 	})
 })

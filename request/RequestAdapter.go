@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -16,25 +17,26 @@ func check(err error) {
 		errormanager.Log(err)
 	}
 }
-//RequestAdapter ...
-type RequestAdapter struct {
-	Handlers map[string]RequestConfigHandler
+
+//Adapter ...
+type Adapter struct {
+	Handlers map[string]ConfigHandler
 }
 
 //NewRequestAdapter ...
-func NewRequestAdapter() RequestAdapter {
-	return RequestAdapter{
-		Handlers: map[string]RequestConfigHandler{
-			"-X": RequestConfigHandler(HandlerForMethod),
-			"-H": RequestConfigHandler(HandlerForHeader),
-			"-d": RequestConfigHandler(HandlerForData),
-			"-A": RequestConfigHandler(HandlerForUserAgent),
+func NewRequestAdapter() Adapter {
+	return Adapter{
+		Handlers: map[string]ConfigHandler{
+			"-X": ConfigHandler(HandlerForMethod),
+			"-H": ConfigHandler(HandlerForHeader),
+			"-d": ConfigHandler(HandlerForData),
+			"-A": ConfigHandler(HandlerForUserAgent),
 		},
 	}
 }
 
-//RequestConfigHandler ...
-type RequestConfigHandler func(options []string, index int, req *http.Request) (*http.Request, error)
+//ConfigHandler ...
+type ConfigHandler func(options []string, index int, req *http.Request) (*http.Request, error)
 
 //HandlerForMethod ...
 func HandlerForMethod(options []string, index int, req *http.Request) (*http.Request, error) {
@@ -79,11 +81,16 @@ func HandlerForUserAgent(options []string, index int, req *http.Request) (*http.
 }
 
 //Create ...
-func (instance RequestAdapter) Create(line string) RequestFunc {
-	return RequestFunc(func() (*http.Request, error) {
+func (instance Adapter) Create(line string) Func {
+	return Func(func() (*http.Request, error) {
 		lexer := NewCommandLineLexer()
 		lineSplit := lexer.Lex(line)
-		req, err := http.NewRequest("GET", lineSplit[0], nil)
+		requestURL := lineSplit[0]
+		_, err := url.ParseRequestURI(requestURL)
+		if err != nil {
+			return nil, err
+		}
+		req, err := http.NewRequest("GET", requestURL, nil)
 		if err != nil {
 			return nil, err
 		}

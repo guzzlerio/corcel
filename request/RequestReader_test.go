@@ -15,7 +15,7 @@ import (
 var _ = Describe("RequestReader", func() {
 
 	var list []string
-	var reader *RequestReader
+	var reader *Reader
 
 	BeforeEach(func() {
 		list = []string{

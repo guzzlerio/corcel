@@ -112,6 +112,23 @@ var _ = Describe("Plan Executor", func() {
 		Expect(len(firstPaths)).To(BeNumerically(">", 1))
 
 	})
-	PIt("URL File with more than one worker", func() {})
-	PIt("URL File with wait time", func() {})
+
+	It("URL File with more than one worker", func() {
+		configuration.Workers = 5
+
+		executor := processor.PlanExecutor{
+			Config: &configuration,
+			Bar:    bar,
+			Stats:  stats,
+		}
+
+		executor.Execute()
+		output := stats.ExecutionOutput()
+
+		Expect(output.Summary.Requests.Total).To(Equal(int64(configuration.Workers * len(list))))
+	})
+
+	It("URL File with wait time", func() {
+
+	})
 })

@@ -3,6 +3,7 @@ package processor
 import (
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"ci.guzzler.io/guzzler/corcel/config"
@@ -103,7 +104,7 @@ func (instance *PlanExecutor) executeStep(step Step) ExecutionResult {
 	return executionResult
 }
 
-func (instance *PlanExecutor) executeJobs(jobs []Job) {
+func (instance *PlanExecutor) workerExecuteJobs(jobs []Job) {
 	for _, job := range jobs {
 		func(talula Job) {
 			var stepStream StepStream
@@ -126,6 +127,18 @@ func (instance *PlanExecutor) executeJobs(jobs []Job) {
 			break
 		}
 	}
+}
+
+func (instance *PlanExecutor) executeJobs(jobs []Job) {
+	var wg sync.WaitGroup
+	for i := 0; i < instance.Config.Workers; i++ {
+		wg.Add(1)
+		go func(jobsForWorker []Job) {
+			instance.workerExecuteJobs(jobsForWorker)
+			wg.Done()
+		}(jobs)
+	}
+	wg.Wait()
 }
 
 // Execute ...

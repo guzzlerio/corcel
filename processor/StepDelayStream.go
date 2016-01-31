@@ -8,6 +8,14 @@ type StepDelayStream struct {
 	delay  time.Duration
 }
 
+//CreateStepDelayStream ...
+func CreateStepDelayStream(stream StepStream, delay time.Duration) StepDelayStream {
+	return StepDelayStream{
+		stream: stream,
+		delay:  delay,
+	}
+}
+
 //HasNext ...
 func (instance StepDelayStream) HasNext() bool {
 	return instance.stream.HasNext()

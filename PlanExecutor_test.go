@@ -129,6 +129,20 @@ var _ = Describe("Plan Executor", func() {
 	})
 
 	It("URL File with wait time", func() {
+		waitTimeInMilliseconds := 200
+		expectedTotalTimeInMilliseconds := len(list) * waitTimeInMilliseconds
+		configuration.WaitTime = time.Duration(time.Duration(waitTimeInMilliseconds) * time.Millisecond)
 
+		executor := processor.PlanExecutor{
+			Config: &configuration,
+			Bar:    bar,
+			Stats:  stats,
+		}
+
+		start := time.Now()
+		executor.Execute()
+
+		duration := time.Since(start)
+		Expect(int(duration / time.Second)).To(Equal(expectedTotalTimeInMilliseconds / 1000))
 	})
 })

@@ -112,6 +112,9 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []Job) {
 			if instance.Config.Random {
 				stepStream = CreateStepRandomStream(talula.Steps)
 			}
+			if instance.Config.WaitTime > time.Duration(0) {
+				stepStream = CreateStepDelayStream(stepStream, instance.Config.WaitTime)
+			}
 			for stepStream.HasNext() {
 				step := stepStream.Next()
 				executionResult := instance.executeStep(step)

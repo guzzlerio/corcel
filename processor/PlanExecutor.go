@@ -146,7 +146,7 @@ func (instance *PlanExecutor) executeJobs(jobs []Job) {
 }
 
 // Execute ...
-func (instance *PlanExecutor) Execute() {
+func (instance *PlanExecutor) Execute() error {
 	instance.start = time.Now()
 	instance.publisher = telegraph.NewLinkedPublisher()
 	plan := instance.createPlan()
@@ -175,4 +175,11 @@ func (instance *PlanExecutor) Execute() {
 		default:
 		}
 	}
+
+	return nil
+}
+
+// Output ...
+func (instance *PlanExecutor) Output() ExecutionOutput {
+	return instance.Stats.ExecutionOutput()
 }

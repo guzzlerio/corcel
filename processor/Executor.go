@@ -13,6 +13,12 @@ import (
 	req "ci.guzzler.io/guzzler/corcel/request"
 )
 
+//ExecutionBranch ...
+type ExecutionBranch interface {
+	Execute() error
+	Output() ExecutionOutput
+}
+
 // Executor ...
 type Executor struct {
 	config *config.Configuration

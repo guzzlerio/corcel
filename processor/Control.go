@@ -21,7 +21,7 @@ type Control interface {
 // Controller ...
 type Controller struct {
 	stats      *Statistics
-	executions map[*ExecutionID]*Executor
+	executions map[*ExecutionID]ExecutionBranch
 	bar        ProgressBar
 }
 
@@ -29,9 +29,11 @@ type Controller struct {
 func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, error) {
 	id := NewExecutionID()
 	fmt.Printf("Execution ID: %s\n", id)
+
 	executor := Executor{config, instance.stats, instance.bar}
+
 	instance.executions[&id] = &executor
-	err := executor.Execute();
+	err := executor.Execute()
 	return &id, err
 }
 
@@ -63,6 +65,7 @@ func (instance *Controller) Statistics() Statistics {
 // NewControl ...
 func NewControl(bar ProgressBar) Control {
 	stats := CreateStatistics()
-	control := Controller{stats: stats, executions: make(map[*ExecutionID]*Executor), bar: bar}
+	executions := make(map[*ExecutionID]ExecutionBranch)
+	control := Controller{stats: stats, executions: executions, bar: bar}
 	return &control
 }

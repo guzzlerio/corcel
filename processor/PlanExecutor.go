@@ -116,6 +116,7 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []Job) {
 				stepStream = CreateStepDelayStream(stepStream, instance.Config.WaitTime)
 			}
 			for stepStream.HasNext() {
+				_ = instance.Bar.Set(stepStream.Progress())
 				step := stepStream.Next()
 				executionResult := instance.executeStep(step)
 				instance.publisher.Publish(executionResult)

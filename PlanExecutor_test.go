@@ -54,22 +54,15 @@ var _ = Describe("Plan Executor", func() {
 	})
 
 	It("URL File", func() {
-		executor := processor.PlanExecutor{
-			Config: &configuration,
-			Bar:    bar,
-			Stats:  stats,
-		}
+		executor := processor.CreatePlanExecutor(&configuration, stats, bar)
 		executor.Execute()
 
 		Expect(len(TestServer.Requests)).To(Equal(len(list)))
 	})
 
 	It("URL File updates the Statistics", func() {
-		executor := processor.PlanExecutor{
-			Config: &configuration,
-			Bar:    bar,
-			Stats:  stats,
-		}
+
+		executor := processor.CreatePlanExecutor(&configuration, stats, bar)
 		executor.Execute()
 		output := stats.ExecutionOutput()
 		Expect(output.Summary.Requests.Total).To(Equal(int64(len(list))))
@@ -79,11 +72,7 @@ var _ = Describe("Plan Executor", func() {
 		start := time.Now()
 		configuration.Duration = time.Duration(5 * time.Second)
 
-		executor := processor.PlanExecutor{
-			Config: &configuration,
-			Bar:    bar,
-			Stats:  stats,
-		}
+		executor := processor.CreatePlanExecutor(&configuration, stats, bar)
 
 		executor.Execute()
 		stats.ExecutionOutput()
@@ -94,11 +83,7 @@ var _ = Describe("Plan Executor", func() {
 
 	It("URL File with random selection", func() {
 		configuration.Random = true
-		executor := processor.PlanExecutor{
-			Config: &configuration,
-			Bar:    bar,
-			Stats:  stats,
-		}
+		executor := processor.CreatePlanExecutor(&configuration, stats, bar)
 
 		tries := 50
 		firstPaths := []string{}
@@ -116,11 +101,7 @@ var _ = Describe("Plan Executor", func() {
 	It("URL File with more than one worker", func() {
 		configuration.Workers = 5
 
-		executor := processor.PlanExecutor{
-			Config: &configuration,
-			Bar:    bar,
-			Stats:  stats,
-		}
+		executor := processor.CreatePlanExecutor(&configuration, stats, bar)
 
 		executor.Execute()
 		output := stats.ExecutionOutput()
@@ -133,11 +114,7 @@ var _ = Describe("Plan Executor", func() {
 		expectedTotalTimeInMilliseconds := len(list) * waitTimeInMilliseconds
 		configuration.WaitTime = time.Duration(time.Duration(waitTimeInMilliseconds) * time.Millisecond)
 
-		executor := processor.PlanExecutor{
-			Config: &configuration,
-			Bar:    bar,
-			Stats:  stats,
-		}
+		executor := processor.CreatePlanExecutor(&configuration, stats, bar)
 
 		start := time.Now()
 		executor.Execute()

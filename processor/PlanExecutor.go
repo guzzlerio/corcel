@@ -22,6 +22,15 @@ type PlanExecutor struct {
 	publisher telegraph.LinkedPublisher
 }
 
+//CreatePlanExecutor ...
+func CreatePlanExecutor(config *config.Configuration, stats *Statistics, bar ProgressBar) *PlanExecutor {
+	return &PlanExecutor{
+		Config: config,
+		Bar:    bar,
+		Stats:  stats,
+	}
+}
+
 func (instance *PlanExecutor) createPlan() Plan {
 	plan := Plan{
 		Name:     "Plan from urls in file",

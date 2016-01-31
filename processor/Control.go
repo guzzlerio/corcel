@@ -25,14 +25,24 @@ type Controller struct {
 	bar        ProgressBar
 }
 
+func (instance *Controller) createExecutionBranch(config *config.Configuration) ExecutionBranch {
+	useNew := false
+
+	if useNew {
+		return CreatePlanExecutor(config, instance.stats, instance.bar)
+	}
+
+	return &Executor{config, instance.stats, instance.bar}
+}
+
 // Start ...
 func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, error) {
 	id := NewExecutionID()
 	fmt.Printf("Execution ID: %s\n", id)
 
-	executor := Executor{config, instance.stats, instance.bar}
+	executor := instance.createExecutionBranch(config)
 
-	instance.executions[&id] = &executor
+	instance.executions[&id] = executor
 	err := executor.Execute()
 	return &id, err
 }

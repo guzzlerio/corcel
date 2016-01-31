@@ -106,7 +106,13 @@ func (instance *PlanExecutor) executeStep(step Step) ExecutionResult {
 func (instance *PlanExecutor) executeJobs(jobs []Job) {
 	for _, job := range jobs {
 		func(talula Job) {
-			for _, step := range talula.Steps {
+			var stepStream StepStream
+			stepStream = CreateStepSequentialStream(talula.Steps)
+			if instance.Config.Random {
+				stepStream = CreateStepRandomStream(talula.Steps)
+			}
+			for stepStream.HasNext() {
+				step := stepStream.Next()
 				executionResult := instance.executeStep(step)
 				instance.publisher.Publish(executionResult)
 				if instance.Config.Duration > 0 && time.Since(instance.start) > instance.Config.Duration {

@@ -91,7 +91,27 @@ var _ = Describe("Plan Executor", func() {
 		duration := time.Since(start)
 		Expect(int(duration / time.Second)).To(Equal(5))
 	})
-	PIt("URL File with random selection", func() {})
+
+	It("URL File with random selection", func() {
+		configuration.Random = true
+		executor := processor.PlanExecutor{
+			Config: &configuration,
+			Bar:    bar,
+			Stats:  stats,
+		}
+
+		tries := 50
+		firstPaths := []string{}
+		for i := 0; i < tries; i++ {
+			executor.Execute()
+			if !ContainsString(firstPaths, TestServer.Requests[0].Request.URL.Path) {
+				firstPaths = append(firstPaths, TestServer.Requests[0].Request.URL.Path)
+			}
+			TestServer.Clear()
+		}
+		Expect(len(firstPaths)).To(BeNumerically(">", 1))
+
+	})
 	PIt("URL File with more than one worker", func() {})
 	PIt("URL File with wait time", func() {})
 })

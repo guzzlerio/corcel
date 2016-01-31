@@ -110,50 +110,50 @@ func (instance *PlanExecutor) executeStep(step Step) ExecutionResult {
 	return executionResult
 }
 
-func (instance *PlanExecutor) workerExecuteJobs(jobs []Job) {
-	for _, job := range jobs {
-		func(talula Job) {
-			defer func() { //catch or finally
-				if err := recover(); err != nil { //catch
-					errormanager.Log(err)
-				}
-			}()
-			var stepStream StepStream
-			stepStream = CreateStepSequentialStream(talula.Steps)
-			if instance.Config.Random {
-				stepStream = CreateStepRandomStream(talula.Steps)
-			}
-			if instance.Config.WaitTime > time.Duration(0) {
-				stepStream = CreateStepDelayStream(stepStream, instance.Config.WaitTime)
-			}
+func (instance *PlanExecutor) workerExecuteJob(talula Job) {
+	defer func() { //catch or finally
+		if err := recover(); err != nil { //catch
+			errormanager.Log(err)
+		}
+	}()
+	var stepStream StepStream
+	stepStream = CreateStepSequentialStream(talula.Steps)
+	if instance.Config.Random {
+		stepStream = CreateStepRandomStream(talula.Steps)
+	}
+	if instance.Config.WaitTime > time.Duration(0) {
+		stepStream = CreateStepDelayStream(stepStream, instance.Config.WaitTime)
+	}
 
-			if instance.Config.Duration > time.Duration(0) {
-				stepStream = CreateStepDurationStream(stepStream, instance.Config.Duration)
-			}
+	for stepStream.HasNext() {
+		step := stepStream.Next()
+		executionResult := instance.executeStep(step)
 
-			for stepStream.HasNext() {
-				_ = instance.Bar.Set(stepStream.Progress())
-				step := stepStream.Next()
-				executionResult := instance.executeStep(step)
-
-				for key, value := range executionResult {
-					if handler, ok := resultHandlers[key]; ok {
-						handler(value, instance.Stats)
-					} else {
-						logger.Log.Println(fmt.Sprintf("No handler for %s", key))
-					}
-				}
-
-				//instance.publisher.Publish(executionResult)
-			}
-		}(job)
-		/*
-			if instance.Config.Duration > 0 && time.Since(instance.start) < instance.Config.Duration {
-				instance.workerExecuteJobs(jobs)
+		for key, value := range executionResult {
+			if handler, ok := resultHandlers[key]; ok {
+				handler(value, instance.Stats)
 			} else {
-				break
+				logger.Log.Println(fmt.Sprintf("No handler for %s", key))
 			}
-		*/
+		}
+	}
+}
+
+func (instance *PlanExecutor) workerExecuteJobs(jobs []Job) {
+	var jobStream JobStream
+	jobStream = CreateJobSequentialStream(jobs)
+
+	if instance.Config.Random {
+		jobStream = CreateJobRandomStream(jobs)
+	}
+	if instance.Config.Duration > time.Duration(0) {
+		jobStream = CreateJobDurationStream(jobStream, instance.Config.Duration)
+	}
+
+	for jobStream.HasNext() {
+		job := jobStream.Next()
+		_ = instance.Bar.Set(jobStream.Progress())
+		instance.workerExecuteJob(job)
 	}
 }
 
@@ -174,11 +174,7 @@ func (instance *PlanExecutor) executeJobs() {
 func (instance *PlanExecutor) Execute() error {
 	instance.start = time.Now()
 	instance.Stats.Start()
-	//instance.publisher = telegraph.NewLinkedPublisher()
-
-	//instance.publisher.Publish(ExecutionStarted{})
 	instance.executeJobs()
-	//instance.publisher.Publish(ExecutionStopped{})
 
 	instance.Stats.Stop()
 	return nil

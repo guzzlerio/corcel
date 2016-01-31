@@ -31,10 +31,8 @@ func GenerateExecutionOutput(file string, output processor.ExecutionOutput) {
 }
 
 func main() {
+	logger.Initialise()
 	config, err := config.ParseConfiguration(os.Args[1:])
-	if err != nil {
-		logger.Log.Fatal(err)
-	}
 
 	logger.ConfigureLogging(config)
 

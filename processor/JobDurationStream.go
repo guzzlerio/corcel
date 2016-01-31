@@ -5,23 +5,23 @@ import (
 	"time"
 )
 
-//StepDurationStream ...
-type StepDurationStream struct {
-	stream   StepStream
+//JobDurationStream ...
+type JobDurationStream struct {
+	stream   JobStream
 	start    time.Time
 	duration time.Duration
 }
 
-//CreateStepDurationStream ...
-func CreateStepDurationStream(stream StepStream, duration time.Duration) *StepDurationStream {
-	return &StepDurationStream{
+//CreateJobDurationStream ...
+func CreateJobDurationStream(stream JobStream, duration time.Duration) *JobDurationStream {
+	return &JobDurationStream{
 		stream:   stream,
 		duration: duration,
 	}
 }
 
 //HasNext ...
-func (instance *StepDurationStream) HasNext() bool {
+func (instance *JobDurationStream) HasNext() bool {
 	if instance.start.IsZero() {
 		return true
 	}
@@ -29,7 +29,7 @@ func (instance *StepDurationStream) HasNext() bool {
 }
 
 //Next ...
-func (instance *StepDurationStream) Next() Step {
+func (instance *JobDurationStream) Next() Job {
 	if instance.start.IsZero() {
 		instance.start = time.Now()
 	}
@@ -40,17 +40,17 @@ func (instance *StepDurationStream) Next() Step {
 }
 
 //Reset ...
-func (instance *StepDurationStream) Reset() {
+func (instance *JobDurationStream) Reset() {
 	instance.stream.Reset()
 }
 
 //Progress ...
-func (instance *StepDurationStream) Progress() int {
+func (instance *JobDurationStream) Progress() int {
 	current := (float64(time.Since(instance.start).Nanoseconds()) / float64(instance.Size()))
 	return int(math.Ceil(current * 100))
 }
 
 //Size ...
-func (instance *StepDurationStream) Size() int {
+func (instance *JobDurationStream) Size() int {
 	return int(instance.duration.Nanoseconds())
 }

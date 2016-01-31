@@ -1,4 +1,4 @@
-package main
+package processor
 
 import (
 	"fmt"
@@ -8,20 +8,26 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"ci.guzzler.io/guzzler/corcel/cmd"
 	"ci.guzzler.io/guzzler/corcel/config"
 	"ci.guzzler.io/guzzler/corcel/logger"
-	"ci.guzzler.io/guzzler/corcel/processor"
 	. "ci.guzzler.io/guzzler/corcel/utils"
 )
+
+//NullProgressBar ...
+type NullProgressBar struct {
+}
+
+func (instance NullProgressBar) Set(progress int) error {
+	return nil
+}
 
 var _ = Describe("Plan Executor", func() {
 	var list []string
 	var file *os.File
-	var stats *processor.Statistics
+	var stats *Statistics
 	//var server *rizo.RequestRecordingServer
 	var configuration config.Configuration
-	var bar processor.ProgressBar
+	var bar ProgressBar
 
 	BeforeEach(func() {
 		//server = rizo.CreateRequestRecordingServer(5001)
@@ -40,8 +46,8 @@ var _ = Describe("Plan Executor", func() {
 		configuration = config.DefaultConfig()
 		file = CreateFileFromLines(list)
 		configuration.FilePath = file.Name()
-		bar = cmd.NewProgressBar(100, &configuration)
-		stats = processor.CreateStatistics()
+		bar = NullProgressBar{}
+		stats = CreateStatistics()
 		//server.Start()
 	})
 
@@ -55,7 +61,7 @@ var _ = Describe("Plan Executor", func() {
 
 	It("URL File updates the Statistics", func() {
 
-		executor := processor.CreatePlanExecutor(&configuration, stats, bar)
+		executor := CreatePlanExecutor(&configuration, stats, bar)
 		executor.Execute()
 		output := stats.ExecutionOutput()
 		Expect(output.Summary.Requests.Total).To(Equal(int64(len(list))))
@@ -65,7 +71,7 @@ var _ = Describe("Plan Executor", func() {
 		start := time.Now()
 		configuration.Duration = time.Duration(5 * time.Second)
 
-		executor := processor.CreatePlanExecutor(&configuration, stats, bar)
+		executor := CreatePlanExecutor(&configuration, stats, bar)
 
 		executor.Execute()
 		stats.ExecutionOutput()
@@ -76,7 +82,7 @@ var _ = Describe("Plan Executor", func() {
 
 	It("URL File with random selection", func() {
 		configuration.Random = true
-		executor := processor.CreatePlanExecutor(&configuration, stats, bar)
+		executor := CreatePlanExecutor(&configuration, stats, bar)
 
 		tries := 50
 		firstPaths := []string{}
@@ -94,7 +100,7 @@ var _ = Describe("Plan Executor", func() {
 	It("URL File with more than one worker", func() {
 		configuration.Workers = 5
 
-		executor := processor.CreatePlanExecutor(&configuration, stats, bar)
+		executor := CreatePlanExecutor(&configuration, stats, bar)
 
 		executor.Execute()
 		output := stats.ExecutionOutput()
@@ -107,7 +113,7 @@ var _ = Describe("Plan Executor", func() {
 		expectedTotalTimeInMilliseconds := len(list) * waitTimeInMilliseconds
 		configuration.WaitTime = time.Duration(time.Duration(waitTimeInMilliseconds) * time.Millisecond)
 
-		executor := processor.CreatePlanExecutor(&configuration, stats, bar)
+		executor := CreatePlanExecutor(&configuration, stats, bar)
 
 		start := time.Now()
 		executor.Execute()

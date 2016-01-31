@@ -34,6 +34,7 @@ func URLForTestServer(path string) string {
 }
 
 var _ = BeforeSuite(func() {
+	logger.Initialise()
 	logger.ConfigureLogging(&config.Configuration{})
 	logrus.SetOutput(ioutil.Discard)
 	logger.Log.Out = ioutil.Discard

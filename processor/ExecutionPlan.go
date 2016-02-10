@@ -88,6 +88,11 @@ func (instance YamlHTTPRequestParser) Parse(input map[string]interface{}) Action
 	return &action
 }
 
+//Key ...
+func (instance YamlHTTPRequestParser) Key() string {
+	return "HttpRequest"
+}
+
 //YamlExactAssertionParser ...
 type YamlExactAssertionParser struct{}
 
@@ -97,6 +102,11 @@ func (instance YamlExactAssertionParser) Parse(input map[string]interface{}) Ass
 		Key:      input["key"].(string),
 		Expected: input["expected"].(int),
 	}
+}
+
+//Key ...
+func (instance YamlExactAssertionParser) Key() string {
+	return "ExactAssertion"
 }
 
 //ExactAssertion ...
@@ -152,11 +162,13 @@ type YamlExecutionPlan struct {
 //YamlExecutionActionParser ...
 type YamlExecutionActionParser interface {
 	Parse(input map[string]interface{}) Action
+	Key() string
 }
 
 //YamlExecutionAssertionParser ...
 type YamlExecutionAssertionParser interface {
 	Parse(input map[string]interface{}) Assertion
+	Key() string
 }
 
 //ExecutionResult ...
@@ -210,7 +222,7 @@ func (instance *ExecutionPlanParser) Parse(data string) (Plan, error) {
 
 	err := yaml.Unmarshal([]byte(data), &yamlExecutionPlan)
 
-	PrintYamlExecutionPlan(yamlExecutionPlan)
+	//PrintYamlExecutionPlan(yamlExecutionPlan)
 
 	if err != nil {
 		return Plan{}, err
@@ -272,6 +284,24 @@ func (instance *ExecutionPlanParser) AddAssertionParser(assertionType string, pa
 		instance.ExecutionAssertionParsers = map[string]YamlExecutionAssertionParser{}
 	}
 	instance.ExecutionAssertionParsers[assertionType] = parser
+}
+
+//CreateExecutionPlanParser ...
+func CreateExecutionPlanParser() *ExecutionPlanParser {
+	parser := &ExecutionPlanParser{}
+	actionParsers := []YamlExecutionActionParser{YamlHTTPRequestParser{}}
+	assertionParsers := []YamlExecutionAssertionParser{YamlExactAssertionParser{}}
+
+	//This can be refactored so that the Key method is invoked inside the AddActionParser
+	for _, actionParser := range actionParsers {
+		parser.AddActionParser(actionParser.Key(), actionParser)
+	}
+
+	//This can be refactored so that the Key method is invoked inside the AddActionParser
+	for _, assertionParser := range assertionParsers {
+		parser.AddAssertionParser(assertionParser.Key(), assertionParser)
+	}
+	return parser
 }
 
 //PrintYamlExecutionPlan ...

@@ -3,6 +3,7 @@ package processor
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"sync"
 	"time"
 
@@ -159,7 +160,21 @@ func (instance *PlanExecutor) executeJobs() {
 	for i := 0; i < instance.Config.Workers; i++ {
 		wg.Add(1)
 		go func() {
-			plan := instance.createPlan()
+			var plan Plan
+			var err error
+			if !instance.Config.Plan {
+				plan = instance.createPlan()
+			} else {
+				parser := CreateExecutionPlanParser()
+				data, dataErr := ioutil.ReadFile(instance.Config.FilePath)
+				if dataErr != nil {
+					panic(dataErr)
+				}
+				plan, err = parser.Parse(string(data))
+				if err != nil {
+					panic(err)
+				}
+			}
 			instance.workerExecuteJobs(plan.Jobs)
 			wg.Done()
 		}()

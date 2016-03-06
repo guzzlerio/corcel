@@ -41,16 +41,16 @@ func (instance *PlanExecutor) createPlan() Plan {
 		Jobs:     []Job{},
 	}
 
-	job := Job{
-		Name:  "Job for the urls in file",
-		Steps: []Step{},
-	}
-
 	reader := request.NewRequestReader(instance.Config.FilePath)
 
 	stream := request.NewSequentialRequestStream(reader)
 
 	for stream.HasNext() {
+		job := Job{
+			Name:  "Job for the urls in file",
+			Steps: []Step{},
+		}
+
 		request, err := stream.Next()
 		if err != nil {
 			errormanager.Check(err)
@@ -66,9 +66,8 @@ func (instance *PlanExecutor) createPlan() Plan {
 
 		step.Action = action
 		job.Steps = append(job.Steps, step)
+		plan.Jobs = append(plan.Jobs, job)
 	}
-
-	plan.Jobs = append(plan.Jobs, job)
 
 	return plan
 }

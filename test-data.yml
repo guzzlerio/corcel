@@ -34,4 +34,4 @@
             -
               type: ExactAssertion
               key : http:response:status
-              expected : 200
+              expected : 202

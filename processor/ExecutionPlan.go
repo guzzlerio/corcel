@@ -26,10 +26,9 @@ type GeneralExecutionResultProcessor struct {
 }
 
 func (instance GeneralExecutionResultProcessor) Process(result ExecutionResult, registry metrics.Registry, statistics *Statistics) {
-
 	obj := result["action:duration"]
 	statistics.ResponseTime(int64(obj.(time.Duration)))
-	timer := metrics.GetOrRegisterTimer("action:duration", metrics.DefaultRegistry)
+	timer := metrics.GetOrRegisterTimer("action:duration", registry)
 	timer.Update(obj.(time.Duration))
 }
 
@@ -45,25 +44,60 @@ func (instance HTTPExecutionResultProcessor) Process(result ExecutionResult, reg
 		switch key {
 		case "http:request:error":
 			statistics.Request(value.(error))
+			meter := metrics.GetOrRegisterMeter("http:request:error", registry)
+			meter.Mark(1)
+
+			url := result["http:request:url"]
+			byUrlmeter := metrics.GetOrRegisterMeter(fmt.Sprintf("byUrl:%s:http:request:error", url), registry)
+			byUrlmeter.Mark(1)
+
 		case "http:response:error":
 			statistics.Request(value.(error))
+			meter := metrics.GetOrRegisterMeter("http:response:error", registry)
+			meter.Mark(1)
+
+			url := result["http:request:url"]
+			byUrlmeter := metrics.GetOrRegisterMeter(fmt.Sprintf("byUrl:%s:http:response:error", url), registry)
+			byUrlmeter.Mark(1)
+
 		case "http:request:bytes":
 			statistics.BytesSent(int64(value.(int)))
 			histogram := metrics.GetOrRegisterHistogram("http:request:bytes", registry, metrics.NewUniformSample(100))
 			histogram.Update(int64(value.(int)))
+
+			url := result["http:request:url"]
+			byUrlHistogram := metrics.GetOrRegisterHistogram(fmt.Sprintf("byUrl:%s:http:request:bytes", url), registry, metrics.NewUniformSample(100))
+			byUrlHistogram.Update(int64(value.(int)))
+
 		case "http:response:bytes":
 			statistics.BytesReceived(int64(value.(int)))
 			histogram := metrics.GetOrRegisterHistogram("http:response:bytes", registry, metrics.NewUniformSample(100))
 			histogram.Update(int64(value.(int)))
+
+			url := result["http:request:url"]
+			byUrlHistogram := metrics.GetOrRegisterHistogram(fmt.Sprintf("byUrl:%s:http:response:bytes", url), registry, metrics.NewUniformSample(100))
+			byUrlHistogram.Update(int64(value.(int)))
+
 		case "http:response:status":
 			statusCode := value.(int)
+			url := result["http:request:url"]
 			counter := metrics.GetOrRegisterCounter(fmt.Sprintf("http:response:status:%d", statusCode), registry)
 			counter.Inc(1)
+
+			byUrlCounter := metrics.GetOrRegisterCounter(fmt.Sprintf("byUrl:%s:http:response:status:%d", url, statusCode), registry)
+			byUrlCounter.Inc(1)
 			var responseErr error
 			if statusCode >= 400 && statusCode < 600 {
 				responseErr = errors.New("5XX Response Code")
 			}
 			statistics.Request(responseErr)
+
+			obj := result["action:duration"]
+			timer := metrics.GetOrRegisterTimer(fmt.Sprintf("http:response:status:%d:duration", statusCode), registry)
+			timer.Update(obj.(time.Duration))
+
+			byUrlTimer := metrics.GetOrRegisterTimer(fmt.Sprintf("byUrl:%s:http:response:status:%d:duration", url, statusCode), registry)
+			byUrlTimer.Update(obj.(time.Duration))
 		}
 	}
 }
@@ -121,6 +155,7 @@ func (instance *HTTPRequestExecutionAction) Execute() ExecutionResult {
 	requestBytes, _ := httputil.DumpRequest(req, true)
 	responseBytes, _ := httputil.DumpResponse(response, true)
 
+	result["http:request:url"] = req.URL.String()
 	result["http:request:bytes"] = len(requestBytes)
 	result["http:response:bytes"] = len(responseBytes)
 	result["http:request:headers"] = req.Header

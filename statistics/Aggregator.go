@@ -1,6 +1,7 @@
 package statistics
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/rcrowley/go-metrics"
@@ -114,10 +115,10 @@ func (instance *Aggregator) logMeter(name string, value metrics.Meter) {
 	}
 
 	instance.meters[name]["count"] = append(instance.meters[name]["count"], float64(value.Count()))
-	instance.meters[name]["rate1"] = append(instance.meters[name]["count"], float64(value.Rate1()))
-	instance.meters[name]["rate5"] = append(instance.meters[name]["count"], float64(value.Rate5()))
-	instance.meters[name]["rate15"] = append(instance.meters[name]["count"], float64(value.Rate15()))
-	instance.meters[name]["rateMean"] = append(instance.meters[name]["count"], float64(value.RateMean()))
+	instance.meters[name]["rate1"] = append(instance.meters[name]["rate1"], float64(value.Rate1()))
+	instance.meters[name]["rate5"] = append(instance.meters[name]["rate5"], float64(value.Rate5()))
+	instance.meters[name]["rate15"] = append(instance.meters[name]["rate15"], float64(value.Rate15()))
+	instance.meters[name]["rateMean"] = append(instance.meters[name]["rateMean"], float64(value.RateMean()))
 }
 
 func (instance *Aggregator) logTimer(name string, value metrics.Timer) {
@@ -150,10 +151,10 @@ func (instance *Aggregator) logTimer(name string, value metrics.Timer) {
 	instance.timers[name]["95p"] = append(instance.timers[name]["95p"], ps[2])
 	instance.timers[name]["99p"] = append(instance.timers[name]["99p"], ps[3])
 	instance.timers[name]["count"] = append(instance.timers[name]["count"], float64(value.Count()))
-	instance.timers[name]["rate1"] = append(instance.timers[name]["count"], float64(value.Rate1()))
-	instance.timers[name]["rate5"] = append(instance.timers[name]["count"], float64(value.Rate5()))
-	instance.timers[name]["rate15"] = append(instance.timers[name]["count"], float64(value.Rate15()))
-	instance.timers[name]["rateMean"] = append(instance.timers[name]["count"], float64(value.RateMean()))
+	instance.timers[name]["rate1"] = append(instance.timers[name]["rate1"], float64(value.Rate1()))
+	instance.timers[name]["rate5"] = append(instance.timers[name]["rate5"], float64(value.Rate5()))
+	instance.timers[name]["rate15"] = append(instance.timers[name]["rate15"], float64(value.Rate15()))
+	instance.timers[name]["rateMean"] = append(instance.timers[name]["rateMean"], float64(value.RateMean()))
 }
 
 func (instance *Aggregator) createSnapshot() {
@@ -163,14 +164,15 @@ func (instance *Aggregator) createSnapshot() {
 		case metrics.Counter:
 			instance.logCounter(name, metric.Count())
 		case metrics.Gauge:
-			instance.logGuage(name, float64(metric.Value()))
+			instance.logGuage(name, float64(metric.Snapshot().Value()))
 		case metrics.GaugeFloat64:
-			instance.logGuage(name, metric.Value())
+			instance.logGuage(name, metric.Snapshot().Value())
 		case metrics.Histogram:
 			h := metric.Snapshot()
 			instance.logHistogram(name, h)
 		case metrics.Meter:
 			m := metric.Snapshot()
+			fmt.Println(m.RateMean())
 			instance.logMeter(name, m)
 		case metrics.Timer:
 			t := metric.Snapshot()

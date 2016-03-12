@@ -59,14 +59,6 @@ var _ = Describe("Plan Executor", func() {
 		//server.Stop()
 	})
 
-	It("URL File updates the Statistics", func() {
-
-		executor := CreatePlanExecutor(&configuration, stats, bar)
-		executor.Execute()
-		output := stats.ExecutionOutput()
-		Expect(output.Summary.Requests.Total).To(Equal(int64(len(list))))
-	})
-
 	It("URL File with duration", func() {
 		start := time.Now()
 		configuration.Duration = time.Duration(5 * time.Second)
@@ -103,9 +95,8 @@ var _ = Describe("Plan Executor", func() {
 		executor := CreatePlanExecutor(&configuration, stats, bar)
 
 		executor.Execute()
-		output := stats.ExecutionOutput()
 
-		Expect(output.Summary.Requests.Total).To(Equal(int64(configuration.Workers * len(list))))
+		Expect(len(TestServer.Requests)).To(Equal(configuration.Workers * len(list)))
 	})
 
 	It("URL File with wait time", func() {

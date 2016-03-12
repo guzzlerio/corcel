@@ -36,7 +36,9 @@ var _ = Describe("Bugs replication", func() {
 			fmt.Sprintf(`%s?id=1 -X DELETE -H "Content-type: application/json"`, URLForTestServer("/success")),
 		}
 
-		SutExecute(list[:1], "--random", "--summary", "--workers", strconv.Itoa(numberOfWorkers))
+		output := SutExecute(list[:1], "--random", "--summary", "--workers", strconv.Itoa(numberOfWorkers))
+
+		fmt.Println(string(output))
 
 		var executionOutput processor.ExecutionOutput
 		UnmarshalYamlFromFile("./output.yml", &executionOutput)

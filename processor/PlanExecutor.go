@@ -1,15 +1,12 @@
 package processor
 
 import (
-	"errors"
-	"fmt"
 	"io/ioutil"
 	"sync"
 	"time"
 
 	"ci.guzzler.io/guzzler/corcel/config"
 	"ci.guzzler.io/guzzler/corcel/errormanager"
-	"ci.guzzler.io/guzzler/corcel/logger"
 	"ci.guzzler.io/guzzler/corcel/request"
 
 	"github.com/REAANDREW/telegraph"
@@ -21,15 +18,16 @@ type PlanExecutor struct {
 	Stats     *Statistics
 	Bar       ProgressBar
 	start     time.Time
-	publisher telegraph.LinkedPublisher
+	Publisher telegraph.LinkedPublisher
 }
 
 //CreatePlanExecutor ...
 func CreatePlanExecutor(config *config.Configuration, stats *Statistics, bar ProgressBar) *PlanExecutor {
 	return &PlanExecutor{
-		Config: config,
-		Bar:    bar,
-		Stats:  stats,
+		Config:    config,
+		Bar:       bar,
+		Stats:     stats,
+		Publisher: telegraph.NewLinkedPublisher(),
 	}
 }
 
@@ -72,6 +70,7 @@ func (instance *PlanExecutor) createPlan() Plan {
 	return plan
 }
 
+/*
 var resultHandlers = map[string]func(obj interface{}, statistics *Statistics){
 	"http:request:error": func(obj interface{}, statistics *Statistics) {
 		statistics.Request(obj.(error))
@@ -81,12 +80,19 @@ var resultHandlers = map[string]func(obj interface{}, statistics *Statistics){
 	},
 	"http:request:bytes": func(obj interface{}, statistics *Statistics) {
 		statistics.BytesSent(int64(obj.(int)))
+		histogram := metrics.GetOrRegisterHistogram("http:request:bytes", metrics.DefaultRegistry, metrics.NewUniformSample(100))
+		histogram.Update(int64(obj.(int)))
 	},
 	"http:response:bytes": func(obj interface{}, statistics *Statistics) {
 		statistics.BytesReceived(int64(obj.(int)))
+		histogram := metrics.GetOrRegisterHistogram("http:response:bytes", metrics.DefaultRegistry, metrics.NewUniformSample(100))
+		histogram.Update(int64(obj.(int)))
 	},
 	"http:response:status": func(obj interface{}, statistics *Statistics) {
 		statusCode := obj.(int)
+		counter := metrics.GetOrRegisterCounter(fmt.Sprintf("http:response:status:%d", statusCode), metrics.DefaultRegistry)
+		counter.Inc(1)
+
 		var responseErr error
 		if statusCode >= 400 && statusCode < 600 {
 			responseErr = errors.New("5XX Response Code")
@@ -95,8 +101,11 @@ var resultHandlers = map[string]func(obj interface{}, statistics *Statistics){
 	},
 	"action:duration": func(obj interface{}, statistics *Statistics) {
 		statistics.ResponseTime(int64(obj.(time.Duration)))
+		//timer := metrics.GetOrRegisterTimer("action:duration", metrics.DefaultRegistry)
+		//timer.Update(obj.(time.Duration))
 	},
 }
+*/
 
 func (instance *PlanExecutor) executeStep(step Step) ExecutionResult {
 	start := time.Now()
@@ -126,13 +135,8 @@ func (instance *PlanExecutor) workerExecuteJob(talula Job) {
 		step := stepStream.Next()
 		executionResult := instance.executeStep(step)
 
-		for key, value := range executionResult {
-			if handler, ok := resultHandlers[key]; ok {
-				handler(value, instance.Stats)
-			} else {
-				logger.Log.Println(fmt.Sprintf("No handler for %s", key))
-			}
-		}
+		instance.Publisher.Publish(executionResult)
+
 	}
 }
 
@@ -186,8 +190,8 @@ func (instance *PlanExecutor) Execute() error {
 	instance.start = time.Now()
 	instance.Stats.Start()
 	instance.executeJobs()
-
 	instance.Stats.Stop()
+
 	return nil
 }
 

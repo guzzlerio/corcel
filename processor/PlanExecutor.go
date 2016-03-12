@@ -70,43 +70,6 @@ func (instance *PlanExecutor) createPlan() Plan {
 	return plan
 }
 
-/*
-var resultHandlers = map[string]func(obj interface{}, statistics *Statistics){
-	"http:request:error": func(obj interface{}, statistics *Statistics) {
-		statistics.Request(obj.(error))
-	},
-	"http:response:error": func(obj interface{}, statistics *Statistics) {
-		statistics.Request(obj.(error))
-	},
-	"http:request:bytes": func(obj interface{}, statistics *Statistics) {
-		statistics.BytesSent(int64(obj.(int)))
-		histogram := metrics.GetOrRegisterHistogram("http:request:bytes", metrics.DefaultRegistry, metrics.NewUniformSample(100))
-		histogram.Update(int64(obj.(int)))
-	},
-	"http:response:bytes": func(obj interface{}, statistics *Statistics) {
-		statistics.BytesReceived(int64(obj.(int)))
-		histogram := metrics.GetOrRegisterHistogram("http:response:bytes", metrics.DefaultRegistry, metrics.NewUniformSample(100))
-		histogram.Update(int64(obj.(int)))
-	},
-	"http:response:status": func(obj interface{}, statistics *Statistics) {
-		statusCode := obj.(int)
-		counter := metrics.GetOrRegisterCounter(fmt.Sprintf("http:response:status:%d", statusCode), metrics.DefaultRegistry)
-		counter.Inc(1)
-
-		var responseErr error
-		if statusCode >= 400 && statusCode < 600 {
-			responseErr = errors.New("5XX Response Code")
-		}
-		statistics.Request(responseErr)
-	},
-	"action:duration": func(obj interface{}, statistics *Statistics) {
-		statistics.ResponseTime(int64(obj.(time.Duration)))
-		//timer := metrics.GetOrRegisterTimer("action:duration", metrics.DefaultRegistry)
-		//timer.Update(obj.(time.Duration))
-	},
-}
-*/
-
 func (instance *PlanExecutor) executeStep(step Step) ExecutionResult {
 	start := time.Now()
 	executionResult := step.Action.Execute()

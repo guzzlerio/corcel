@@ -123,7 +123,7 @@ func (instance *Aggregator) logMeter(name string, value metrics.Meter) {
 func (instance *Aggregator) logTimer(name string, value metrics.Timer) {
 	ps := value.Percentiles([]float64{0.5, 0.75, 0.95, 0.99, 0.999})
 	if _, ok := instance.meters[name]; !ok {
-		instance.meters[name] = map[string][]float64{}
+		instance.timers[name] = map[string][]float64{}
 		instance.timers[name]["count"] = []float64{}
 		instance.timers[name]["min"] = []float64{}
 		instance.timers[name]["max"] = []float64{}

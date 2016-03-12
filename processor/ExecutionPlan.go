@@ -1,15 +1,72 @@
 package processor
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"time"
 
+	"github.com/rcrowley/go-metrics"
+
 	"ci.guzzler.io/guzzler/corcel/logger"
 
 	"gopkg.in/yaml.v2"
 )
+
+type ExecutionResultProcessor interface {
+	Process(result ExecutionResult, registry metrics.Registry, statistics *Statistics)
+}
+
+func NewGeneralExecutionResultProcessor() GeneralExecutionResultProcessor {
+	return GeneralExecutionResultProcessor{}
+}
+
+type GeneralExecutionResultProcessor struct {
+}
+
+func (instance GeneralExecutionResultProcessor) Process(result ExecutionResult, registry metrics.Registry, statistics *Statistics) {
+
+	obj := result["action:duration"]
+	statistics.ResponseTime(int64(obj.(time.Duration)))
+	timer := metrics.GetOrRegisterTimer("action:duration", metrics.DefaultRegistry)
+	timer.Update(obj.(time.Duration))
+}
+
+func NewHTTPExecutionResultProcessor() HTTPExecutionResultProcessor {
+	return HTTPExecutionResultProcessor{}
+}
+
+type HTTPExecutionResultProcessor struct {
+}
+
+func (instance HTTPExecutionResultProcessor) Process(result ExecutionResult, registry metrics.Registry, statistics *Statistics) {
+	for key, value := range result {
+		switch key {
+		case "http:request:error":
+			statistics.Request(value.(error))
+		case "http:response:error":
+			statistics.Request(value.(error))
+		case "http:request:bytes":
+			statistics.BytesSent(int64(value.(int)))
+			histogram := metrics.GetOrRegisterHistogram("http:request:bytes", registry, metrics.NewUniformSample(100))
+			histogram.Update(int64(value.(int)))
+		case "http:response:bytes":
+			statistics.BytesReceived(int64(value.(int)))
+			histogram := metrics.GetOrRegisterHistogram("http:response:bytes", registry, metrics.NewUniformSample(100))
+			histogram.Update(int64(value.(int)))
+		case "http:response:status":
+			statusCode := value.(int)
+			counter := metrics.GetOrRegisterCounter(fmt.Sprintf("http:response:status:%d", statusCode), registry)
+			counter.Inc(1)
+			var responseErr error
+			if statusCode >= 400 && statusCode < 600 {
+				responseErr = errors.New("5XX Response Code")
+			}
+			statistics.Request(responseErr)
+		}
+	}
+}
 
 //HTTPRequestExecutionAction ...
 type HTTPRequestExecutionAction struct {

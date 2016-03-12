@@ -21,6 +21,7 @@ import (
 
 var (
 	applicationVersion = "0.1.1-alpha"
+	CommandLine        = kingpin.New("corcel", "")
 )
 
 //Configuration ...
@@ -45,6 +46,10 @@ func (instance *Configuration) validate() error {
 		return errors.New("required argument 'file' not provided")
 	}
 	return nil
+}
+
+func Usage() {
+	CommandLine.Usage(os.Args)
 }
 
 //ParseConfiguration ...
@@ -129,8 +134,7 @@ func cmdConfig(args []string) (*Configuration, error) {
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println()
-		CommandLine.Usage(os.Args)
-		os.Exit(1)
+		return nil, err
 	}
 	config.LogLevel = logLevel
 

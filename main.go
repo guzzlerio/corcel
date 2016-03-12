@@ -32,21 +32,25 @@ func GenerateExecutionOutput(file string, output processor.ExecutionOutput) {
 
 func main() {
 	logger.Initialise()
-	config, err := config.ParseConfiguration(os.Args[1:])
+	configuration, err := config.ParseConfiguration(os.Args[1:])
+	if err != nil {
+		config.Usage()
+		os.Exit(1)
+	}
 
-	logger.ConfigureLogging(config)
+	logger.ConfigureLogging(configuration)
 
-	_, err = filepath.Abs(config.FilePath)
+	_, err = filepath.Abs(configuration.FilePath)
 	check(err)
 
-	host := cmd.NewConsoleHost(config)
-	id, _ := host.Control.Start(config) //will this block?
+	host := cmd.NewConsoleHost(configuration)
+	id, _ := host.Control.Start(configuration) //will this block?
 	output := host.Control.Stop(id)
 
 	//TODO these should probably be pushed behind the host.Control.Stop afterall the host is a cmd host
 	GenerateExecutionOutput("./output.yml", output)
 
-	if config.Summary {
+	if configuration.Summary {
 		consoleWriter := processor.ExecutionOutputWriter{
 			Output: output,
 		}

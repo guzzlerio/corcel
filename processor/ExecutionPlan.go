@@ -48,7 +48,9 @@ func (instance HTTPExecutionResultProcessor) Process(result ExecutionResult, reg
 			meter.Mark(1)
 
 			url := result["http:request:url"]
-			byUrlmeter := metrics.GetOrRegisterMeter(fmt.Sprintf("byUrl:%s:http:request:error", url), registry)
+
+			byUrlRegistry := metrics.NewPrefixedChildRegistry(registry, fmt.Sprintf("byUrl:%s:", url))
+			byUrlmeter := metrics.GetOrRegisterMeter("http:request:error", byUrlRegistry)
 			byUrlmeter.Mark(1)
 
 		case "http:response:error":
@@ -57,7 +59,8 @@ func (instance HTTPExecutionResultProcessor) Process(result ExecutionResult, reg
 			meter.Mark(1)
 
 			url := result["http:request:url"]
-			byUrlmeter := metrics.GetOrRegisterMeter(fmt.Sprintf("byUrl:%s:http:response:error", url), registry)
+			byUrlRegistry := metrics.NewPrefixedChildRegistry(registry, fmt.Sprintf("byUrl:%s:", url))
+			byUrlmeter := metrics.GetOrRegisterMeter("http:response:error", byUrlRegistry)
 			byUrlmeter.Mark(1)
 
 		case "http:request:bytes":
@@ -66,7 +69,8 @@ func (instance HTTPExecutionResultProcessor) Process(result ExecutionResult, reg
 			histogram.Update(int64(value.(int)))
 
 			url := result["http:request:url"]
-			byUrlHistogram := metrics.GetOrRegisterHistogram(fmt.Sprintf("byUrl:%s:http:request:bytes", url), registry, metrics.NewUniformSample(100))
+			byUrlRegistry := metrics.NewPrefixedChildRegistry(registry, fmt.Sprintf("byUrl:%s:", url))
+			byUrlHistogram := metrics.GetOrRegisterHistogram("http:request:bytes", byUrlRegistry, metrics.NewUniformSample(100))
 			byUrlHistogram.Update(int64(value.(int)))
 
 		case "http:response:bytes":
@@ -75,7 +79,8 @@ func (instance HTTPExecutionResultProcessor) Process(result ExecutionResult, reg
 			histogram.Update(int64(value.(int)))
 
 			url := result["http:request:url"]
-			byUrlHistogram := metrics.GetOrRegisterHistogram(fmt.Sprintf("byUrl:%s:http:response:bytes", url), registry, metrics.NewUniformSample(100))
+			byUrlRegistry := metrics.NewPrefixedChildRegistry(registry, fmt.Sprintf("byUrl:%s:", url))
+			byUrlHistogram := metrics.GetOrRegisterHistogram("http:response:bytes", byUrlRegistry, metrics.NewUniformSample(100))
 			byUrlHistogram.Update(int64(value.(int)))
 
 		case "http:response:status":
@@ -84,7 +89,8 @@ func (instance HTTPExecutionResultProcessor) Process(result ExecutionResult, reg
 			counter := metrics.GetOrRegisterCounter(fmt.Sprintf("http:response:status:%d", statusCode), registry)
 			counter.Inc(1)
 
-			byUrlCounter := metrics.GetOrRegisterCounter(fmt.Sprintf("byUrl:%s:http:response:status:%d", url, statusCode), registry)
+			byUrlRegistry := metrics.NewPrefixedChildRegistry(registry, fmt.Sprintf("byUrl:%s:", url))
+			byUrlCounter := metrics.GetOrRegisterCounter(fmt.Sprintf("http:response:status:%d", statusCode), byUrlRegistry)
 			byUrlCounter.Inc(1)
 			var responseErr error
 			if statusCode >= 400 && statusCode < 600 {
@@ -96,7 +102,7 @@ func (instance HTTPExecutionResultProcessor) Process(result ExecutionResult, reg
 			timer := metrics.GetOrRegisterTimer(fmt.Sprintf("http:response:status:%d:duration", statusCode), registry)
 			timer.Update(obj.(time.Duration))
 
-			byUrlTimer := metrics.GetOrRegisterTimer(fmt.Sprintf("byUrl:%s:http:response:status:%d:duration", url, statusCode), registry)
+			byUrlTimer := metrics.GetOrRegisterTimer(fmt.Sprintf("http:response:status:%d:duration", statusCode), byUrlRegistry)
 			byUrlTimer.Update(obj.(time.Duration))
 		}
 	}

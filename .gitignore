@@ -10,3 +10,4 @@ ui/public
 ui.generated.go
 urls.txt
 output.json
+config/config.coverprofile

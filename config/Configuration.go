@@ -136,6 +136,11 @@ func cmdConfig(args []string) (*Configuration, error) {
 		fmt.Println()
 		return nil, err
 	}
+
+	if verbosity > 0 {
+		config.Progress = "none"
+	}
+
 	config.LogLevel = logLevel
 
 	if err = config.handleHTTPEndpointForURLFile(); err != nil {
@@ -149,6 +154,7 @@ func cmdConfig(args []string) (*Configuration, error) {
 	if validationErr := config.validate(); validationErr != nil {
 		return nil, validationErr
 	}
+
 	return &config, nil
 }
 

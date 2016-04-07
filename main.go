@@ -68,6 +68,11 @@ func OutputSummary(snapshot statistics.AggregatorSnapShot) {
 	rates := snapshot.Meters["action:throughput"]["rateMean"]
 	rate := rates[len(rates)-1]
 	line(os.Stdout, "Throughput", fmt.Sprintf("%-.0f req/s", rate))
+
+	counts := snapshot.Meters["action:throughput"]["count"]
+	count := counts[len(counts)-1]
+	line(os.Stdout, "Total Requests", fmt.Sprintf("%-.0f", count))
+
 	tail(os.Stdout)
 }
 

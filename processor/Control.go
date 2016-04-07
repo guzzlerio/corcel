@@ -1,9 +1,7 @@
 package processor
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"sync"
 
 	"github.com/rcrowley/go-metrics"
@@ -15,8 +13,8 @@ import (
 // Control ...
 type Control interface {
 	Start(*config.Configuration) (*ExecutionID, error)
-	Stop(*ExecutionID) ExecutionOutput
-	Status(*ExecutionID) ExecutionOutput
+	Stop(*ExecutionID) statistics.AggregatorSnapShot
+	Status(*ExecutionID) statistics.AggregatorSnapShot
 	History() []*ExecutionID
 	Events() <-chan string
 
@@ -29,6 +27,7 @@ type Controller struct {
 	stats      *Statistics
 	executions map[*ExecutionID]ExecutionBranch
 	bar        ProgressBar
+	aggregator *statistics.Aggregator
 }
 
 func (instance *Controller) createExecutionBranch(config *config.Configuration) ExecutionBranch {
@@ -41,20 +40,6 @@ func (instance *Controller) createExecutionBranch(config *config.Configuration) 
 	return &Executor{config, instance.stats, instance.bar}
 }
 
-// Start ...
-/*
-func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, error) {
-	id := NewExecutionID()
-	fmt.Printf("Execution ID: %s\n", id)
-
-	executor := instance.createExecutionBranch(config)
-
-	instance.executions[&id] = executor
-	err := executor.Execute()
-	return &id, err
-}
-*/
-
 func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, error) {
 	id := NewExecutionID()
 	fmt.Printf("Execution ID: %s\n", id)
@@ -63,7 +48,7 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 		NewGeneralExecutionResultProcessor(),
 	}
 
-	aggregator := statistics.NewAggregator(metrics.DefaultRegistry)
+	instance.aggregator = statistics.NewAggregator(metrics.DefaultRegistry)
 
 	executor := CreatePlanExecutor(config, instance.stats, instance.bar)
 
@@ -80,32 +65,25 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 		wg.Done()
 	}()
 	instance.executions[&id] = executor
-	aggregator.Start()
+	instance.aggregator.Start()
 	err := executor.Execute()
 	subscription.RemoveFrom(executor.Publisher)
 	wg.Wait()
-	aggregator.Stop()
-
-	b, err := json.Marshal(aggregator.Snapshot())
-	if err != nil {
-		panic(err)
-	}
-
-	err = ioutil.WriteFile("./output.json", b, 0644)
-	if err != nil {
-		panic(err)
-	}
 	return &id, err
 }
 
 // Stop ...
-func (instance *Controller) Stop(id *ExecutionID) ExecutionOutput {
-	return instance.executions[id].Output()
+//A1
+func (instance *Controller) Stop(id *ExecutionID) statistics.AggregatorSnapShot {
+	fmt.Println("Aggregator Stop in Stop")
+	instance.aggregator.Stop()
+
+	return instance.aggregator.Snapshot()
 }
 
 // Status ...
-func (instance *Controller) Status(*ExecutionID) ExecutionOutput {
-	return ExecutionOutput{}
+func (instance *Controller) Status(*ExecutionID) statistics.AggregatorSnapShot {
+	return instance.aggregator.Snapshot()
 }
 
 // History ...

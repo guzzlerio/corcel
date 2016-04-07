@@ -158,7 +158,13 @@ func (instance *Aggregator) logTimer(name string, value metrics.Timer) {
 }
 
 func (instance *Aggregator) createSnapshot() {
-	instance.times = append(instance.times, time.Now().Unix())
+	fmt.Println("Createing Snapshot")
+	timeToLog := time.Now().Unix()
+	if len(instance.times) > 1 && instance.times[len(instance.times)-1] == int64(timeToLog) {
+		return
+	}
+
+	instance.times = append(instance.times, timeToLog)
 	instance.registry.Each(func(name string, i interface{}) {
 		switch metric := i.(type) {
 		case metrics.Counter:
@@ -172,7 +178,6 @@ func (instance *Aggregator) createSnapshot() {
 			instance.logHistogram(name, h)
 		case metrics.Meter:
 			m := metric.Snapshot()
-			fmt.Println(m.RateMean())
 			instance.logMeter(name, m)
 		case metrics.Timer:
 			t := metric.Snapshot()

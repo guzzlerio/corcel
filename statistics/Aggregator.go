@@ -1,6 +1,7 @@
 package statistics
 
 import (
+	"strings"
 	"time"
 
 	"github.com/rcrowley/go-metrics"
@@ -65,6 +66,7 @@ func (instance *Aggregator) Snapshot() AggregatorSnapShot {
 }
 
 func (instance *Aggregator) logCounter(name string, value int64) {
+	name = strings.Replace(name, "counter:", "", -1)
 	if _, ok := instance.counters[name]; !ok {
 		instance.counters[name] = []int64{}
 	}
@@ -79,6 +81,7 @@ func (instance *Aggregator) logGuage(name string, value float64) {
 }
 
 func (instance *Aggregator) logHistogram(name string, value metrics.Histogram) {
+	name = strings.Replace(name, "histogram:", "", -1)
 	ps := value.Percentiles([]float64{0.5, 0.75, 0.95, 0.99, 0.999})
 	if _, ok := instance.histograms[name]; !ok {
 		instance.histograms[name] = map[string][]float64{}

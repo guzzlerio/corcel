@@ -85,9 +85,13 @@ func OutputSummary(snapshot statistics.AggregatorSnapShot) {
 
 	line(os.Stdout, "Avaiability", fmt.Sprintf("%-.4f%%", availability))
 
-	bytesSent := snapshot.Histograms["action:bytes:sent"]["count"]
+	bytesSent := snapshot.Counters["action:bytes:sent"]
 	bytesSentCount := bytesSent[len(bytesSent)-1]
 	line(os.Stdout, "Bytes Sent", fmt.Sprintf("%v", humanize.Bytes(uint64(bytesSentCount))))
+
+	bytesReceived := snapshot.Counters["action:bytes:received"]
+	bytesReceivedCount := bytesReceived[len(bytesReceived)-1]
+	line(os.Stdout, "Bytes Received", fmt.Sprintf("%v", humanize.Bytes(uint64(bytesReceivedCount))))
 
 	tail(os.Stdout)
 }

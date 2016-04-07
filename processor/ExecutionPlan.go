@@ -39,8 +39,21 @@ func (instance GeneralExecutionResultProcessor) Process(result ExecutionResult, 
 		errors.Mark(1)
 	}
 
-	bytesSent := metrics.GetOrRegisterHistogram("action:bytes:sent", registry, metrics.NewUniformSample(100))
-	bytesSent.Update(int64(result["action:bytes:sent"].(int)))
+	bytesSentValue := int64(result["action:bytes:sent"].(int))
+
+	bytesSentCounter := metrics.GetOrRegisterCounter("counter:action:bytes:sent", registry)
+	bytesSentCounter.Inc(bytesSentValue)
+
+	bytesSent := metrics.GetOrRegisterHistogram("histogram:action:bytes:sent", registry, metrics.NewUniformSample(100))
+	bytesSent.Update(bytesSentValue)
+
+	bytesReceivedValue := int64(result["action:bytes:received"].(int))
+
+	bytesReceivedCounter := metrics.GetOrRegisterCounter("counter:action:bytes:received", registry)
+	bytesReceivedCounter.Inc(bytesReceivedValue)
+
+	bytesReceived := metrics.GetOrRegisterHistogram("histogram:action:bytes:received", registry, metrics.NewUniformSample(100))
+	bytesReceived.Update(int64(result["action:bytes:received"].(int)))
 }
 
 func NewHTTPExecutionResultProcessor() HTTPExecutionResultProcessor {

@@ -77,6 +77,13 @@ func OutputSummary(snapshot statistics.AggregatorSnapShot) {
 	errorCount := errors[len(errors)-1]
 	line(os.Stdout, "Number of Errors", fmt.Sprintf("%-.0f", errorCount))
 
+	var availability float64
+	if errorCount > 0 {
+		availability = (1 - (float64(errorCount) / float64(count))) * 100
+	}
+
+	line(os.Stdout, "Avaiability", fmt.Sprintf("%-.4f%%", availability))
+
 	tail(os.Stdout)
 }
 

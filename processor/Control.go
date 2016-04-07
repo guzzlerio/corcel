@@ -75,7 +75,6 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 // Stop ...
 //A1
 func (instance *Controller) Stop(id *ExecutionID) statistics.AggregatorSnapShot {
-	fmt.Println("Aggregator Stop in Stop")
 	instance.aggregator.Stop()
 
 	return instance.aggregator.Snapshot()

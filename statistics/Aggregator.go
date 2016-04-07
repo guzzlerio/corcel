@@ -187,6 +187,7 @@ func (instance *Aggregator) createSnapshot() {
 }
 
 func (instance *Aggregator) Start() {
+	instance.createSnapshot()
 	go func() {
 		for _ = range instance.ticker.C {
 			instance.createSnapshot()
@@ -195,6 +196,6 @@ func (instance *Aggregator) Start() {
 }
 
 func (instance *Aggregator) Stop() {
-	instance.ticker.Stop()
 	instance.createSnapshot()
+	instance.ticker.Stop()
 }

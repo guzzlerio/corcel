@@ -63,9 +63,7 @@ func OutputSummary(snapshot statistics.AggregatorSnapShot) {
 	lastTime := time.Unix(snapshot.Times[len(snapshot.Times)-1], 0)
 	firstTime := time.Unix(snapshot.Times[0], 0)
 	duration := lastTime.Sub(firstTime)
-	fmt.Printf("LAST TIME %v", lastTime)
-	fmt.Printf("FIRST TIME %v", firstTime)
-	fmt.Println(duration.Seconds())
+	line(os.Stdout, "Running Time", duration.String())
 	tail(os.Stdout)
 }
 

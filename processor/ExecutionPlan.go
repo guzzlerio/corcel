@@ -173,10 +173,6 @@ func (instance *HTTPRequestExecutionAction) Execute() ExecutionResult {
 		result["action:error"] = fmt.Sprintf("Server Error %d", response.StatusCode)
 	}
 
-	if response.StatusCode >= 400 && response.StatusCode < 500 {
-		result["action:error"] = fmt.Sprintf("Client Error %d", response.StatusCode)
-	}
-
 	result["http:request:url"] = req.URL.String()
 	result["http:request:bytes"] = len(requestBytes)
 	result["http:response:bytes"] = len(responseBytes)

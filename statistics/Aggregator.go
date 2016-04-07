@@ -1,7 +1,6 @@
 package statistics
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/rcrowley/go-metrics"
@@ -158,7 +157,6 @@ func (instance *Aggregator) logTimer(name string, value metrics.Timer) {
 }
 
 func (instance *Aggregator) createSnapshot() {
-	fmt.Println("Createing Snapshot")
 	timeToLog := time.Now().Unix()
 	if len(instance.times) > 1 && instance.times[len(instance.times)-1] == int64(timeToLog) {
 		return

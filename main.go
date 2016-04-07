@@ -73,6 +73,10 @@ func OutputSummary(snapshot statistics.AggregatorSnapShot) {
 	count := counts[len(counts)-1]
 	line(os.Stdout, "Total Requests", fmt.Sprintf("%-.0f", count))
 
+	errors := snapshot.Meters["action:error"]["count"]
+	errorCount := errors[len(errors)-1]
+	line(os.Stdout, "Number of Errors", fmt.Sprintf("%-.0f", errorCount))
+
 	tail(os.Stdout)
 }
 

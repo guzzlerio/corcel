@@ -31,8 +31,13 @@ func (instance GeneralExecutionResultProcessor) Process(result ExecutionResult, 
 	timer := metrics.GetOrRegisterTimer("action:duration", registry)
 	timer.Update(obj.(time.Duration))
 
-	meter := metrics.GetOrRegisterMeter("action:throughput", registry)
-	meter.Mark(1)
+	throughput := metrics.GetOrRegisterMeter("action:throughput", registry)
+	throughput.Mark(1)
+
+	errors := metrics.GetOrRegisterMeter("action:error", registry)
+	if result["action:error"] != nil {
+		errors.Mark(1)
+	}
 }
 
 func NewHTTPExecutionResultProcessor() HTTPExecutionResultProcessor {
@@ -144,14 +149,14 @@ func (instance *HTTPRequestExecutionAction) Execute() ExecutionResult {
 	//req.Close = true
 
 	if err != nil {
-		result["http:request:error"] = err
+		result["action:error"] = err
 		return result
 	}
 
 	req.Header = instance.Headers
 	response, err := instance.Client.Do(req)
 	if err != nil {
-		result["http:response:error"] = err
+		result["action:error"] = err
 		return result
 	}
 	defer func() {
@@ -163,6 +168,14 @@ func (instance *HTTPRequestExecutionAction) Execute() ExecutionResult {
 
 	requestBytes, _ := httputil.DumpRequest(req, true)
 	responseBytes, _ := httputil.DumpResponse(response, true)
+
+	if response.StatusCode >= 500 {
+		result["action:error"] = fmt.Sprintf("Server Error %d", response.StatusCode)
+	}
+
+	if response.StatusCode >= 400 && response.StatusCode < 500 {
+		result["action:error"] = fmt.Sprintf("Client Error %d", response.StatusCode)
+	}
 
 	result["http:request:url"] = req.URL.String()
 	result["http:request:bytes"] = len(requestBytes)

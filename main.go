@@ -93,17 +93,23 @@ func OutputSummary(snapshot statistics.AggregatorSnapShot) {
 	bytesReceivedCount := bytesReceived[len(bytesReceived)-1]
 	line(os.Stdout, "Bytes Received", fmt.Sprintf("%v", humanize.Bytes(uint64(bytesReceivedCount))))
 
+	responseMeanTimes := snapshot.Timers["action:duration"]["mean"]
+	responseMeanTime := responseMeanTimes[len(responseMeanTimes)-1]
+
+	line(os.Stdout, "Mean Response Time", fmt.Sprintf("%.4f ms", responseMeanTime))
+
+	responseMinTimes := snapshot.Timers["action:duration"]["min"]
+	responseMinTime := responseMinTimes[len(responseMinTimes)-1]
+	line(os.Stdout, "Min Response Time", fmt.Sprintf("%.4f ms", responseMinTime))
+
+	responseMaxTimes := snapshot.Timers["action:duration"]["max"]
+	responseMaxTime := responseMaxTimes[len(responseMaxTimes)-1]
+	line(os.Stdout, "Max Response Time", fmt.Sprintf("%.4f ms", responseMaxTime))
+
 	tail(os.Stdout)
 }
 
 /*
-	line(writer, "Running Time", fmt.Sprintf("%g s", w.Output.Summary.RunningTime/1000))
-	line(writer, "Throughput", fmt.Sprintf("%-v req/s", int64(w.Output.Summary.Requests.Rate)))
-	line(writer, "Total Requests", fmt.Sprintf("%v", w.Output.Summary.Requests.Total))
-	line(writer, "Number of Errors", fmt.Sprintf("%v", w.Output.Summary.Requests.Errors))
-	line(writer, "Availability", fmt.Sprintf("%.4v%%", w.Output.Summary.Requests.Availability*100))
-	line(writer, "Bytes Sent", fmt.Sprintf("%v", w.Output.Summary.Bytes.Sent.Sum))
-	line(writer, "Bytes Received", fmt.Sprintf("%v", w.Output.Summary.Bytes.Received.Sum))
 	if w.Output.Summary.ResponseTime.Mean > 0 {
 		line(writer, "Mean Response Time", fmt.Sprintf("%.4v ms", w.Output.Summary.ResponseTime.Mean))
 	} else {

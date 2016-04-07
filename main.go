@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/dustin/go-humanize"
 	"gopkg.in/yaml.v2"
 
 	"ci.guzzler.io/guzzler/corcel/cmd"
@@ -83,6 +84,10 @@ func OutputSummary(snapshot statistics.AggregatorSnapShot) {
 	}
 
 	line(os.Stdout, "Avaiability", fmt.Sprintf("%-.4f%%", availability))
+
+	bytesSent := snapshot.Histograms["action:bytes:sent"]["count"]
+	bytesSentCount := bytesSent[len(bytesSent)-1]
+	line(os.Stdout, "Bytes Sent", fmt.Sprintf("%v", humanize.Bytes(uint64(bytesSentCount))))
 
 	tail(os.Stdout)
 }

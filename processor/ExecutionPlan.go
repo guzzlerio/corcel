@@ -38,6 +38,9 @@ func (instance GeneralExecutionResultProcessor) Process(result ExecutionResult, 
 	if result["action:error"] != nil {
 		errors.Mark(1)
 	}
+
+	bytesSent := metrics.GetOrRegisterHistogram("action:bytes:sent", registry, metrics.NewUniformSample(100))
+	bytesSent.Update(int64(result["action:bytes:sent"].(int)))
 }
 
 func NewHTTPExecutionResultProcessor() HTTPExecutionResultProcessor {
@@ -174,8 +177,8 @@ func (instance *HTTPRequestExecutionAction) Execute() ExecutionResult {
 	}
 
 	result["http:request:url"] = req.URL.String()
-	result["http:request:bytes"] = len(requestBytes)
-	result["http:response:bytes"] = len(responseBytes)
+	result["action:bytes:sent"] = len(requestBytes)
+	result["action:bytes:received"] = len(responseBytes)
 	result["http:request:headers"] = req.Header
 	result["http:response:status"] = response.StatusCode
 

@@ -30,6 +30,9 @@ func (instance GeneralExecutionResultProcessor) Process(result ExecutionResult, 
 	statistics.ResponseTime(int64(obj.(time.Duration)))
 	timer := metrics.GetOrRegisterTimer("action:duration", registry)
 	timer.Update(obj.(time.Duration))
+
+	meter := metrics.GetOrRegisterMeter("action:throughput", registry)
+	meter.Mark(1)
 }
 
 func NewHTTPExecutionResultProcessor() HTTPExecutionResultProcessor {

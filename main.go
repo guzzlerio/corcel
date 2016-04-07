@@ -64,6 +64,10 @@ func OutputSummary(snapshot statistics.AggregatorSnapShot) {
 	firstTime := time.Unix(snapshot.Times[0], 0)
 	duration := lastTime.Sub(firstTime)
 	line(os.Stdout, "Running Time", duration.String())
+
+	rates := snapshot.Meters["action:throughput"]["rateMean"]
+	rate := rates[len(rates)-1]
+	line(os.Stdout, "Throughput", fmt.Sprintf("%-.0f req/s", rate))
 	tail(os.Stdout)
 }
 

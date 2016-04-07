@@ -12,21 +12,24 @@ import (
 	"github.com/REAANDREW/telegraph"
 )
 
+//ExecutionBranch ...
+type ExecutionBranch interface {
+	Execute() error
+}
+
 //PlanExecutor ...
 type PlanExecutor struct {
 	Config    *config.Configuration
-	Stats     *Statistics
 	Bar       ProgressBar
 	start     time.Time
 	Publisher telegraph.LinkedPublisher
 }
 
 //CreatePlanExecutor ...
-func CreatePlanExecutor(config *config.Configuration, stats *Statistics, bar ProgressBar) *PlanExecutor {
+func CreatePlanExecutor(config *config.Configuration, bar ProgressBar) *PlanExecutor {
 	return &PlanExecutor{
 		Config:    config,
 		Bar:       bar,
-		Stats:     stats,
 		Publisher: telegraph.NewLinkedPublisher(),
 	}
 }
@@ -151,14 +154,7 @@ func (instance *PlanExecutor) executeJobs() {
 // Execute ...
 func (instance *PlanExecutor) Execute() error {
 	instance.start = time.Now()
-	instance.Stats.Start()
 	instance.executeJobs()
-	instance.Stats.Stop()
 
 	return nil
-}
-
-// Output ...
-func (instance *PlanExecutor) Output() ExecutionOutput {
-	return instance.Stats.ExecutionOutput()
 }

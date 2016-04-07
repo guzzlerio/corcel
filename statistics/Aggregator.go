@@ -28,6 +28,68 @@ type AggregatorSnapShot struct {
 	Timers     map[string]map[string][]float64
 }
 
+type ExecutionSummary struct {
+	TotalRequests      float64
+	TotalErrors        float64
+	Availability       float64
+	RunningTime        string
+	Throughput         float64
+	TotalBytesSent     int64
+	TotalBytesReceived int64
+	MeanResponseTime   float64
+	MinResponseTime    float64
+	MaxResponseTime    float64
+}
+
+func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
+
+	lastTime := time.Unix(snapshot.Times[len(snapshot.Times)-1], 0)
+	firstTime := time.Unix(snapshot.Times[0], 0)
+	duration := lastTime.Sub(firstTime)
+
+	counts := snapshot.Meters["action:throughput"]["count"]
+	count := counts[len(counts)-1]
+
+	errors := snapshot.Meters["action:error"]["count"]
+	errorCount := errors[len(errors)-1]
+
+	rates := snapshot.Meters["action:throughput"]["rateMean"]
+	rate := rates[len(rates)-1]
+
+	var availability float64
+	if errorCount > 0 {
+		availability = (1 - (float64(errorCount) / float64(count))) * 100
+	}
+
+	bytesSent := snapshot.Counters["action:bytes:sent"]
+	bytesSentCount := bytesSent[len(bytesSent)-1]
+
+	bytesReceived := snapshot.Counters["action:bytes:received"]
+	bytesReceivedCount := bytesReceived[len(bytesReceived)-1]
+
+	responseMeanTimes := snapshot.Timers["action:duration"]["mean"]
+	responseMeanTime := responseMeanTimes[len(responseMeanTimes)-1]
+
+	responseMinTimes := snapshot.Timers["action:duration"]["min"]
+	responseMinTime := responseMinTimes[len(responseMinTimes)-1]
+
+	responseMaxTimes := snapshot.Timers["action:duration"]["max"]
+	responseMaxTime := responseMaxTimes[len(responseMaxTimes)-1]
+
+	return ExecutionSummary{
+		RunningTime:        duration.String(),
+		TotalRequests:      count,
+		TotalErrors:        errorCount,
+		Availability:       availability,
+		Throughput:         rate,
+		TotalBytesSent:     bytesSentCount,
+		TotalBytesReceived: bytesReceivedCount,
+		MeanResponseTime:   responseMeanTime,
+		MinResponseTime:    responseMinTime,
+		MaxResponseTime:    responseMaxTime,
+	}
+}
+
 func NewAggregator(registry metrics.Registry) *Aggregator {
 	agg := &Aggregator{
 		times:      []int64{},

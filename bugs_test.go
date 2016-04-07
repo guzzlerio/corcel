@@ -10,7 +10,7 @@ import (
 
 	"ci.guzzler.io/guzzler/corcel/errormanager"
 	"ci.guzzler.io/guzzler/corcel/logger"
-	"ci.guzzler.io/guzzler/corcel/processor"
+	"ci.guzzler.io/guzzler/corcel/statistics"
 	. "ci.guzzler.io/guzzler/corcel/utils"
 )
 
@@ -40,10 +40,11 @@ var _ = Describe("Bugs replication", func() {
 
 		fmt.Println(string(output))
 
-		var executionOutput processor.ExecutionOutput
+		var executionOutput statistics.AggregatorSnapShot
 		UnmarshalYamlFromFile("./output.yml", &executionOutput)
+		var summary = statistics.CreateSummary(executionOutput)
 
-		Expect(executionOutput.Summary.Requests.Total).To(Equal(int64(2)))
+		Expect(summary.TotalRequests).To(Equal(float64(2)))
 	})
 
 	PIt("Error when too many workers specified causing too many open files #23", func() {

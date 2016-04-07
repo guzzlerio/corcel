@@ -24,8 +24,6 @@ func (instance NullProgressBar) Set(progress int) error {
 var _ = Describe("Plan Executor", func() {
 	var list []string
 	var file *os.File
-	var stats *Statistics
-	//var server *rizo.RequestRecordingServer
 	var configuration config.Configuration
 	var bar ProgressBar
 
@@ -47,8 +45,6 @@ var _ = Describe("Plan Executor", func() {
 		file = CreateFileFromLines(list)
 		configuration.FilePath = file.Name()
 		bar = NullProgressBar{}
-		stats = CreateStatistics()
-		//server.Start()
 	})
 
 	AfterEach(func() {
@@ -63,10 +59,9 @@ var _ = Describe("Plan Executor", func() {
 		start := time.Now()
 		configuration.Duration = time.Duration(5 * time.Second)
 
-		executor := CreatePlanExecutor(&configuration, stats, bar)
+		executor := CreatePlanExecutor(&configuration, bar)
 
 		executor.Execute()
-		stats.ExecutionOutput()
 
 		duration := time.Since(start)
 		Expect(int(duration / time.Second)).To(Equal(5))
@@ -74,7 +69,7 @@ var _ = Describe("Plan Executor", func() {
 
 	It("URL File with random selection", func() {
 		configuration.Random = true
-		executor := CreatePlanExecutor(&configuration, stats, bar)
+		executor := CreatePlanExecutor(&configuration, bar)
 
 		tries := 50
 		firstPaths := []string{}
@@ -92,7 +87,7 @@ var _ = Describe("Plan Executor", func() {
 	It("URL File with more than one worker", func() {
 		configuration.Workers = 5
 
-		executor := CreatePlanExecutor(&configuration, stats, bar)
+		executor := CreatePlanExecutor(&configuration, bar)
 
 		executor.Execute()
 
@@ -104,7 +99,7 @@ var _ = Describe("Plan Executor", func() {
 		expectedTotalTimeInMilliseconds := len(list) * waitTimeInMilliseconds
 		configuration.WaitTime = time.Duration(time.Duration(waitTimeInMilliseconds) * time.Millisecond)
 
-		executor := CreatePlanExecutor(&configuration, stats, bar)
+		executor := CreatePlanExecutor(&configuration, bar)
 
 		start := time.Now()
 		executor.Execute()

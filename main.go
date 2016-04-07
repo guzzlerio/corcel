@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/dustin/go-humanize"
 	"gopkg.in/yaml.v2"
@@ -60,66 +59,21 @@ func main() {
 }
 
 func OutputSummary(snapshot statistics.AggregatorSnapShot) {
+	summary := statistics.CreateSummary(snapshot)
+
 	top(os.Stdout)
-	lastTime := time.Unix(snapshot.Times[len(snapshot.Times)-1], 0)
-	firstTime := time.Unix(snapshot.Times[0], 0)
-	duration := lastTime.Sub(firstTime)
-	line(os.Stdout, "Running Time", duration.String())
-
-	rates := snapshot.Meters["action:throughput"]["rateMean"]
-	rate := rates[len(rates)-1]
-	line(os.Stdout, "Throughput", fmt.Sprintf("%-.0f req/s", rate))
-
-	counts := snapshot.Meters["action:throughput"]["count"]
-	count := counts[len(counts)-1]
-	line(os.Stdout, "Total Requests", fmt.Sprintf("%-.0f", count))
-
-	errors := snapshot.Meters["action:error"]["count"]
-	errorCount := errors[len(errors)-1]
-	line(os.Stdout, "Number of Errors", fmt.Sprintf("%-.0f", errorCount))
-
-	var availability float64
-	if errorCount > 0 {
-		availability = (1 - (float64(errorCount) / float64(count))) * 100
-	}
-
-	line(os.Stdout, "Avaiability", fmt.Sprintf("%-.4f%%", availability))
-
-	bytesSent := snapshot.Counters["action:bytes:sent"]
-	bytesSentCount := bytesSent[len(bytesSent)-1]
-	line(os.Stdout, "Bytes Sent", fmt.Sprintf("%v", humanize.Bytes(uint64(bytesSentCount))))
-
-	bytesReceived := snapshot.Counters["action:bytes:received"]
-	bytesReceivedCount := bytesReceived[len(bytesReceived)-1]
-	line(os.Stdout, "Bytes Received", fmt.Sprintf("%v", humanize.Bytes(uint64(bytesReceivedCount))))
-
-	responseMeanTimes := snapshot.Timers["action:duration"]["mean"]
-	responseMeanTime := responseMeanTimes[len(responseMeanTimes)-1]
-
-	line(os.Stdout, "Mean Response Time", fmt.Sprintf("%.4f ms", responseMeanTime))
-
-	responseMinTimes := snapshot.Timers["action:duration"]["min"]
-	responseMinTime := responseMinTimes[len(responseMinTimes)-1]
-	line(os.Stdout, "Min Response Time", fmt.Sprintf("%.4f ms", responseMinTime))
-
-	responseMaxTimes := snapshot.Timers["action:duration"]["max"]
-	responseMaxTime := responseMaxTimes[len(responseMaxTimes)-1]
-	line(os.Stdout, "Max Response Time", fmt.Sprintf("%.4f ms", responseMaxTime))
-
+	line(os.Stdout, "Running Time", summary.RunningTime)
+	line(os.Stdout, "Throughput", fmt.Sprintf("%-.0f req/s", summary.Throughput))
+	line(os.Stdout, "Total Requests", fmt.Sprintf("%-.0f", summary.TotalRequests))
+	line(os.Stdout, "Number of Errors", fmt.Sprintf("%-.0f", summary.TotalErrors))
+	line(os.Stdout, "Availability", fmt.Sprintf("%-.4f%%", summary.Availability))
+	line(os.Stdout, "Bytes Sent", fmt.Sprintf("%v", humanize.Bytes(uint64(summary.TotalBytesSent))))
+	line(os.Stdout, "Bytes Received", fmt.Sprintf("%v", humanize.Bytes(uint64(summary.TotalBytesReceived))))
+	line(os.Stdout, "Mean Response Time", fmt.Sprintf("%.4f ms", summary.MeanResponseTime))
+	line(os.Stdout, "Min Response Time", fmt.Sprintf("%.4f ms", summary.MinResponseTime))
+	line(os.Stdout, "Max Response Time", fmt.Sprintf("%.4f ms", summary.MaxResponseTime))
 	tail(os.Stdout)
 }
-
-/*
-	if w.Output.Summary.ResponseTime.Mean > 0 {
-		line(writer, "Mean Response Time", fmt.Sprintf("%.4v ms", w.Output.Summary.ResponseTime.Mean))
-	} else {
-		line(writer, "Mean Response Time", fmt.Sprintf("%v ms", w.Output.Summary.ResponseTime.Mean))
-	}
-
-	line(writer, "Min Response Time", fmt.Sprintf("%v ms", w.Output.Summary.ResponseTime.Min))
-	line(writer, "Max Response Time", fmt.Sprintf("%v ms", w.Output.Summary.ResponseTime.Max))
-
-*/
 
 func top(writer io.Writer) {
 	fmt.Fprintln(writer, "╔═══════════════════════════════════════════════════════════════════╗")

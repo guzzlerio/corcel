@@ -1,7 +1,6 @@
 package processor
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
@@ -15,7 +14,7 @@ import (
 )
 
 type ExecutionResultProcessor interface {
-	Process(result ExecutionResult, registry metrics.Registry, statistics *Statistics)
+	Process(result ExecutionResult, registry metrics.Registry)
 }
 
 func NewGeneralExecutionResultProcessor() GeneralExecutionResultProcessor {
@@ -25,9 +24,8 @@ func NewGeneralExecutionResultProcessor() GeneralExecutionResultProcessor {
 type GeneralExecutionResultProcessor struct {
 }
 
-func (instance GeneralExecutionResultProcessor) Process(result ExecutionResult, registry metrics.Registry, statistics *Statistics) {
+func (instance GeneralExecutionResultProcessor) Process(result ExecutionResult, registry metrics.Registry) {
 	obj := result["action:duration"]
-	statistics.ResponseTime(int64(obj.(time.Duration)))
 	timer := metrics.GetOrRegisterTimer("action:duration", registry)
 	timer.Update(obj.(time.Duration))
 
@@ -63,11 +61,10 @@ func NewHTTPExecutionResultProcessor() HTTPExecutionResultProcessor {
 type HTTPExecutionResultProcessor struct {
 }
 
-func (instance HTTPExecutionResultProcessor) Process(result ExecutionResult, registry metrics.Registry, statistics *Statistics) {
+func (instance HTTPExecutionResultProcessor) Process(result ExecutionResult, registry metrics.Registry) {
 	for key, value := range result {
 		switch key {
 		case "http:request:error":
-			statistics.Request(value.(error))
 			meter := metrics.GetOrRegisterMeter("http:request:error", registry)
 			meter.Mark(1)
 
@@ -78,7 +75,6 @@ func (instance HTTPExecutionResultProcessor) Process(result ExecutionResult, reg
 			byUrlmeter.Mark(1)
 
 		case "http:response:error":
-			statistics.Request(value.(error))
 			meter := metrics.GetOrRegisterMeter("http:response:error", registry)
 			meter.Mark(1)
 
@@ -88,20 +84,12 @@ func (instance HTTPExecutionResultProcessor) Process(result ExecutionResult, reg
 			byUrlmeter.Mark(1)
 
 		case "http:request:bytes":
-			statistics.BytesSent(int64(value.(int)))
-			histogram := metrics.GetOrRegisterHistogram("http:request:bytes", registry, metrics.NewUniformSample(100))
-			histogram.Update(int64(value.(int)))
-
 			url := result["http:request:url"]
 			byUrlRegistry := metrics.NewPrefixedChildRegistry(registry, fmt.Sprintf("byUrl:%s:", url))
 			byUrlHistogram := metrics.GetOrRegisterHistogram("http:request:bytes", byUrlRegistry, metrics.NewUniformSample(100))
 			byUrlHistogram.Update(int64(value.(int)))
 
 		case "http:response:bytes":
-			statistics.BytesReceived(int64(value.(int)))
-			histogram := metrics.GetOrRegisterHistogram("http:response:bytes", registry, metrics.NewUniformSample(100))
-			histogram.Update(int64(value.(int)))
-
 			url := result["http:request:url"]
 			byUrlRegistry := metrics.NewPrefixedChildRegistry(registry, fmt.Sprintf("byUrl:%s:", url))
 			byUrlHistogram := metrics.GetOrRegisterHistogram("http:response:bytes", byUrlRegistry, metrics.NewUniformSample(100))
@@ -116,11 +104,6 @@ func (instance HTTPExecutionResultProcessor) Process(result ExecutionResult, reg
 			byUrlRegistry := metrics.NewPrefixedChildRegistry(registry, fmt.Sprintf("byUrl:%s:", url))
 			byUrlCounter := metrics.GetOrRegisterCounter(fmt.Sprintf("http:response:status:%d", statusCode), byUrlRegistry)
 			byUrlCounter.Inc(1)
-			var responseErr error
-			if statusCode >= 400 && statusCode < 600 {
-				responseErr = errors.New("5XX Response Code")
-			}
-			statistics.Request(responseErr)
 
 			obj := result["action:duration"]
 			timer := metrics.GetOrRegisterTimer(fmt.Sprintf("http:response:status:%d:duration", statusCode), registry)

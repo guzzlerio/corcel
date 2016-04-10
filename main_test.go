@@ -6,7 +6,6 @@ import (
 
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -15,36 +14,16 @@ import (
 	"time"
 
 	"github.com/REAANDREW/rizo"
-	"github.com/Sirupsen/logrus"
 
-	"ci.guzzler.io/guzzler/corcel/config"
 	"ci.guzzler.io/guzzler/corcel/global"
 	"ci.guzzler.io/guzzler/corcel/logger"
 	"ci.guzzler.io/guzzler/corcel/statistics"
 	. "ci.guzzler.io/guzzler/corcel/utils"
 )
 
-var (
-	//TestServer ...
-	TestServer *rizo.RequestRecordingServer
-)
-
 func URLForTestServer(path string) string {
 	return TestServer.CreateURL(path)
 }
-
-var _ = BeforeSuite(func() {
-	logger.Initialise()
-	logger.ConfigureLogging(&config.Configuration{})
-	logrus.SetOutput(ioutil.Discard)
-	logger.Log.Out = ioutil.Discard
-	TestServer = rizo.CreateRequestRecordingServer(global.TestPort)
-	TestServer.Start()
-})
-
-var _ = AfterSuite(func() {
-	TestServer.Stop()
-})
 
 var _ = Describe("Main", func() {
 	BeforeEach(func() {

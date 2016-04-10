@@ -58,6 +58,7 @@ func main() {
 	}
 }
 
+//OutputSummary ...
 func OutputSummary(snapshot statistics.AggregatorSnapShot) {
 	summary := statistics.CreateSummary(snapshot)
 

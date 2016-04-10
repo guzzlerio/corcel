@@ -3,9 +3,7 @@
 # styling in the solution.  With this uncommented it means that any break to style or complexity
 # will break the build (which is now in a convenient build file)
 
-#set -e
-
-
+set -e
 
 MAX_COMPLEXITY=4
 

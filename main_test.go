@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/REAANDREW/rizo"
+	"github.com/guzzlerio/rizo"
 
 	"ci.guzzler.io/guzzler/corcel/global"
 	"ci.guzzler.io/guzzler/corcel/logger"

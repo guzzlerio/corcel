@@ -7,9 +7,9 @@ import (
 	"ci.guzzler.io/guzzler/corcel/global"
 	"ci.guzzler.io/guzzler/corcel/logger"
 	"github.com/Sirupsen/logrus"
+	"github.com/guzzlerio/rizo"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/reaandrew/rizo"
 
 	"testing"
 )

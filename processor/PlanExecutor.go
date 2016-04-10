@@ -126,27 +126,28 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []Job) {
 
 func (instance *PlanExecutor) executeJobs() {
 	var wg sync.WaitGroup
+	var plan Plan
+	var err error
+	if !instance.Config.Plan {
+		plan = instance.createPlan()
+	} else {
+		parser := CreateExecutionPlanParser()
+		data, dataErr := ioutil.ReadFile(instance.Config.FilePath)
+		if dataErr != nil {
+			panic(dataErr)
+		}
+		plan, err = parser.Parse(string(data))
+		instance.Config.Workers = plan.Workers
+		if err != nil {
+			panic(err)
+		}
+	}
+	wg.Add(instance.Config.Workers)
 	for i := 0; i < instance.Config.Workers; i++ {
-		wg.Add(1)
-		go func() {
-			var plan Plan
-			var err error
-			if !instance.Config.Plan {
-				plan = instance.createPlan()
-			} else {
-				parser := CreateExecutionPlanParser()
-				data, dataErr := ioutil.ReadFile(instance.Config.FilePath)
-				if dataErr != nil {
-					panic(dataErr)
-				}
-				plan, err = parser.Parse(string(data))
-				if err != nil {
-					panic(err)
-				}
-			}
-			instance.workerExecuteJobs(plan.Jobs)
+		go func(executionPlan Plan) {
+			instance.workerExecuteJobs(executionPlan.Jobs)
 			wg.Done()
-		}()
+		}(plan)
 	}
 	wg.Wait()
 }

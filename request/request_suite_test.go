@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/REAANDREW/rizo"
+	"github.com/guzzlerio/rizo"
 
 	"testing"
 )

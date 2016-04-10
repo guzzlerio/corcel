@@ -10,13 +10,23 @@ import (
 )
 
 type YamlPlanBuilder struct {
-	JobBuilders []*YamlJobBuilder
+	NumberOfWorkers int
+	JobBuilders     []*YamlJobBuilder
 }
 
 func NewYamlPlanBuilder() *YamlPlanBuilder {
 	return &YamlPlanBuilder{
-		JobBuilders: []*YamlJobBuilder{},
+		NumberOfWorkers: 1,
+		JobBuilders:     []*YamlJobBuilder{},
 	}
+}
+
+func (instance *YamlPlanBuilder) SetWorkers(value int) *YamlPlanBuilder {
+	if value <= 0 {
+		panic("Numbers of workers must be greater than 0")
+	}
+	instance.NumberOfWorkers = value
+	return instance
 }
 
 func (instance *YamlPlanBuilder) CreateJob() *YamlJobBuilder {
@@ -26,7 +36,9 @@ func (instance *YamlPlanBuilder) CreateJob() *YamlJobBuilder {
 }
 
 func (instance *YamlPlanBuilder) Build() (*os.File, error) {
-	plan := YamlExecutionPlan{}
+	plan := YamlExecutionPlan{
+		Workers: instance.NumberOfWorkers,
+	}
 	for _, jobBuilder := range instance.JobBuilders {
 		yamlExecutionJob := jobBuilder.Build()
 		plan.Jobs = append(plan.Jobs, yamlExecutionJob)
@@ -104,13 +116,13 @@ func CreateStepBuilder() *YamlStepBuilder {
 	return builder
 }
 
-func (instance *YamlJobBuilder) Action(data map[string]interface{}) *YamlJobBuilder {
+func (instance *YamlJobBuilder) ToExecuteAction(data map[string]interface{}) *YamlJobBuilder {
 	stepBuilder := instance.CurrentStepBuilder()
 	stepBuilder.Action = data
 	return instance
 }
 
-func (instance *YamlJobBuilder) Assertion(data map[string]interface{}) *YamlJobBuilder {
+func (instance *YamlJobBuilder) WithAssertion(data map[string]interface{}) *YamlJobBuilder {
 	stepBuilder := instance.CurrentStepBuilder()
 	stepBuilder.Assertions = append(stepBuilder.Assertions, data)
 	return instance

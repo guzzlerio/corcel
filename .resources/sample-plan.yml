@@ -5,7 +5,6 @@
   duration: 10s
   random : true
   parallelJobs : true
-# Jobs are mutually exclusive OR make this a setting
   jobs:
     -
       name : Register a user

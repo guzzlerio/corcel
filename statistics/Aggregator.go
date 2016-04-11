@@ -43,8 +43,8 @@ type ExecutionSummary struct {
 
 func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
 
-	lastTime := time.Unix(snapshot.Times[len(snapshot.Times)-1], 0)
-	firstTime := time.Unix(snapshot.Times[0], 0)
+	lastTime := time.Unix(0, snapshot.Times[len(snapshot.Times)-1])
+	firstTime := time.Unix(0, snapshot.Times[0])
 	duration := lastTime.Sub(firstTime)
 
 	counts := snapshot.Meters["action:throughput"]["count"]
@@ -222,7 +222,7 @@ func (instance *Aggregator) logTimer(name string, value metrics.Timer) {
 }
 
 func (instance *Aggregator) createSnapshot() {
-	timeToLog := time.Now().Unix()
+	timeToLog := time.Now().UnixNano()
 	if len(instance.times) > 1 && instance.times[len(instance.times)-1] == int64(timeToLog) {
 		return
 	}

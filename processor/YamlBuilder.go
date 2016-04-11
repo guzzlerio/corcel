@@ -3,6 +3,7 @@ package processor
 import (
 	"io/ioutil"
 	"os"
+	"time"
 
 	"gopkg.in/yaml.v2"
 
@@ -11,12 +12,14 @@ import (
 
 type YamlPlanBuilder struct {
 	NumberOfWorkers int
+	WaitTime        string
 	JobBuilders     []*YamlJobBuilder
 }
 
 func NewYamlPlanBuilder() *YamlPlanBuilder {
 	return &YamlPlanBuilder{
 		NumberOfWorkers: 1,
+		WaitTime:        "0s",
 		JobBuilders:     []*YamlJobBuilder{},
 	}
 }
@@ -29,6 +32,15 @@ func (instance *YamlPlanBuilder) SetWorkers(value int) *YamlPlanBuilder {
 	return instance
 }
 
+func (instance *YamlPlanBuilder) SetWaitTime(value string) *YamlPlanBuilder {
+	_, err := time.ParseDuration(value)
+	if err != nil {
+		panic(err)
+	}
+	instance.WaitTime = value
+	return instance
+}
+
 func (instance *YamlPlanBuilder) CreateJob() *YamlJobBuilder {
 	builder := NewYamlJobBuilder()
 	instance.JobBuilders = append(instance.JobBuilders, builder)
@@ -37,7 +49,8 @@ func (instance *YamlPlanBuilder) CreateJob() *YamlJobBuilder {
 
 func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 	plan := YamlExecutionPlan{
-		Workers: instance.NumberOfWorkers,
+		Workers:  instance.NumberOfWorkers,
+		WaitTime: instance.WaitTime,
 	}
 	for _, jobBuilder := range instance.JobBuilders {
 		yamlExecutionJob := jobBuilder.Build()

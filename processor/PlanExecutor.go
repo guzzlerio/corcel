@@ -1,20 +1,18 @@
 package processor
 
 import (
-	"io/ioutil"
 	"sync"
 	"time"
 
 	"ci.guzzler.io/guzzler/corcel/config"
 	"ci.guzzler.io/guzzler/corcel/errormanager"
-	"ci.guzzler.io/guzzler/corcel/request"
 
 	"github.com/REAANDREW/telegraph"
 )
 
 //ExecutionBranch ...
 type ExecutionBranch interface {
-	Execute() error
+	Execute(plan Plan) error
 }
 
 //PlanExecutor ...
@@ -32,45 +30,6 @@ func CreatePlanExecutor(config *config.Configuration, bar ProgressBar) *PlanExec
 		Bar:       bar,
 		Publisher: telegraph.NewLinkedPublisher(),
 	}
-}
-
-func (instance *PlanExecutor) createPlan() Plan {
-	plan := Plan{
-		Name:     "Plan from urls in file",
-		Workers:  instance.Config.Workers,
-		WaitTime: instance.Config.WaitTime,
-		Jobs:     []Job{},
-	}
-
-	reader := request.NewRequestReader(instance.Config.FilePath)
-
-	stream := request.NewSequentialRequestStream(reader)
-
-	for stream.HasNext() {
-		job := Job{
-			Name:  "Job for the urls in file",
-			Steps: []Step{},
-		}
-
-		request, err := stream.Next()
-		if err != nil {
-			errormanager.Check(err)
-		}
-		step := Step{}
-
-		action := &HTTPRequestExecutionAction{
-			//Client:  client,
-			URL:     request.URL.String(),
-			Method:  request.Method,
-			Headers: request.Header,
-		}
-
-		step.Action = action
-		job.Steps = append(job.Steps, step)
-		plan.Jobs = append(plan.Jobs, job)
-	}
-
-	return plan
 }
 
 func (instance *PlanExecutor) executeStep(step Step) ExecutionResult {
@@ -124,24 +83,8 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []Job) {
 	}
 }
 
-func (instance *PlanExecutor) executeJobs() {
+func (instance *PlanExecutor) executeJobs(plan Plan) {
 	var wg sync.WaitGroup
-	var plan Plan
-	var err error
-	if !instance.Config.Plan {
-		plan = instance.createPlan()
-	} else {
-		parser := CreateExecutionPlanParser()
-		data, dataErr := ioutil.ReadFile(instance.Config.FilePath)
-		if dataErr != nil {
-			panic(dataErr)
-		}
-		plan, err = parser.Parse(string(data))
-		instance.Config.Workers = plan.Workers
-		if err != nil {
-			panic(err)
-		}
-	}
 	wg.Add(instance.Config.Workers)
 	for i := 0; i < instance.Config.Workers; i++ {
 		go func(executionPlan Plan) {
@@ -153,9 +96,9 @@ func (instance *PlanExecutor) executeJobs() {
 }
 
 // Execute ...
-func (instance *PlanExecutor) Execute() error {
+func (instance *PlanExecutor) Execute(plan Plan) error {
 	instance.start = time.Now()
-	instance.executeJobs()
+	instance.executeJobs(plan)
 
 	return nil
 }

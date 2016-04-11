@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"time"
 
 	"github.com/guzzlerio/rizo"
 	. "github.com/onsi/ginkgo"
@@ -54,7 +56,8 @@ func ExecutePlanBuilder(planBuilder *processor.YamlPlanBuilder) error {
 	}()
 	args := []string{"--plan"}
 	cmd := exec.Command(exePath, append(args, file.Name())...)
-	_, err = cmd.CombinedOutput()
+	output, err := cmd.CombinedOutput()
+	fmt.Println(string(output))
 	return err
 }
 
@@ -109,7 +112,31 @@ var _ = Describe("ExecutionPlan", func() {
 		}(numberOfWorkers)
 	}
 
-	PIt("Number of workers")
+	It("SetWaitTime", func() {
+		numberOfSteps := 6
+		waitTime := "500ms"
+
+		planBuilder := processor.NewYamlPlanBuilder()
+		planBuilder.SetWaitTime(waitTime)
+		jobBuilder := planBuilder.CreateJob()
+
+		for i := 0; i < numberOfSteps; i++ {
+			jobBuilder.CreateStep().ToExecuteAction(GetPeopleTestRequest())
+		}
+
+		err := ExecutePlanBuilder(planBuilder)
+		Expect(err).To(BeNil())
+
+		var executionOutput statistics.AggregatorSnapShot
+		UnmarshalYamlFromFile("./output.yml", &executionOutput)
+		var summary = statistics.CreateSummary(executionOutput)
+
+		actual, _ := time.ParseDuration(summary.RunningTime)
+		seconds := actual.Seconds()
+		seconds = math.Floor(seconds)
+		Expect(seconds).To(Equal(float64(3)))
+	})
+
 	PIt("Wait Time")
 	PIt("Duration")
 	PIt("Random")

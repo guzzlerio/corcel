@@ -2,11 +2,15 @@ package processor
 
 import (
 	"fmt"
+	"io/ioutil"
 	"sync"
+	"time"
 
 	"github.com/rcrowley/go-metrics"
 
 	"ci.guzzler.io/guzzler/corcel/config"
+	"ci.guzzler.io/guzzler/corcel/errormanager"
+	"ci.guzzler.io/guzzler/corcel/request"
 	"ci.guzzler.io/guzzler/corcel/statistics"
 )
 
@@ -51,11 +55,74 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 		wg.Done()
 	}()
 	instance.executions[&id] = executor
+	plan := GetPlan(config)
 	instance.aggregator.Start()
-	err := executor.Execute()
+	err := executor.Execute(plan)
 	subscription.RemoveFrom(executor.Publisher)
 	wg.Wait()
 	return &id, err
+}
+
+func GetPlan(config *config.Configuration) Plan {
+	var plan Plan
+	var err error
+	if !config.Plan {
+		plan = createPlan(config)
+	} else {
+		parser := CreateExecutionPlanParser()
+		data, dataErr := ioutil.ReadFile(config.FilePath)
+		if dataErr != nil {
+			panic(dataErr)
+		}
+		plan, err = parser.Parse(string(data))
+		config.Workers = plan.Workers
+		if config.WaitTime == time.Duration(0) {
+			config.WaitTime = plan.WaitTime
+		}
+		if err != nil {
+			panic(err)
+		}
+	}
+	return plan
+}
+
+func createPlan(config *config.Configuration) Plan {
+	plan := Plan{
+		Name:     "Plan from urls in file",
+		Workers:  config.Workers,
+		WaitTime: config.WaitTime,
+		Jobs:     []Job{},
+	}
+
+	reader := request.NewRequestReader(config.FilePath)
+
+	stream := request.NewSequentialRequestStream(reader)
+
+	for stream.HasNext() {
+		job := Job{
+			Name:  "Job for the urls in file",
+			Steps: []Step{},
+		}
+
+		request, err := stream.Next()
+		if err != nil {
+			errormanager.Check(err)
+		}
+		step := Step{}
+
+		action := &HTTPRequestExecutionAction{
+			//Client:  client,
+			URL:     request.URL.String(),
+			Method:  request.Method,
+			Headers: request.Header,
+		}
+
+		step.Action = action
+		job.Steps = append(job.Steps, step)
+		plan.Jobs = append(plan.Jobs, job)
+	}
+
+	return plan
 }
 
 // Stop ...

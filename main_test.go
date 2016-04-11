@@ -1,6 +1,8 @@
 package main
 
 import (
+	"math"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -54,7 +56,10 @@ var _ = Describe("Main", func() {
 			UnmarshalYamlFromFile("./output.yml", &executionOutput)
 			var summary = statistics.CreateSummary(executionOutput)
 
-			Expect(summary.RunningTime).To(Equal("5s"))
+			actual, _ := time.ParseDuration(summary.RunningTime)
+			seconds := actual.Seconds()
+			seconds = math.Floor(seconds)
+			Expect(seconds).To(Equal(float64(5)))
 		})
 	})
 

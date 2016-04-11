@@ -264,7 +264,7 @@ type YamlExecutionJob struct {
 type YamlExecutionPlan struct {
 	Name     string             `yaml:"name"`
 	Workers  int                `yaml:"workers"`
-	WaitTime time.Duration      `yaml:"waitTime"`
+	WaitTime string             `yaml:"waitTime"`
 	Jobs     []YamlExecutionJob `yaml:"jobs"`
 }
 
@@ -338,7 +338,10 @@ func (instance *ExecutionPlanParser) Parse(data string) (Plan, error) {
 	}
 
 	executionPlan.Name = yamlExecutionPlan.Name
-	executionPlan.WaitTime = yamlExecutionPlan.WaitTime
+	executionPlan.WaitTime, err = time.ParseDuration(yamlExecutionPlan.WaitTime)
+	if err != nil {
+		executionPlan.WaitTime = time.Duration(0)
+	}
 	executionPlan.Workers = yamlExecutionPlan.Workers
 
 	for _, yamlJob := range yamlExecutionPlan.Jobs {

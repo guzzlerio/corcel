@@ -8,8 +8,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"ci.guzzler.io/guzzler/corcel/errormanager"
 	"ci.guzzler.io/guzzler/corcel/logger"
-	"ci.guzzler.io/guzzler/corcel/processor"
+	"ci.guzzler.io/guzzler/corcel/statistics"
 	. "ci.guzzler.io/guzzler/corcel/utils"
 )
 
@@ -35,12 +36,15 @@ var _ = Describe("Bugs replication", func() {
 			fmt.Sprintf(`%s?id=1 -X DELETE -H "Content-type: application/json"`, URLForTestServer("/success")),
 		}
 
-		SutExecute(list[:1], "--random", "--summary", "--workers", strconv.Itoa(numberOfWorkers))
+		output := SutExecute(list[:1], "--random", "--summary", "--workers", strconv.Itoa(numberOfWorkers))
 
-		var executionOutput processor.ExecutionOutput
+		fmt.Println(string(output))
+
+		var executionOutput statistics.AggregatorSnapShot
 		UnmarshalYamlFromFile("./output.yml", &executionOutput)
+		var summary = statistics.CreateSummary(executionOutput)
 
-		Expect(executionOutput.Summary.Requests.Total).To(Equal(int64(2)))
+		Expect(summary.TotalRequests).To(Equal(float64(2)))
 	})
 
 	PIt("Error when too many workers specified causing too many open files #23", func() {
@@ -61,8 +65,9 @@ var _ = Describe("Bugs replication", func() {
 		}
 
 		output, err := InvokeCorcel(list, "--progress", "none")
+		fmt.Println(string(output))
 
 		Expect(err).ToNot(BeNil())
-		Expect(string(output)).To(ContainSubstring("Your urls in the test specification must be valid urls"))
+		Expect(string(output)).To(ContainSubstring(errormanager.LogMessageVaidURLs))
 	})
 })

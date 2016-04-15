@@ -8,14 +8,22 @@ import (
 
 var (
 	//Log ...
-	Log *log.Logger
+	Log         *log.Logger
+	initialised = false
 )
+
+//Initialise ...
+func Initialise() {
+	Log = log.New()
+	initialised = true
+}
 
 //ConfigureLogging ...
 func ConfigureLogging(config *config.Configuration) {
-	Log = log.New()
+	if !initialised {
+		panic("You need to logger.Initialise() first")
+	}
 	Log.Level = config.LogLevel
 	//TODO probably have another ticket to support outputting logs to a file
 	//Log.Formatter = config.Logging.Formatter
 }
-

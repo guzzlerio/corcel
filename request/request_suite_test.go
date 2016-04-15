@@ -10,19 +10,22 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"github.com/guzzlerio/rizo"
+
 	"testing"
 )
 
 var (
 	//TestServer ...
-	TestServer *RequestRecordingServer
+	TestServer *rizo.RequestRecordingServer
 )
 
 var _ = BeforeSuite(func() {
+	logger.Initialise()
 	logger.ConfigureLogging(&config.Configuration{})
 	logrus.SetOutput(ioutil.Discard)
 	logger.Log.Out = ioutil.Discard
-	TestServer = CreateRequestRecordingServer(global.TestPort)
+	TestServer = rizo.CreateRequestRecordingServer(global.TestPort)
 	TestServer.Start()
 })
 

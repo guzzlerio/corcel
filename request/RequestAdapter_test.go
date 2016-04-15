@@ -21,7 +21,7 @@ var _ = Describe("RequestAdapter", func() {
 		userAgent = "Mozilla/5.0 (iPhone; U; CPU iPhone OS 5_1_1 like Mac OS X; en) AppleWebKit/534.46.0 (KHTML, like Gecko) CriOS/19.0.1084.60 Mobile/9B206 Safari/7534.48.3"
 		url       string
 		line      string
-		adapter   RequestAdapter
+		adapter   Adapter
 		req       *http.Request
 		err       error
 	)
@@ -48,6 +48,15 @@ var _ = Describe("RequestAdapter", func() {
 
 	It("Parses Header", func() {
 		Expect(req.Header.Get("Content-type")).To(Equal("application/json"))
+	})
+
+	Describe("Unhappy path", func() {
+		It("Does something", func() {
+			adapter = NewRequestAdapter()
+			reqFunc := adapter.Create("-Something")
+			_, err := reqFunc()
+			Expect(err).ToNot(BeNil())
+		})
 	})
 
 	Describe("Parses Body", func() {

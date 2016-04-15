@@ -21,6 +21,7 @@ import (
 
 var (
 	applicationVersion = "0.1.1-alpha"
+	CommandLine        = kingpin.New("corcel", "")
 )
 
 //Configuration ...
@@ -32,6 +33,7 @@ type Configuration struct {
 	Duration time.Duration `yaml:"duration"`
 	WaitTime time.Duration `yaml:"wait-time"`
 	Progress string        `yaml:"progress"`
+	Plan     bool          `yaml:"plan"`
 	FilePath string
 }
 
@@ -46,12 +48,16 @@ func (instance *Configuration) validate() error {
 	return nil
 }
 
+func Usage() {
+	CommandLine.Usage(os.Args)
+}
+
 //ParseConfiguration ...
 func ParseConfiguration(args []string) (*Configuration, error) {
 	verbosity = 0
 	logLevel = log.FatalLevel
 	config := Configuration{}
-	defaults := defaultConfig()
+	defaults := DefaultConfig()
 	cmd, err := cmdConfig(args)
 	if err != nil {
 		return nil, err
@@ -107,24 +113,34 @@ func counter(c *kingpin.ParseContext) error {
 
 func cmdConfig(args []string) (*Configuration, error) {
 	CommandLine := kingpin.New("corcel", "")
+	CommandLine.HelpFlag.Short('h')
+	CommandLine.UsageTemplate(kingpin.LongHelpTemplate)
 
 	CommandLine.Version(applicationVersion)
 
 	config := Configuration{}
-	CommandLine.Arg("file", "Urls file").Required().StringVar(&config.FilePath)
+	CommandLine.Arg("file", "Corcel file contains URLs or an ExecutionPlan (see the --plan argument)").Required().StringVar(&config.FilePath)
 	CommandLine.Flag("summary", "Output summary to STDOUT").BoolVar(&config.Summary)
 	CommandLine.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").Default("0s").DurationVar(&config.Duration)
 	CommandLine.Flag("wait-time", "Time to wait between each execution").Default("0s").DurationVar(&config.WaitTime)
 	CommandLine.Flag("workers", "The number of workers to execute the requests").IntVar(&config.Workers)
 	CommandLine.Flag("random", "Select the url at random for each execution").BoolVar(&config.Random)
+	CommandLine.Flag("plan", "Indicate that the corcel file is an ExecutionPlan").BoolVar(&config.Plan)
 	CommandLine.Flag("verbose", "verbosity").Short('v').Action(counter).Bool()
 	CommandLine.Flag("progress", "Progress reporter").EnumVar(&config.Progress, "bar", "logo", "none")
 
 	_, err := CommandLine.Parse(args)
 
 	if err != nil {
+		fmt.Println(err)
+		fmt.Println()
 		return nil, err
 	}
+
+	if verbosity > 0 {
+		config.Progress = "none"
+	}
+
 	config.LogLevel = logLevel
 
 	if err = config.handleHTTPEndpointForURLFile(); err != nil {
@@ -138,6 +154,7 @@ func cmdConfig(args []string) (*Configuration, error) {
 	if validationErr := config.validate(); validationErr != nil {
 		return nil, validationErr
 	}
+
 	return &config, nil
 }
 
@@ -177,11 +194,13 @@ func userDirConfig() (*Configuration, error) {
 	return &config, nil
 }
 
-func defaultConfig() Configuration {
+//DefaultConfig ...
+func DefaultConfig() Configuration {
 	waitTime := time.Duration(0)
 	duration := time.Duration(0)
 	return Configuration{
 		Duration: duration,
+		Plan:     false,
 		Random:   false,
 		Summary:  false,
 		Workers:  1,

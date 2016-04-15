@@ -1,0 +1,37 @@
+---
+  name : The plan
+  workers : 5
+  waitTime : 1500
+  duration: 10s
+  random : true
+# Affects the behaviour of how the jobs are executed
+# - parallelJobs (false) means that jobs are executed sequentially (1 worker / plan / go routine)
+#   - with workers = 1 and 2 jobs there would be only 1 go routine
+#   - with workers = 2 and 2 jobs there would be 2 go routines
+# - parallelJobs (true) means that jobs are executed in parallel (1 worker / job / go routine)
+#   - with workers = 1 and 2 jobs there would be 2 go routines
+#   - with workers = 2 and 2 jobs there would be 4 go routines
+#
+# In the future we might allow a step definition to define number of workers
+# allowing an individual job to up the concurrency when it executes (this
+# is very far in the future though I think and should be ignored until there is a user need.)
+  parallelJobs : true
+# Jobs are mutually exclusive OR make this a setting
+  jobs:
+    -
+      name : Register a user
+      steps:
+        -
+          name: Step number 1
+          action:
+            type : HttpRequest
+            requestTimeout : 150
+            method : GET
+            url : http://localhost:5000/success
+            httpHeaders :
+                content-Type: application/json
+          assertions:
+            -
+              type: ExactAssertion
+              key : http:response:status
+              expected : 202

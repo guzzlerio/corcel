@@ -1,0 +1,25 @@
+---
+  name : The plan
+  workers : 5
+  waitTime : 1500
+  duration: 10s
+  random : true
+  parallelJobs : true
+  jobs:
+    -
+      name : Register a user
+      steps:
+        -
+          name: Step number 1
+          action:
+            type : HttpRequest
+            requestTimeout : 150
+            method : GET
+            url : http://localhost:1337/success
+            httpHeaders :
+                content-Type: application/json
+          assertions:
+            -
+              type: ExactAssertion
+              key : http:response:status
+              expected : 200

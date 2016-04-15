@@ -7,16 +7,16 @@ import (
 	"os"
 )
 
-//RequestFunc ...
-type RequestFunc func() (*http.Request, error)
+//Func ...
+type Func func() (*http.Request, error)
 
-//RequestReader ...
-type RequestReader struct {
-	Requests []RequestFunc
+//Reader ...
+type Reader struct {
+	Requests []Func
 }
 
 //NewRequestReader ...
-func NewRequestReader(filePath string) *RequestReader {
+func NewRequestReader(filePath string) *Reader {
 	file, err := os.Open(filePath)
 	defer func() {
 		err := file.Close()
@@ -25,7 +25,7 @@ func NewRequestReader(filePath string) *RequestReader {
 		}
 	}()
 	check(err)
-	requests := []RequestFunc{}
+	requests := []Func{}
 	requestAdapter := NewRequestAdapter()
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -35,22 +35,22 @@ func NewRequestReader(filePath string) *RequestReader {
 		check(err)
 	}
 
-	return &RequestReader{
+	return &Reader{
 		Requests: requests,
 	}
 }
 
 //Size ...
-func (instance *RequestReader) Size() int {
+func (instance *Reader) Size() int {
 	return len(instance.Requests)
 }
 
 //Read ...
-func (instance *RequestReader) Read(index int) RequestFunc {
+func (instance *Reader) Read(index int) Func {
 	return instance.Requests[index]
 }
 
-
+//Lexer ...
 type Lexer interface {
 	Lex(args string) []string
 }

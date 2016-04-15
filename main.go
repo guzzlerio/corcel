@@ -1,17 +1,20 @@
 package main
 
 import (
+	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
+	"github.com/dustin/go-humanize"
 	"gopkg.in/yaml.v2"
 
 	"ci.guzzler.io/guzzler/corcel/cmd"
 	"ci.guzzler.io/guzzler/corcel/config"
 	"ci.guzzler.io/guzzler/corcel/errormanager"
 	"ci.guzzler.io/guzzler/corcel/logger"
-	"ci.guzzler.io/guzzler/corcel/processor"
+	"ci.guzzler.io/guzzler/corcel/statistics"
 )
 
 func check(err error) {
@@ -21,7 +24,7 @@ func check(err error) {
 }
 
 //GenerateExecutionOutput ...
-func GenerateExecutionOutput(file string, output processor.ExecutionOutput) {
+func GenerateExecutionOutput(file string, output statistics.AggregatorSnapShot) {
 	outputPath, err := filepath.Abs(file)
 	check(err)
 	yamlOutput, err := yaml.Marshal(&output)
@@ -31,35 +34,58 @@ func GenerateExecutionOutput(file string, output processor.ExecutionOutput) {
 }
 
 func main() {
-	config, err := config.ParseConfiguration(os.Args[1:])
+	logger.Initialise()
+	configuration, err := config.ParseConfiguration(os.Args[1:])
 	if err != nil {
-		logger.Log.Fatal(err)
+		config.Usage()
+		os.Exit(1)
 	}
 
-	logger.ConfigureLogging(config)
+	logger.ConfigureLogging(configuration)
 
-	absolutePath, err := filepath.Abs(config.FilePath)
-	check(err)
-	file, err := os.Open(absolutePath)
-	defer func() {
-		err := file.Close()
-		if err != nil {
-			logger.Log.Printf("Error closing file %v", err)
-		}
-	}()
+	_, err = filepath.Abs(configuration.FilePath)
 	check(err)
 
-	host := cmd.NewConsoleHost(config)
-	id, _ := host.Control.Start(config) //will this block?
+	host := cmd.NewConsoleHost(configuration)
+	id, _ := host.Control.Start(configuration) //will this block?
 	output := host.Control.Stop(id)
 
 	//TODO these should probably be pushed behind the host.Control.Stop afterall the host is a cmd host
 	GenerateExecutionOutput("./output.yml", output)
 
-	if config.Summary {
-		consoleWriter := processor.ExecutionOutputWriter{
-			Output: output,
-		}
-		consoleWriter.Write(os.Stdout)
+	if configuration.Summary {
+		OutputSummary(output)
 	}
+}
+
+//OutputSummary ...
+func OutputSummary(snapshot statistics.AggregatorSnapShot) {
+	summary := statistics.CreateSummary(snapshot)
+
+	top(os.Stdout)
+	line(os.Stdout, "Running Time", summary.RunningTime)
+	line(os.Stdout, "Throughput", fmt.Sprintf("%-.0f req/s", summary.Throughput))
+	line(os.Stdout, "Total Requests", fmt.Sprintf("%-.0f", summary.TotalRequests))
+	line(os.Stdout, "Number of Errors", fmt.Sprintf("%-.0f", summary.TotalErrors))
+	line(os.Stdout, "Availability", fmt.Sprintf("%-.4f%%", summary.Availability))
+	line(os.Stdout, "Bytes Sent", fmt.Sprintf("%v", humanize.Bytes(uint64(summary.TotalBytesSent))))
+	line(os.Stdout, "Bytes Received", fmt.Sprintf("%v", humanize.Bytes(uint64(summary.TotalBytesReceived))))
+	line(os.Stdout, "Mean Response Time", fmt.Sprintf("%.4f ms", summary.MeanResponseTime))
+	line(os.Stdout, "Min Response Time", fmt.Sprintf("%.4f ms", summary.MinResponseTime))
+	line(os.Stdout, "Max Response Time", fmt.Sprintf("%.4f ms", summary.MaxResponseTime))
+	tail(os.Stdout)
+}
+
+func top(writer io.Writer) {
+	fmt.Fprintln(writer, "╔═══════════════════════════════════════════════════════════════════╗")
+	fmt.Fprintln(writer, "║                           Summary                                 ║")
+	fmt.Fprintln(writer, "╠═══════════════════════════════════════════════════════════════════╣")
+}
+
+func tail(writer io.Writer) {
+	fmt.Fprintln(writer, "╚═══════════════════════════════════════════════════════════════════╝")
+}
+
+func line(writer io.Writer, label string, value string) {
+	fmt.Fprintf(writer, "║ %20s: %-43s ║\n", label, value)
 }

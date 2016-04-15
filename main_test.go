@@ -111,7 +111,7 @@ var _ = Describe("Main", func() {
 	}
 
 	for _, waitTime := range global.WaitTimeTests {
-		It(fmt.Sprintf("Support wait time of %v between each execution in the list", waitTime), func() {
+		FIt(fmt.Sprintf("Support wait time of %v between each execution in the list", waitTime), func() {
 			waitTimeTolerance := 0.50
 
 			list := []string{
@@ -388,8 +388,8 @@ var _ = Describe("Main", func() {
 })
 
 func InvokeCorcel(list []string, args ...string) ([]byte, error) {
-	exePath, err := filepath.Abs("./corcel")
-	check(err)
+	exePath, exeErr := filepath.Abs("./corcel")
+	check(exeErr)
 	file := CreateFileFromLines(list)
 	defer func() {
 		err := os.Remove(file.Name())

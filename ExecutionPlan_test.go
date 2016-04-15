@@ -49,9 +49,9 @@ func ExecutePlanBuilder(planBuilder *processor.YamlPlanBuilder) error {
 		return err
 	}
 	defer func() {
-		err := os.Remove(file.Name())
-		if err != nil {
-			panic(err)
+		fileErr := os.Remove(file.Name())
+		if fileErr != nil {
+			panic(fileErr)
 		}
 	}()
 	args := []string{"--plan"}

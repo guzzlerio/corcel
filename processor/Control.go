@@ -67,7 +67,7 @@ func GetPlan(config *config.Configuration) Plan {
 	var plan Plan
 	var err error
 	if !config.Plan {
-		plan = createPlan(config)
+		plan = CreatePlanFromConfiguration(config)
 	} else {
 		parser := CreateExecutionPlanParser()
 		data, dataErr := ioutil.ReadFile(config.FilePath)
@@ -86,7 +86,7 @@ func GetPlan(config *config.Configuration) Plan {
 	return plan
 }
 
-func createPlan(config *config.Configuration) Plan {
+func CreatePlanFromConfiguration(config *config.Configuration) Plan {
 	plan := Plan{
 		Name:     "Plan from urls in file",
 		Workers:  config.Workers,

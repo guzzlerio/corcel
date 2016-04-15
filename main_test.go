@@ -111,7 +111,7 @@ var _ = Describe("Main", func() {
 	}
 
 	for _, waitTime := range global.WaitTimeTests {
-		FIt(fmt.Sprintf("Support wait time of %v between each execution in the list", waitTime), func() {
+		It(fmt.Sprintf("Support wait time of %v between each execution in the list", waitTime), func() {
 			waitTimeTolerance := 0.50
 
 			list := []string{

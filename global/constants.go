@@ -15,4 +15,6 @@ var (
 	WaitTimeTests = []string{"1ms", "2ms", "4ms", "8ms", "16ms", "32ms", "64ms", "128ms"}
 	//NumberOfWorkersToTest ...
 	NumberOfWorkersToTest = []int{1, 2, 4, 8, 16, 32, 64, 128, 256}
+	//LogInTesting ...
+	LogInTesting = false
 )

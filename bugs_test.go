@@ -36,9 +36,7 @@ var _ = Describe("Bugs replication", func() {
 			fmt.Sprintf(`%s?id=1 -X DELETE -H "Content-type: application/json"`, URLForTestServer("/success")),
 		}
 
-		output := SutExecute(list[:1], "--random", "--summary", "--workers", strconv.Itoa(numberOfWorkers))
-
-		fmt.Println(string(output))
+		SutExecute(list[:1], "--random", "--summary", "--workers", strconv.Itoa(numberOfWorkers))
 
 		var executionOutput statistics.AggregatorSnapShot
 		UnmarshalYamlFromFile("./output.yml", &executionOutput)
@@ -65,8 +63,6 @@ var _ = Describe("Bugs replication", func() {
 		}
 
 		output, err := InvokeCorcel(list, "--progress", "none")
-		fmt.Println(string(output))
-
 		Expect(err).ToNot(BeNil())
 		Expect(string(output)).To(ContainSubstring(errormanager.LogMessageVaidURLs))
 	})

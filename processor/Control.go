@@ -1,7 +1,6 @@
 package processor
 
 import (
-	"fmt"
 	"io/ioutil"
 	"sync"
 	"time"
@@ -32,7 +31,6 @@ type Controller struct {
 
 func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, error) {
 	id := NewExecutionID()
-	fmt.Printf("Execution ID: %s\n", id)
 	resultProcessors := []ExecutionResultProcessor{
 		NewHTTPExecutionResultProcessor(),
 		NewGeneralExecutionResultProcessor(),

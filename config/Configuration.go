@@ -132,8 +132,6 @@ func cmdConfig(args []string) (*Configuration, error) {
 	_, err := CommandLine.Parse(args)
 
 	if err != nil {
-		fmt.Println(err)
-		fmt.Println()
 		return nil, err
 	}
 

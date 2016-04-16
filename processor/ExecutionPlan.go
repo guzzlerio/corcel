@@ -331,8 +331,6 @@ func (instance *ExecutionPlanParser) Parse(data string) (Plan, error) {
 
 	err := yaml.Unmarshal([]byte(data), &yamlExecutionPlan)
 
-	//PrintYamlExecutionPlan(yamlExecutionPlan)
-
 	if err != nil {
 		return Plan{}, err
 	}
@@ -414,10 +412,4 @@ func CreateExecutionPlanParser() *ExecutionPlanParser {
 		parser.AddAssertionParser(assertionParser.Key(), assertionParser)
 	}
 	return parser
-}
-
-//PrintYamlExecutionPlan ...
-func PrintYamlExecutionPlan(plan YamlExecutionPlan) {
-	fmt.Println(fmt.Sprintf("%v", plan.Name))
-	fmt.Println(fmt.Sprintf("%v", plan.Jobs[0].Name))
 }

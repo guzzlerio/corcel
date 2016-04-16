@@ -14,6 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"ci.guzzler.io/guzzler/corcel/global"
+	"ci.guzzler.io/guzzler/corcel/logger"
 	"ci.guzzler.io/guzzler/corcel/processor"
 	"ci.guzzler.io/guzzler/corcel/statistics"
 	. "ci.guzzler.io/guzzler/corcel/utils"
@@ -57,7 +58,7 @@ func ExecutePlanBuilder(planBuilder *processor.YamlPlanBuilder) error {
 	args := []string{"--plan"}
 	cmd := exec.Command(exePath, append(args, file.Name())...)
 	output, err := cmd.CombinedOutput()
-	fmt.Println(string(output))
+	logger.Log.Println(fmt.Sprintf("%s", output))
 	return err
 }
 

@@ -33,7 +33,7 @@ var _ = Describe("RequestReader", func() {
 		file := CreateFileFromLines(list)
 		err := file.Close()
 		if err != nil {
-			fmt.Println("Error closing the file")
+			panic(err)
 		}
 		reader = NewRequestReader(file.Name())
 	})

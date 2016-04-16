@@ -1,6 +1,8 @@
 package logger
 
 import (
+	"os"
+
 	log "github.com/Sirupsen/logrus"
 
 	"ci.guzzler.io/guzzler/corcel/config"
@@ -14,6 +16,7 @@ var (
 
 //Initialise ...
 func Initialise() {
+	log.SetOutput(os.Stdout)
 	Log = log.New()
 	initialised = true
 }

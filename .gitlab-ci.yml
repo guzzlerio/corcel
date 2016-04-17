@@ -7,10 +7,15 @@ before_script:
 
 stages:
     - build
+    - test
 
-job1:
+build:
     stage: build
     script:
         - make install
         - make build
-        - make test
+
+test:
+  stage: test
+  script:
+    - make test

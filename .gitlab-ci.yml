@@ -9,14 +9,14 @@ stages:
   - build
   - deploy
 
-build:
+create_binaries:
   stage: build
   script:
     - make install
     - make build
     - make test
 
-test:
+upload_artefacts:
   stage: deploy
   script:
     - make install
@@ -26,4 +26,4 @@ test:
     - gox -os="linux" -arch="amd64" -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
     - ls dist
   only:
-    develop
+    - develop

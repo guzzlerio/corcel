@@ -1,21 +1,29 @@
 image: golang:1.6
 
 before_script:
-    - mkdir -p $GOPATH/src/ci.guzzler.io/guzzler
-    - cp -r ../../guzzler $GOPATH/src/ci.guzzler.io
-    - cd $GOPATH/src/ci.guzzler.io/guzzler/corcel
+  - mkdir -p $GOPATH/src/ci.guzzler.io/guzzler
+  - cp -r ../../guzzler $GOPATH/src/ci.guzzler.io
+  - cd $GOPATH/src/ci.guzzler.io/guzzler/corcel
 
 stages:
-    - build
-    - test
+  - build
+  - deploy
 
 build:
-    stage: build
-    script:
-        - make install
-        - make build
+  stage: build
+  script:
+    - make install
+    - make build
+    - make test
 
 test:
-  stage: test
+  stage: deploy
   script:
+    - make install
+    - make build
     - make test
+    - go get github.com/mitchellh/gox
+    - gox -os="linux" -arch="amd64" -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
+    - ls dist
+  only:
+    develop

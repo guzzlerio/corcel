@@ -5,6 +5,6 @@ do
     arch=${inArr[1]}
     version="$(git describe --abbrev=0)"
     token=$CORCEL_DEPLOY_TOKEN
-    zip "${i}.zip" "dist/${i}"
-    curl -X POST -H "Content-Type: application/octet-stream" --data-binary "@${i}.zip" "https://corcel.io/releases?version=$version&arch=$arch&os=$os&token=$token"
+    #tar -cvzf "${i}.tar.gz" "dist/${i}"
+    curl -X POST -H "Content-Type: application/octet-stream" --data-binary "@dist/${i}" "https://corcel.io/releases?version=$version&arch=$arch&os=$os&token=$token"
 done

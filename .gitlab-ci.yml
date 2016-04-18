@@ -19,9 +19,7 @@ create_binaries:
 upload_artefacts:
   stage: deploy
   script:
-    - make install
-    - make build
-    - make test
+    - go get -t ./...
     - go get github.com/mitchellh/gox
     - gox -os="linux" -arch="amd64" -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
     - ls dist

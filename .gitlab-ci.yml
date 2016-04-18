@@ -19,6 +19,7 @@ create_binaries:
 upload_artefacts:
   stage: deploy
   script:
+    - apt-get install -y zip
     - go get -t ./...
     - go get github.com/mattn/go-isatty
     - go get github.com/mitchellh/gox

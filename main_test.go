@@ -408,6 +408,7 @@ func InvokeCorcel(list []string, args ...string) ([]byte, error) {
 func SutExecute(list []string, args ...string) []byte {
 	output, err := InvokeCorcel(list, args...)
 	if err != nil {
+		fmt.Println(fmt.Sprintf("err %v", err))
 		Fail(string(output))
 	}
 	return output

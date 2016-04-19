@@ -37,21 +37,25 @@ func (instance GeneralExecutionResultProcessor) Process(result ExecutionResult, 
 		errors.Mark(1)
 	}
 
-	bytesSentValue := int64(result["action:bytes:sent"].(int))
+	if result["action:bytes:sent"] != nil {
+		bytesSentValue := int64(result["action:bytes:sent"].(int))
 
-	bytesSentCounter := metrics.GetOrRegisterCounter("counter:action:bytes:sent", registry)
-	bytesSentCounter.Inc(bytesSentValue)
+		bytesSentCounter := metrics.GetOrRegisterCounter("counter:action:bytes:sent", registry)
+		bytesSentCounter.Inc(bytesSentValue)
 
-	bytesSent := metrics.GetOrRegisterHistogram("histogram:action:bytes:sent", registry, metrics.NewUniformSample(100))
-	bytesSent.Update(bytesSentValue)
+		bytesSent := metrics.GetOrRegisterHistogram("histogram:action:bytes:sent", registry, metrics.NewUniformSample(100))
+		bytesSent.Update(bytesSentValue)
+	}
 
-	bytesReceivedValue := int64(result["action:bytes:received"].(int))
+	if result["action:bytes:received"] != nil {
+		bytesReceivedValue := int64(result["action:bytes:received"].(int))
 
-	bytesReceivedCounter := metrics.GetOrRegisterCounter("counter:action:bytes:received", registry)
-	bytesReceivedCounter.Inc(bytesReceivedValue)
+		bytesReceivedCounter := metrics.GetOrRegisterCounter("counter:action:bytes:received", registry)
+		bytesReceivedCounter.Inc(bytesReceivedValue)
 
-	bytesReceived := metrics.GetOrRegisterHistogram("histogram:action:bytes:received", registry, metrics.NewUniformSample(100))
-	bytesReceived.Update(int64(result["action:bytes:received"].(int)))
+		bytesReceived := metrics.GetOrRegisterHistogram("histogram:action:bytes:received", registry, metrics.NewUniformSample(100))
+		bytesReceived.Update(int64(result["action:bytes:received"].(int)))
+	}
 }
 
 func NewHTTPExecutionResultProcessor() HTTPExecutionResultProcessor {

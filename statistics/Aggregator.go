@@ -61,11 +61,19 @@ func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
 		availability = (1 - (float64(errorCount) / float64(count))) * 100
 	}
 
+	var bytesSentCount = int64(0)
+	var bytesReceivedCount = int64(0)
+
 	bytesSent := snapshot.Counters["action:bytes:sent"]
-	bytesSentCount := bytesSent[len(bytesSent)-1]
+
+	if bytesSent != nil {
+		bytesSentCount = bytesSent[len(bytesSent)-1]
+	}
 
 	bytesReceived := snapshot.Counters["action:bytes:received"]
-	bytesReceivedCount := bytesReceived[len(bytesReceived)-1]
+	if bytesReceived != nil {
+		bytesReceivedCount = bytesReceived[len(bytesReceived)-1]
+	}
 
 	responseMeanTimes := snapshot.Timers["action:duration"]["mean"]
 	responseMeanTime := responseMeanTimes[len(responseMeanTimes)-1]

@@ -1,4 +1,4 @@
-for i in `ls dist`
+for i in `ls $1`
 do
     inArr=(${i//_/ })
     os=${inArr[0]}

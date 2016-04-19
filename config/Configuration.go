@@ -49,7 +49,7 @@ func (instance *Configuration) validate() error {
 }
 
 func Usage() {
-	CommandLine.Usage(os.Args)
+	CommandLine.Usage(os.Args[1:])
 }
 
 //ParseConfiguration ...

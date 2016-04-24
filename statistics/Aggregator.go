@@ -59,6 +59,8 @@ func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
 	var availability float64
 	if errorCount > 0 {
 		availability = (1 - (float64(errorCount) / float64(count))) * 100
+	} else {
+		availability = 100
 	}
 
 	var bytesSentCount = int64(0)

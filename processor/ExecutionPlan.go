@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httputil"
+	"strings"
 	"time"
 
 	"github.com/rcrowley/go-metrics"
@@ -34,7 +35,17 @@ func (instance GeneralExecutionResultProcessor) Process(result ExecutionResult, 
 
 	errors := metrics.GetOrRegisterMeter("action:error", registry)
 	if result["action:error"] != nil {
-		errors.Mark(1)
+		var errorString string
+
+		switch t := result["action:error"].(type) {
+		case error:
+			errorString = t.Error()
+		case string:
+			errorString = t
+		}
+		if !strings.Contains(errorString, "net/http: request canceled") {
+			errors.Mark(1)
+		}
 	}
 
 	if result["action:bytes:sent"] != nil {
@@ -136,7 +147,7 @@ func (instance *HTTPRequestExecutionAction) initialize() {
 }
 
 //Execute ...
-func (instance *HTTPRequestExecutionAction) Execute() ExecutionResult {
+func (instance *HTTPRequestExecutionAction) Execute(cancellation chan struct{}) ExecutionResult {
 	if instance.Client == nil {
 		instance.initialize()
 	}
@@ -144,6 +155,7 @@ func (instance *HTTPRequestExecutionAction) Execute() ExecutionResult {
 	result := ExecutionResult{}
 
 	req, err := http.NewRequest(instance.Method, instance.URL, nil)
+	req.Cancel = cancellation
 	//This should be a configuration item.  It allows the client to work
 	//in a way similar to a server which does not support HTTP KeepAlive
 	//After each request the client channel is closed.  When set to true
@@ -152,6 +164,8 @@ func (instance *HTTPRequestExecutionAction) Execute() ExecutionResult {
 	//req.Close = true
 
 	if err != nil {
+		panic(err)
+		fmt.Println(fmt.Sprintf("HTTP Err %v", err))
 		result["action:error"] = err
 		return result
 	}
@@ -292,7 +306,7 @@ type AssertionResult map[string]interface{}
 
 //Action ...
 type Action interface {
-	Execute() ExecutionResult
+	Execute(cancellation chan struct{}) ExecutionResult
 }
 
 //Assertion ...

@@ -10,7 +10,7 @@ var counter = 0;
 var codes = [200,400,500];
 
 http.createServer((req, res) => {
-      res.writeHead(codes[counter++ % 3], { 'Content-Type': 'text/plain' });
+      res.writeHead(codes[0], { 'Content-Type': 'text/plain' });
       require('crypto').randomBytes(1 , function(err, buffer) {
             var token = buffer.toString('hex');
             res.end(token);

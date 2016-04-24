@@ -2,9 +2,13 @@ package main
 
 import (
 	"fmt"
+	"math"
+	"net/http"
 	"os"
 	"strconv"
+	"time"
 
+	"github.com/guzzlerio/rizo"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -83,5 +87,26 @@ var _ = Describe("Bugs replication", func() {
 
 		output := SutExecute(list, "--summary")
 		fmt.Println(string(output))
+	})
+
+	It("Issue #49 - Corcel not cancelling on-going requests once the test is due to finish", func() {
+		TestServer.Clear()
+		factory := rizo.HTTPResponseFactory(func(w http.ResponseWriter) {
+			time.Sleep(2 * time.Second)
+			w.WriteHeader(http.StatusOK)
+		})
+		TestServer.Use(factory)
+		list := []string{
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/something")),
+		}
+
+		SutExecute(list, "--duration", "1s")
+
+		var executionOutput statistics.AggregatorSnapShot
+		UnmarshalYamlFromFile("./output.yml", &executionOutput)
+		var summary = statistics.CreateSummary(executionOutput)
+
+		runningTime, _ := time.ParseDuration(summary.RunningTime)
+		Expect(math.Floor(runningTime.Seconds())).To(Equal(float64(1)))
 	})
 })

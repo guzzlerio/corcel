@@ -32,9 +32,9 @@ func CreatePlanExecutor(config *config.Configuration, bar ProgressBar) *PlanExec
 	}
 }
 
-func (instance *PlanExecutor) executeStep(step Step) ExecutionResult {
+func (instance *PlanExecutor) executeStep(step Step, cancellation chan struct{}) ExecutionResult {
 	start := time.Now()
-	executionResult := step.Action.Execute()
+	executionResult := step.Action.Execute(cancellation)
 	duration := time.Since(start) / time.Millisecond
 	executionResult["action:duration"] = duration
 	for _, assertion := range step.Assertions {
@@ -44,7 +44,7 @@ func (instance *PlanExecutor) executeStep(step Step) ExecutionResult {
 	return executionResult
 }
 
-func (instance *PlanExecutor) workerExecuteJob(talula Job) {
+func (instance *PlanExecutor) workerExecuteJob(talula Job, cancellation chan struct{}) {
 	defer func() { //catch or finally
 		if err := recover(); err != nil { //catch
 			errormanager.Log(err)
@@ -58,7 +58,7 @@ func (instance *PlanExecutor) workerExecuteJob(talula Job) {
 
 	for stepStream.HasNext() {
 		step := stepStream.Next()
-		executionResult := instance.executeStep(step)
+		executionResult := instance.executeStep(step, cancellation)
 
 		instance.Publisher.Publish(executionResult)
 
@@ -69,17 +69,22 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []Job) {
 	var jobStream JobStream
 	jobStream = CreateJobSequentialStream(jobs)
 
+	var cancellation = make(chan struct{})
+
 	if instance.Config.Random {
 		jobStream = CreateJobRandomStream(jobs)
 	}
 	if instance.Config.Duration > time.Duration(0) {
 		jobStream = CreateJobDurationStream(jobStream, instance.Config.Duration)
+		time.AfterFunc(instance.Config.Duration, func() {
+			close(cancellation)
+		})
 	}
 
 	for jobStream.HasNext() {
 		job := jobStream.Next()
 		_ = instance.Bar.Set(jobStream.Progress())
-		instance.workerExecuteJob(job)
+		instance.workerExecuteJob(job, cancellation)
 	}
 }
 

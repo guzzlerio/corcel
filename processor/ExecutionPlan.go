@@ -164,8 +164,6 @@ func (instance *HTTPRequestExecutionAction) Execute(cancellation chan struct{}) 
 	//req.Close = true
 
 	if err != nil {
-		panic(err)
-		fmt.Println(fmt.Sprintf("HTTP Err %v", err))
 		result["action:error"] = err
 		return result
 	}

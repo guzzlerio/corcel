@@ -76,7 +76,15 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []Job) {
 	}
 	if instance.Config.Duration > time.Duration(0) {
 		jobStream = CreateJobDurationStream(jobStream, instance.Config.Duration)
+		ticker := time.NewTicker(time.Millisecond * 10)
+		go func() {
+			for _ = range ticker.C {
+				_ = instance.Bar.Set(jobStream.Progress())
+			}
+		}()
 		time.AfterFunc(instance.Config.Duration, func() {
+			ticker.Stop()
+			_ = instance.Bar.Set(100)
 			close(cancellation)
 		})
 	}

@@ -15,7 +15,7 @@
             type : HttpRequest
             requestTimeout : 150
             method : GET
-            url : http://localhost:1337/success
+            url : http://localhost:1337/wait
             httpHeaders :
                 content-Type: application/json
           assertions:

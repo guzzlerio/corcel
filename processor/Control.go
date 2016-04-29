@@ -110,7 +110,7 @@ func CreatePlanFromConfiguration(config *config.Configuration) Plan {
 		}
 		step := Step{}
 
-		action := &HTTPRequestExecutionAction{
+		action := &http.HTTPRequestExecutionAction{
 			//Client:  client,
 			URL:     request.URL.String(),
 			Method:  request.Method,

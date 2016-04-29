@@ -2,14 +2,13 @@ package processor
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
 	"github.com/rcrowley/go-metrics"
 
 	"ci.guzzler.io/guzzler/corcel/core"
-	corcelHttp "ci.guzzler.io/guzzler/corcel/infrastructure/http"
+	"ci.guzzler.io/guzzler/corcel/infrastructure/http"
 
 	"gopkg.in/yaml.v2"
 )
@@ -67,27 +66,6 @@ func (instance GeneralExecutionResultProcessor) Process(result core.ExecutionRes
 		bytesReceived := metrics.GetOrRegisterHistogram("histogram:action:bytes:received", registry, metrics.NewUniformSample(100))
 		bytesReceived.Update(int64(result["action:bytes:received"].(int)))
 	}
-}
-
-//YamlHTTPRequestParser ...
-type YamlHTTPRequestParser struct{}
-
-//Parse ...
-func (instance YamlHTTPRequestParser) Parse(input map[string]interface{}) Action {
-	action := corcelHttp.HTTPRequestExecutionAction{
-		URL:     input["url"].(string),
-		Method:  input["method"].(string),
-		Headers: http.Header{},
-	}
-	for key, value := range input["httpHeaders"].(map[interface{}]interface{}) {
-		action.Headers.Set(key.(string), value.(string))
-	}
-	return &action
-}
-
-//Key ...
-func (instance YamlHTTPRequestParser) Key() string {
-	return "HttpRequest"
 }
 
 //YamlExactAssertionParser ...
@@ -158,7 +136,7 @@ type YamlExecutionPlan struct {
 
 //YamlExecutionActionParser ...
 type YamlExecutionActionParser interface {
-	Parse(input map[string]interface{}) Action
+	Parse(input map[string]interface{}) core.Action
 	Key() string
 }
 
@@ -166,11 +144,6 @@ type YamlExecutionActionParser interface {
 type YamlExecutionAssertionParser interface {
 	Parse(input map[string]interface{}) Assertion
 	Key() string
-}
-
-//Action ...
-type Action interface {
-	Execute(cancellation chan struct{}) core.ExecutionResult
 }
 
 //Assertion ...
@@ -182,7 +155,7 @@ type Assertion interface {
 //Step ...
 type Step struct {
 	Name       string
-	Action     Action
+	Action     core.Action
 	Assertions []Assertion
 }
 
@@ -281,7 +254,7 @@ func (instance *ExecutionPlanParser) AddAssertionParser(assertionType string, pa
 //CreateExecutionPlanParser ...
 func CreateExecutionPlanParser() *ExecutionPlanParser {
 	parser := &ExecutionPlanParser{}
-	actionParsers := []YamlExecutionActionParser{YamlHTTPRequestParser{}}
+	actionParsers := []YamlExecutionActionParser{http.YamlHTTPRequestParser{}}
 	assertionParsers := []YamlExecutionAssertionParser{YamlExactAssertionParser{}}
 
 	//This can be refactored so that the Key method is invoked inside the AddActionParser

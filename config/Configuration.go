@@ -20,8 +20,9 @@ import (
 )
 
 var (
-	applicationVersion = ""
-	CommandLine        = kingpin.New("corcel", "")
+	applicationVersion = "v0.1.4-alpha"
+	//CommandLine ...
+	CommandLine = kingpin.New("corcel", "")
 )
 
 //Configuration ...

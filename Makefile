@@ -1,11 +1,12 @@
+version=$(shell git -C $(CURDIR) describe --abbrev=0)
 all: clean build lint test
 
 clean:
 	go clean
 
 build: clean
-	#version=$(shell git -C $(CURDIR) describe --abbrev=0)
-	#sed -i "s/applicationVersion = \".*\"/applicationVersion = \"${version}\"/g" config/Configuration.go
+	sed -i "s/applicationVersion = \".*\"/applicationVersion = \"$(version)\"/g" config/Configuration.go
+	echo $(version)
 	go build
 
 test: build lint

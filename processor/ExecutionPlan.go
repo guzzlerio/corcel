@@ -9,13 +9,14 @@ import (
 
 	"github.com/rcrowley/go-metrics"
 
+	"ci.guzzler.io/guzzler/corcel/core"
 	"ci.guzzler.io/guzzler/corcel/logger"
 
 	"gopkg.in/yaml.v2"
 )
 
 type ExecutionResultProcessor interface {
-	Process(result ExecutionResult, registry metrics.Registry)
+	Process(result core.ExecutionResult, registry metrics.Registry)
 }
 
 func NewGeneralExecutionResultProcessor() GeneralExecutionResultProcessor {
@@ -25,7 +26,7 @@ func NewGeneralExecutionResultProcessor() GeneralExecutionResultProcessor {
 type GeneralExecutionResultProcessor struct {
 }
 
-func (instance GeneralExecutionResultProcessor) Process(result ExecutionResult, registry metrics.Registry) {
+func (instance GeneralExecutionResultProcessor) Process(result core.ExecutionResult, registry metrics.Registry) {
 	obj := result["action:duration"]
 	timer := metrics.GetOrRegisterTimer("action:duration", registry)
 	timer.Update(obj.(time.Duration))
@@ -69,67 +70,6 @@ func (instance GeneralExecutionResultProcessor) Process(result ExecutionResult, 
 	}
 }
 
-func NewHTTPExecutionResultProcessor() HTTPExecutionResultProcessor {
-	return HTTPExecutionResultProcessor{}
-}
-
-type HTTPExecutionResultProcessor struct {
-}
-
-func (instance HTTPExecutionResultProcessor) Process(result ExecutionResult, registry metrics.Registry) {
-	for key, value := range result {
-		switch key {
-		case "http:request:error":
-			meter := metrics.GetOrRegisterMeter("http:request:error", registry)
-			meter.Mark(1)
-
-			url := result["http:request:url"]
-
-			byUrlRegistry := metrics.NewPrefixedChildRegistry(registry, fmt.Sprintf("byUrl:%s:", url))
-			byUrlmeter := metrics.GetOrRegisterMeter("http:request:error", byUrlRegistry)
-			byUrlmeter.Mark(1)
-
-		case "http:response:error":
-			meter := metrics.GetOrRegisterMeter("http:response:error", registry)
-			meter.Mark(1)
-
-			url := result["http:request:url"]
-			byUrlRegistry := metrics.NewPrefixedChildRegistry(registry, fmt.Sprintf("byUrl:%s:", url))
-			byUrlmeter := metrics.GetOrRegisterMeter("http:response:error", byUrlRegistry)
-			byUrlmeter.Mark(1)
-
-		case "http:request:bytes":
-			url := result["http:request:url"]
-			byUrlRegistry := metrics.NewPrefixedChildRegistry(registry, fmt.Sprintf("byUrl:%s:", url))
-			byUrlHistogram := metrics.GetOrRegisterHistogram("http:request:bytes", byUrlRegistry, metrics.NewUniformSample(100))
-			byUrlHistogram.Update(int64(value.(int)))
-
-		case "http:response:bytes":
-			url := result["http:request:url"]
-			byUrlRegistry := metrics.NewPrefixedChildRegistry(registry, fmt.Sprintf("byUrl:%s:", url))
-			byUrlHistogram := metrics.GetOrRegisterHistogram("http:response:bytes", byUrlRegistry, metrics.NewUniformSample(100))
-			byUrlHistogram.Update(int64(value.(int)))
-
-		case "http:response:status":
-			statusCode := value.(int)
-			url := result["http:request:url"]
-			counter := metrics.GetOrRegisterCounter(fmt.Sprintf("http:response:status:%d", statusCode), registry)
-			counter.Inc(1)
-
-			byUrlRegistry := metrics.NewPrefixedChildRegistry(registry, fmt.Sprintf("byUrl:%s:", url))
-			byUrlCounter := metrics.GetOrRegisterCounter(fmt.Sprintf("http:response:status:%d", statusCode), byUrlRegistry)
-			byUrlCounter.Inc(1)
-
-			obj := result["action:duration"]
-			timer := metrics.GetOrRegisterTimer(fmt.Sprintf("http:response:status:%d:duration", statusCode), registry)
-			timer.Update(obj.(time.Duration))
-
-			byUrlTimer := metrics.GetOrRegisterTimer(fmt.Sprintf("http:response:status:%d:duration", statusCode), byUrlRegistry)
-			byUrlTimer.Update(obj.(time.Duration))
-		}
-	}
-}
-
 //HTTPRequestExecutionAction ...
 type HTTPRequestExecutionAction struct {
 	Client  *http.Client
@@ -147,12 +87,12 @@ func (instance *HTTPRequestExecutionAction) initialize() {
 }
 
 //Execute ...
-func (instance *HTTPRequestExecutionAction) Execute(cancellation chan struct{}) ExecutionResult {
+func (instance *HTTPRequestExecutionAction) Execute(cancellation chan struct{}) core.ExecutionResult {
 	if instance.Client == nil {
 		instance.initialize()
 	}
 
-	result := ExecutionResult{}
+	result := core.ExecutionResult{}
 
 	req, err := http.NewRequest(instance.Method, instance.URL, nil)
 	req.Cancel = cancellation
@@ -246,7 +186,7 @@ func (instance *ExactAssertion) ResultKey() string {
 }
 
 //Assert ...
-func (instance *ExactAssertion) Assert(executionResult ExecutionResult) AssertionResult {
+func (instance *ExactAssertion) Assert(executionResult core.ExecutionResult) core.AssertionResult {
 	actual := executionResult[instance.Key]
 
 	result := map[string]interface{}{
@@ -296,21 +236,15 @@ type YamlExecutionAssertionParser interface {
 	Key() string
 }
 
-//ExecutionResult ...
-type ExecutionResult map[string]interface{}
-
-//AssertionResult ...
-type AssertionResult map[string]interface{}
-
 //Action ...
 type Action interface {
-	Execute(cancellation chan struct{}) ExecutionResult
+	Execute(cancellation chan struct{}) core.ExecutionResult
 }
 
 //Assertion ...
 type Assertion interface {
 	ResultKey() string
-	Assert(ExecutionResult) AssertionResult
+	Assert(core.ExecutionResult) core.AssertionResult
 }
 
 //Step ...

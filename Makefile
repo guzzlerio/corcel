@@ -4,6 +4,8 @@ clean:
 	go clean
 
 build: clean
+	#version=$(shell git -C $(CURDIR) describe --abbrev=0)
+	#sed -i "s/applicationVersion = \".*\"/applicationVersion = \"${version}\"/g" config/Configuration.go
 	go build
 
 test: build lint

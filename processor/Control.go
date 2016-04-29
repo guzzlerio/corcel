@@ -8,7 +8,9 @@ import (
 	"github.com/rcrowley/go-metrics"
 
 	"ci.guzzler.io/guzzler/corcel/config"
+	"ci.guzzler.io/guzzler/corcel/core"
 	"ci.guzzler.io/guzzler/corcel/errormanager"
+	"ci.guzzler.io/guzzler/corcel/infrastructure/http"
 	"ci.guzzler.io/guzzler/corcel/request"
 	"ci.guzzler.io/guzzler/corcel/statistics"
 )
@@ -32,7 +34,7 @@ type Controller struct {
 func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, error) {
 	id := NewExecutionID()
 	resultProcessors := []ExecutionResultProcessor{
-		NewHTTPExecutionResultProcessor(),
+		http.NewHTTPExecutionResultProcessor(),
 		NewGeneralExecutionResultProcessor(),
 	}
 
@@ -45,7 +47,7 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 	wg.Add(1)
 	go func() {
 		for executionResult := range subscription.Channel {
-			result := executionResult.(ExecutionResult)
+			result := executionResult.(core.ExecutionResult)
 			for _, processor := range resultProcessors {
 				processor.Process(result, metrics.DefaultRegistry)
 			}

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"ci.guzzler.io/guzzler/corcel/config"
+	"ci.guzzler.io/guzzler/corcel/core"
 	"ci.guzzler.io/guzzler/corcel/errormanager"
 
 	"github.com/REAANDREW/telegraph"
@@ -32,7 +33,7 @@ func CreatePlanExecutor(config *config.Configuration, bar ProgressBar) *PlanExec
 	}
 }
 
-func (instance *PlanExecutor) executeStep(step Step, cancellation chan struct{}) ExecutionResult {
+func (instance *PlanExecutor) executeStep(step Step, cancellation chan struct{}) core.ExecutionResult {
 	start := time.Now()
 	executionResult := step.Action.Execute(cancellation)
 	duration := time.Since(start) / time.Millisecond

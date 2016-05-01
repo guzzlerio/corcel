@@ -15,9 +15,9 @@ import (
 
 	"ci.guzzler.io/guzzler/corcel/global"
 	"ci.guzzler.io/guzzler/corcel/logger"
-	"ci.guzzler.io/guzzler/corcel/processor"
 	"ci.guzzler.io/guzzler/corcel/statistics"
-	. "ci.guzzler.io/guzzler/corcel/utils"
+	"ci.guzzler.io/guzzler/corcel/test"
+	"ci.guzzler.io/guzzler/corcel/utils"
 )
 
 func GetPeopleTestRequest() map[string]interface{} {
@@ -40,7 +40,7 @@ func HTTPStatusExactAssertion(code int) map[string]interface{} {
 	}
 }
 
-func ExecutePlanBuilder(planBuilder *processor.YamlPlanBuilder) error {
+func ExecutePlanBuilder(planBuilder *test.YamlPlanBuilder) error {
 	file, err := planBuilder.Build()
 	if err != nil {
 		return err
@@ -91,7 +91,7 @@ var _ = Describe("ExecutionPlan", func() {
 		name := fmt.Sprintf("SetWorkers for %v workers", numberOfWorkers)
 		func(workers int) {
 			It(name, func() {
-				planBuilder := processor.NewYamlPlanBuilder()
+				planBuilder := test.NewYamlPlanBuilder()
 
 				planBuilder.
 					SetWorkers(workers).
@@ -103,7 +103,7 @@ var _ = Describe("ExecutionPlan", func() {
 				Expect(err).To(BeNil())
 
 				var executionOutput statistics.AggregatorSnapShot
-				UnmarshalYamlFromFile("./output.yml", &executionOutput)
+				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
 				var summary = statistics.CreateSummary(executionOutput)
 
 				Expect(summary.TotalErrors).To(Equal(float64(0)))
@@ -117,7 +117,7 @@ var _ = Describe("ExecutionPlan", func() {
 		numberOfSteps := 6
 		waitTime := "500ms"
 
-		planBuilder := processor.NewYamlPlanBuilder()
+		planBuilder := test.NewYamlPlanBuilder()
 		planBuilder.SetWaitTime(waitTime)
 		jobBuilder := planBuilder.CreateJob()
 
@@ -129,7 +129,7 @@ var _ = Describe("ExecutionPlan", func() {
 		Expect(err).To(BeNil())
 
 		var executionOutput statistics.AggregatorSnapShot
-		UnmarshalYamlFromFile("./output.yml", &executionOutput)
+		utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
 		var summary = statistics.CreateSummary(executionOutput)
 
 		actual, _ := time.ParseDuration(summary.RunningTime)
@@ -138,31 +138,46 @@ var _ = Describe("ExecutionPlan", func() {
 		Expect(seconds).To(Equal(float64(3)))
 	})
 
-	PIt("Wait Time")
-	PIt("Duration")
+	FIt("SetDuration", func() {
+		duration := "3s"
+		planBuilder := test.NewYamlPlanBuilder()
+		planBuilder.SetDuration(duration)
+		jobBuilder := planBuilder.CreateJob()
+		jobBuilder.CreateStep().ToExecuteAction(GetPeopleTestRequest())
+		err := ExecutePlanBuilder(planBuilder)
+		Expect(err).To(BeNil())
+
+		var executionOutput statistics.AggregatorSnapShot
+		utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+		var summary = statistics.CreateSummary(executionOutput)
+
+		actual, _ := time.ParseDuration(summary.RunningTime)
+		seconds := actual.Seconds()
+		seconds = math.Floor(seconds)
+		Expect(seconds).To(Equal(float64(3)))
+	})
+
 	PIt("Random")
 
 	PDescribe("HttpRequest", func() {})
 
 	PDescribe("Assertions", func() {
-
 		//ASSERTION FAILURES ARE NOT CURRENTLY COUNTING AS ERRORS IN THE SUMMARY OUTPUT
 		PIt("ExactAssertion")
 	})
 
 	It("Name", func() {
-
-		planBuilder := processor.NewYamlPlanBuilder()
+		planBuilder := test.NewYamlPlanBuilder()
 		planBuilder.CreateJob().
 			CreateStep().
 			ToExecuteAction(GetPeopleTestRequest()).
 			WithAssertion(HTTPStatusExactAssertion(201))
 
 		err := ExecutePlanBuilder(planBuilder)
-		CheckErr(err)
+		utils.CheckErr(err)
 
 		var executionOutput statistics.AggregatorSnapShot
-		UnmarshalYamlFromFile("./output.yml", &executionOutput)
+		utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
 		var summary = statistics.CreateSummary(executionOutput)
 
 		Expect(summary.TotalRequests).To(BeNumerically(">", 0))

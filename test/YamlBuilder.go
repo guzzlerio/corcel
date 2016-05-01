@@ -13,6 +13,7 @@ import (
 
 //YamlPlanBuilder ...
 type YamlPlanBuilder struct {
+	Random          bool
 	NumberOfWorkers int
 	WaitTime        string
 	Duration        string
@@ -22,11 +23,18 @@ type YamlPlanBuilder struct {
 //NewYamlPlanBuilder ...
 func NewYamlPlanBuilder() *YamlPlanBuilder {
 	return &YamlPlanBuilder{
+		Random:          false,
 		NumberOfWorkers: 1,
 		Duration:        "0s",
 		WaitTime:        "0s",
 		JobBuilders:     []*YamlJobBuilder{},
 	}
+}
+
+//SetRandom ...
+func (instance *YamlPlanBuilder) SetRandom(value bool) *YamlPlanBuilder {
+	instance.Random = value
+	return instance
 }
 
 //SetDuration ...
@@ -64,6 +72,7 @@ func (instance *YamlPlanBuilder) CreateJob() *YamlJobBuilder {
 //Build ...
 func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 	plan := processor.YamlExecutionPlan{
+		Random:   instance.Random,
 		Workers:  instance.NumberOfWorkers,
 		WaitTime: instance.WaitTime,
 		Duration: instance.Duration,

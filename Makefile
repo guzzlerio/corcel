@@ -5,8 +5,8 @@ clean:
 	go clean
 
 build: clean
-	sed -i "s/applicationVersion = \".*\"/applicationVersion = \"$(version)\"/g" config/Configuration.go
-	echo $(version)
+	#sed -i "s/applicationVersion = \".*\"/applicationVersion = \"$(version)\"/g" config/Configuration.go
+	#echo $(version)
 	go build
 
 test: build lint
@@ -22,6 +22,7 @@ install:
 	go get github.com/alecthomas/gometalinter
 	go get -u github.com/jteeuwen/go-bindata/...
 	gometalinter --install --update
+
 
 ui: install
 	(cd ui && npm install -d && gulp)

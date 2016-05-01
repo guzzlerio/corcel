@@ -80,10 +80,13 @@ func GetPlan(config *config.Configuration) Plan {
 		if config.WaitTime == time.Duration(0) {
 			config.WaitTime = plan.WaitTime
 		}
-		fmt.Println(fmt.Printf("Duration %v", plan.Duration))
+
 		if config.Duration == time.Duration(0) {
 			config.Duration = plan.Duration
 		}
+
+		fmt.Println(fmt.Printf("Setting Random to %v", plan.Random))
+		config.Random = plan.Random
 		if err != nil {
 			panic(err)
 		}

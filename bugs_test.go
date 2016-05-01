@@ -71,24 +71,6 @@ var _ = Describe("Bugs replication", func() {
 		Expect(string(output)).To(ContainSubstring(errormanager.LogMessageVaidURLs))
 	})
 
-	It("Error when hitting a url which does not exist", func() {
-		list := []string{
-			fmt.Sprintf(`%s -X POST`, "http://boom"),
-		}
-
-		output := SutExecute(list)
-		fmt.Println(string(output))
-	})
-
-	It("Error when showing the summary", func() {
-		list := []string{
-			fmt.Sprintf(`%s -X POST`, "http://boom"),
-		}
-
-		output := SutExecute(list, "--summary")
-		fmt.Println(string(output))
-	})
-
 	It("Issue #49 - Corcel not cancelling on-going requests once the test is due to finish", func() {
 		TestServer.Clear()
 		factory := rizo.HTTPResponseFactory(func(w http.ResponseWriter) {

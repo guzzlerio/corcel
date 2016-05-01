@@ -32,6 +32,18 @@ func GetPeopleTestRequest() map[string]interface{} {
 	}
 }
 
+func GetPathRequest(path string) map[string]interface{} {
+	return map[string]interface{}{
+		"type":          "HttpRequest",
+		"requesTimeout": 150,
+		"method":        "GET",
+		"url":           TestServer.CreateURL(path),
+		"httpHeaders": map[string]string{
+			"Content-Type": "application/json",
+		},
+	}
+}
+
 func HTTPStatusExactAssertion(code int) map[string]interface{} {
 	return map[string]interface{}{
 		"type":     "ExactAssertion",
@@ -138,7 +150,7 @@ var _ = Describe("ExecutionPlan", func() {
 		Expect(seconds).To(Equal(float64(3)))
 	})
 
-	FIt("SetDuration", func() {
+	It("SetDuration", func() {
 		duration := "3s"
 		planBuilder := test.NewYamlPlanBuilder()
 		planBuilder.SetDuration(duration)
@@ -157,7 +169,28 @@ var _ = Describe("ExecutionPlan", func() {
 		Expect(seconds).To(Equal(float64(3)))
 	})
 
-	PIt("Random")
+	It("SetRandom", func() {
+		numberOfSteps := 6
+
+		planBuilder := test.NewYamlPlanBuilder()
+		planBuilder.SetRandom(true)
+
+		for i := 0; i < numberOfSteps; i++ {
+			jobBuilder := planBuilder.CreateJob()
+			jobBuilder.CreateStep().ToExecuteAction(GetPathRequest(fmt.Sprintf("/%d", i+1)))
+		}
+
+		err := ExecutePlanBuilder(planBuilder)
+		Expect(err).To(BeNil())
+		firstBatchOfRequests := utils.ConcatRequestPaths(utils.ToHTTPRequestArray(TestServer.Requests))
+		TestServer.Clear()
+
+		err = ExecutePlanBuilder(planBuilder)
+		Expect(err).To(BeNil())
+		secondBatchOfRequests := utils.ConcatRequestPaths(utils.ToHTTPRequestArray(TestServer.Requests))
+
+		Expect(firstBatchOfRequests).ToNot(Equal(secondBatchOfRequests))
+	})
 
 	PDescribe("HttpRequest", func() {})
 

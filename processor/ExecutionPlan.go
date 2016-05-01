@@ -13,17 +13,21 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+//ExecutionResultProcessor ...
 type ExecutionResultProcessor interface {
 	Process(result core.ExecutionResult, registry metrics.Registry)
 }
 
+//NewGeneralExecutionResultProcessor ...
 func NewGeneralExecutionResultProcessor() GeneralExecutionResultProcessor {
 	return GeneralExecutionResultProcessor{}
 }
 
+//GeneralExecutionResultProcessor ...
 type GeneralExecutionResultProcessor struct {
 }
 
+//Process ...
 func (instance GeneralExecutionResultProcessor) Process(result core.ExecutionResult, registry metrics.Registry) {
 	obj := result["action:duration"]
 	timer := metrics.GetOrRegisterTimer("action:duration", registry)
@@ -128,10 +132,11 @@ type YamlExecutionJob struct {
 
 //YamlExecutionPlan ...
 type YamlExecutionPlan struct {
-	Name     string             `yaml:"name"`
+	Random   bool               `yaml:"random"`
 	Workers  int                `yaml:"workers"`
 	WaitTime string             `yaml:"waitTime"`
 	Duration string             `yaml:"duration"`
+	Name     string             `yaml:"name"`
 	Jobs     []YamlExecutionJob `yaml:"jobs"`
 }
 
@@ -168,8 +173,9 @@ type Job struct {
 
 //Plan ...
 type Plan struct {
-	Name     string
+	Random   bool
 	Workers  int
+	Name     string
 	WaitTime time.Duration
 	Duration time.Duration
 	Jobs     []Job
@@ -203,6 +209,8 @@ func (instance *ExecutionPlanParser) Parse(data string) (Plan, error) {
 	if err != nil {
 		executionPlan.Duration = time.Duration(0)
 	}
+
+	executionPlan.Random = yamlExecutionPlan.Random
 
 	executionPlan.Workers = yamlExecutionPlan.Workers
 

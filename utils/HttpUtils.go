@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/guzzlerio/rizo"
+
 	"ci.guzzler.io/guzzler/corcel/errormanager"
 )
 
@@ -32,4 +34,13 @@ func ConcatRequestPaths(requests []*http.Request) string {
 		result = result + request.URL.Path
 	}
 	return result
+}
+
+//ToHTTPRequestArray ...
+func ToHTTPRequestArray(inArray []rizo.RecordedRequest) []*http.Request {
+	returnArray := []*http.Request{}
+	for _, req := range inArray {
+		returnArray = append(returnArray, req.Request)
+	}
+	return returnArray
 }

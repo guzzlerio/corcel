@@ -38,10 +38,13 @@ func (instance *PlanExecutor) executeStep(step Step, cancellation chan struct{})
 	executionResult := step.Action.Execute(cancellation)
 	duration := time.Since(start) / time.Millisecond
 	executionResult["action:duration"] = duration
+	assertionResults := []core.AssertionResult{}
 	for _, assertion := range step.Assertions {
 		assertionResult := assertion.Assert(executionResult)
-		executionResult[assertion.ResultKey()] = assertionResult
+		//executionResult[assertion.ResultKey()] = assertionResult
+		assertionResults = append(assertionResults, assertionResult)
 	}
+	executionResult["assertions"] = assertionResults
 	return executionResult
 }
 

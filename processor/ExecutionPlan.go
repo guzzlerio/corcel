@@ -70,6 +70,18 @@ func (instance GeneralExecutionResultProcessor) Process(result core.ExecutionRes
 		bytesReceived := metrics.GetOrRegisterHistogram("histogram:action:bytes:received", registry, metrics.NewUniformSample(100))
 		bytesReceived.Update(int64(result["action:bytes:received"].(int)))
 	}
+
+	if result["assertions"] != nil {
+		assertionResults := result["assertions"].([]core.AssertionResult)
+		for _, result := range assertionResults {
+			totalAssertionsCounter := metrics.GetOrRegisterCounter("assertions:total", registry)
+			totalAssertionsCounter.Inc(1)
+			if result["result"].(bool) == false {
+				totalAssertionsFailedCounter := metrics.GetOrRegisterCounter("assertions:failed", registry)
+				totalAssertionsFailedCounter.Inc(1)
+			}
+		}
+	}
 }
 
 //YamlExactAssertionParser ...
@@ -96,7 +108,7 @@ type ExactAssertion struct {
 
 //ResultKey ...
 func (instance *ExactAssertion) ResultKey() string {
-	return instance.Key + ":assert:exactmatch"
+	return fmt.Sprintf("assert:exactmatch:%v:%v", instance.Key, instance.Expected)
 }
 
 //Assert ...
@@ -106,11 +118,12 @@ func (instance *ExactAssertion) Assert(executionResult core.ExecutionResult) cor
 	result := map[string]interface{}{
 		"expected": instance.Expected,
 		"actual":   actual,
+		"key":      instance.ResultKey(),
 	}
 	if actual == instance.Expected {
-		result["result"] = "pass"
+		result["result"] = true
 	} else {
-		result["result"] = "fail"
+		result["result"] = false
 		result["message"] = fmt.Sprintf("FAIL: %v does not match %v", actual, instance.Expected)
 	}
 	return result

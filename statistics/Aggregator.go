@@ -29,16 +29,18 @@ type AggregatorSnapShot struct {
 }
 
 type ExecutionSummary struct {
-	TotalRequests      float64
-	TotalErrors        float64
-	Availability       float64
-	RunningTime        string
-	Throughput         float64
-	TotalBytesSent     int64
-	TotalBytesReceived int64
-	MeanResponseTime   float64
-	MinResponseTime    float64
-	MaxResponseTime    float64
+	TotalRequests          float64
+	TotalErrors            float64
+	Availability           float64
+	RunningTime            string
+	Throughput             float64
+	TotalBytesSent         int64
+	TotalBytesReceived     int64
+	MeanResponseTime       float64
+	MinResponseTime        float64
+	MaxResponseTime        float64
+	TotalAssertions        int64
+	TotalAssertionFailures int64
 }
 
 func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
@@ -65,6 +67,8 @@ func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
 
 	var bytesSentCount = int64(0)
 	var bytesReceivedCount = int64(0)
+	var totalAssertionsCount = int64(0)
+	var totalAssertionFailuresCount = int64(0)
 
 	bytesSent := snapshot.Counters["action:bytes:sent"]
 
@@ -77,6 +81,16 @@ func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
 		bytesReceivedCount = bytesReceived[len(bytesReceived)-1]
 	}
 
+	totalAssertions := snapshot.Counters["assertions:total"]
+	if totalAssertions != nil {
+		totalAssertionsCount = totalAssertions[len(totalAssertions)-1]
+	}
+
+	totalAssertionsFailed := snapshot.Counters["assertions:failed"]
+	if totalAssertionsFailed != nil {
+		totalAssertionFailuresCount = totalAssertionsFailed[len(totalAssertionsFailed)-1]
+	}
+
 	responseMeanTimes := snapshot.Timers["action:duration"]["mean"]
 	responseMeanTime := responseMeanTimes[len(responseMeanTimes)-1]
 
@@ -87,16 +101,18 @@ func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
 	responseMaxTime := responseMaxTimes[len(responseMaxTimes)-1]
 
 	return ExecutionSummary{
-		RunningTime:        duration.String(),
-		TotalRequests:      count,
-		TotalErrors:        errorCount,
-		Availability:       availability,
-		Throughput:         rate,
-		TotalBytesSent:     bytesSentCount,
-		TotalBytesReceived: bytesReceivedCount,
-		MeanResponseTime:   responseMeanTime,
-		MinResponseTime:    responseMinTime,
-		MaxResponseTime:    responseMaxTime,
+		RunningTime:            duration.String(),
+		TotalRequests:          count,
+		TotalErrors:            errorCount,
+		Availability:           availability,
+		Throughput:             rate,
+		TotalBytesSent:         bytesSentCount,
+		TotalBytesReceived:     bytesReceivedCount,
+		MeanResponseTime:       responseMeanTime,
+		MinResponseTime:        responseMinTime,
+		MaxResponseTime:        responseMaxTime,
+		TotalAssertions:        totalAssertionsCount,
+		TotalAssertionFailures: totalAssertionFailuresCount,
 	}
 }
 

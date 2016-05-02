@@ -194,9 +194,31 @@ var _ = Describe("ExecutionPlan", func() {
 
 	PDescribe("HttpRequest", func() {})
 
-	PDescribe("Assertions", func() {
+	Describe("Assertions", func() {
 		//ASSERTION FAILURES ARE NOT CURRENTLY COUNTING AS ERRORS IN THE SUMMARY OUTPUT
-		PIt("ExactAssertion")
+		FIt("ExactAssertion Fails", func() {
+
+			TestServer.Clear()
+			TestServer.Use(func(w http.ResponseWriter) {
+				w.WriteHeader(http.StatusOK)
+			}).For(rizo.RequestWithPath("/boom"))
+
+			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder.CreateJob().
+				CreateStep().
+				ToExecuteAction(GetPathRequest("/boom")).
+				WithAssertion(HTTPStatusExactAssertion(201))
+
+			err := ExecutePlanBuilder(planBuilder)
+			utils.CheckErr(err)
+
+			var executionOutput statistics.AggregatorSnapShot
+			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var summary = statistics.CreateSummary(executionOutput)
+
+			Expect(summary.TotalAssertions).To(Equal(int64(1)))
+			Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
+		})
 	})
 
 	It("Name", func() {

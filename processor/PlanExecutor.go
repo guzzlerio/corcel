@@ -45,6 +45,7 @@ func (instance *PlanExecutor) executeStep(step Step, cancellation chan struct{})
 		assertionResults = append(assertionResults, assertionResult)
 	}
 	executionResult["assertions"] = assertionResults
+
 	return executionResult
 }
 

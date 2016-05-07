@@ -195,13 +195,15 @@ var _ = Describe("ExecutionPlan", func() {
 	PDescribe("HttpRequest", func() {})
 
 	Describe("Assertions", func() {
-		//ASSERTION FAILURES ARE NOT CURRENTLY COUNTING AS ERRORS IN THE SUMMARY OUTPUT
-		It("ExactAssertion Fails", func() {
 
+		BeforeEach(func() {
 			TestServer.Clear()
 			TestServer.Use(func(w http.ResponseWriter) {
 				w.WriteHeader(http.StatusOK)
 			}).For(rizo.RequestWithPath("/boom"))
+		})
+		//ASSERTION FAILURES ARE NOT CURRENTLY COUNTING AS ERRORS IN THE SUMMARY OUTPUT
+		It("ExactAssertion Fails", func() {
 
 			planBuilder := test.NewYamlPlanBuilder()
 			planBuilder.CreateJob().
@@ -221,11 +223,6 @@ var _ = Describe("ExecutionPlan", func() {
 		})
 
 		It("ExactAssertion Pass", func() {
-
-			TestServer.Clear()
-			TestServer.Use(func(w http.ResponseWriter) {
-				w.WriteHeader(http.StatusOK)
-			}).For(rizo.RequestWithPath("/boom"))
 
 			planBuilder := test.NewYamlPlanBuilder()
 			planBuilder.CreateJob().

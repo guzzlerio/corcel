@@ -33,6 +33,25 @@ func GenerateExecutionOutput(file string, output statistics.AggregatorSnapShot) 
 	check(err)
 }
 
+//AddExecutionToHistory ...
+func AddExecutionToHistory(file string, output statistics.AggregatorSnapShot) {
+	outputPath, err := filepath.Abs(file)
+	if err != nil {
+		panic(err)
+	}
+	for key, value := range output.Counters {
+		output.Counters[key] = []int64{value[len(value)-1]}
+	}
+	yamlOutput, err := yaml.Marshal(&output)
+	if err != nil {
+		panic(err)
+	}
+	err = ioutil.WriteFile(outputPath, yamlOutput, 0644)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func main() {
 	logger.Initialise()
 	configuration, err := config.ParseConfiguration(os.Args[1:])
@@ -52,6 +71,7 @@ func main() {
 
 	//TODO these should probably be pushed behind the host.Control.Stop afterall the host is a cmd host
 	GenerateExecutionOutput("./output.yml", output)
+	AddExecutionToHistory("./history.yml", output)
 
 	if configuration.Summary {
 		OutputSummary(output)

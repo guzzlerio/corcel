@@ -47,6 +47,17 @@ var _ = Describe("Run Summary", func() {
 				Expect(len(subValue)).To(Equal(1))
 			}
 		}
+		for _, value := range executionHistory.Meters {
+			for _, subValue := range value {
+				Expect(len(subValue)).To(Equal(1))
+			}
+		}
+		for _, value := range executionHistory.Timers {
+			for _, subValue := range value {
+				Expect(len(subValue)).To(Equal(1))
+			}
+		}
+		Expect(len(executionHistory.Times)).To(Equal(1))
 
 		Expect(err).To(BeNil())
 		TestServer.Clear()

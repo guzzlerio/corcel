@@ -42,6 +42,25 @@ func AddExecutionToHistory(file string, output statistics.AggregatorSnapShot) {
 	for key, value := range output.Counters {
 		output.Counters[key] = []int64{value[len(value)-1]}
 	}
+	for key, value := range output.Guages {
+		output.Guages[key] = []float64{value[len(value)-1]}
+	}
+	for key, value := range output.Histograms {
+		for subKey, subValue := range value {
+			output.Histograms[key][subKey] = []float64{subValue[len(subValue)-1]}
+		}
+	}
+	for key, value := range output.Meters {
+		for subKey, subValue := range value {
+			output.Meters[key][subKey] = []float64{subValue[len(subValue)-1]}
+		}
+	}
+	for key, value := range output.Timers {
+		for subKey, subValue := range value {
+			output.Timers[key][subKey] = []float64{subValue[len(subValue)-1]}
+		}
+	}
+	output.Times = []int64{output.Times[len(output.Times)-1]}
 	yamlOutput, err := yaml.Marshal(&output)
 	if err != nil {
 		panic(err)

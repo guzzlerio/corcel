@@ -1,7 +1,6 @@
 package processor
 
 import (
-	"fmt"
 	"io/ioutil"
 	"sync"
 	"time"
@@ -32,6 +31,7 @@ type Controller struct {
 	aggregator *statistics.Aggregator
 }
 
+//Start ...
 func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, error) {
 	id := NewExecutionID()
 	resultProcessors := []ExecutionResultProcessor{
@@ -64,6 +64,7 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 	return &id, err
 }
 
+//GetPlan ...
 func GetPlan(config *config.Configuration) Plan {
 	var plan Plan
 	var err error
@@ -85,7 +86,6 @@ func GetPlan(config *config.Configuration) Plan {
 			config.Duration = plan.Duration
 		}
 
-		fmt.Println(fmt.Printf("Setting Random to %v", plan.Random))
 		config.Random = plan.Random
 		if err != nil {
 			panic(err)
@@ -94,6 +94,7 @@ func GetPlan(config *config.Configuration) Plan {
 	return plan
 }
 
+//CreatePlanFromConfiguration ...
 func CreatePlanFromConfiguration(config *config.Configuration) Plan {
 	plan := Plan{
 		Name:     "Plan from urls in file",

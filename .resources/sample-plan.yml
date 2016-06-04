@@ -2,9 +2,6 @@
   name : The plan
   workers : 5
   waitTime : 1500
-  duration: 10s
-  random : true
-  parallelJobs : true
   jobs:
     -
       name : Register a user

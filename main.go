@@ -33,42 +33,87 @@ func GenerateExecutionOutput(file string, output statistics.AggregatorSnapShot) 
 	check(err)
 }
 
-//AddExecutionToHistory ...
-func AddExecutionToHistory(file string, output statistics.AggregatorSnapShot) {
-	outputPath, err := filepath.Abs(file)
-	if err != nil {
-		panic(err)
-	}
+func createSummary(output statistics.AggregatorSnapShot) statistics.AggregatorSnapShot {
+
+	var history = output
 	for key, value := range output.Counters {
-		output.Counters[key] = []int64{value[len(value)-1]}
+		history.Counters[key] = []int64{value[len(value)-1]}
 	}
 	for key, value := range output.Guages {
-		output.Guages[key] = []float64{value[len(value)-1]}
+		history.Guages[key] = []float64{value[len(value)-1]}
 	}
 	for key, value := range output.Histograms {
 		for subKey, subValue := range value {
-			output.Histograms[key][subKey] = []float64{subValue[len(subValue)-1]}
+			history.Histograms[key][subKey] = []float64{subValue[len(subValue)-1]}
 		}
 	}
 	for key, value := range output.Meters {
 		for subKey, subValue := range value {
-			output.Meters[key][subKey] = []float64{subValue[len(subValue)-1]}
+			history.Meters[key][subKey] = []float64{subValue[len(subValue)-1]}
 		}
 	}
 	for key, value := range output.Timers {
 		for subKey, subValue := range value {
-			output.Timers[key][subKey] = []float64{subValue[len(subValue)-1]}
+			history.Timers[key][subKey] = []float64{subValue[len(subValue)-1]}
 		}
 	}
-	output.Times = []int64{output.Times[len(output.Times)-1]}
-	yamlOutput, err := yaml.Marshal(&output)
+	history.Times = []int64{output.Times[len(output.Times)-1]}
+	return history
+}
+
+func updateSummary(outputPath string, output statistics.AggregatorSnapShot) statistics.AggregatorSnapShot {
+	var history = output
+	data, err := ioutil.ReadFile(outputPath)
 	if err != nil {
 		panic(err)
 	}
+	err = yaml.Unmarshal(data, &history)
+	if err != nil {
+		panic(err)
+	}
+	for key, value := range output.Counters {
+		history.Counters[key] = append(history.Counters[key], value[len(value)-1])
+	}
+	for key, value := range output.Guages {
+		history.Guages[key] = append(history.Guages[key], value[len(value)-1])
+	}
+	for key, value := range output.Histograms {
+		for subKey, subValue := range value {
+			history.Histograms[key][subKey] = append(history.Histograms[key][subKey], subValue[len(subValue)-1])
+		}
+	}
+	for key, value := range output.Meters {
+		for subKey, subValue := range value {
+			history.Meters[key][subKey] = append(history.Meters[key][subKey], subValue[len(subValue)-1])
+		}
+	}
+	for key, value := range output.Timers {
+		for subKey, subValue := range value {
+			history.Timers[key][subKey] = append(history.Timers[key][subKey], subValue[len(subValue)-1])
+		}
+	}
+	history.Times = append(history.Times, output.Times[len(output.Times)-1])
+	return history
+}
+
+//AddExecutionToHistory ...
+func AddExecutionToHistory(file string, output statistics.AggregatorSnapShot) {
+
+	var history statistics.AggregatorSnapShot
+
+	outputPath, err := filepath.Abs(file)
+	check(err)
+
+	if _, err = os.Stat(outputPath); os.IsNotExist(err) {
+		history = createSummary(output)
+	} else {
+		history = updateSummary(outputPath, output)
+	}
+
+	yamlOutput, err := yaml.Marshal(&history)
+	check(err)
 	err = ioutil.WriteFile(outputPath, yamlOutput, 0644)
-	if err != nil {
-		panic(err)
-	}
+	check(err)
 }
 
 func main() {

@@ -35,34 +35,40 @@ func GenerateExecutionOutput(file string, output statistics.AggregatorSnapShot) 
 
 func createSummary(output statistics.AggregatorSnapShot) statistics.AggregatorSnapShot {
 
-	var history = output
+	var history = statistics.NewAggregatorSnapShot()
 	for key, value := range output.Counters {
-		history.Counters[key] = []int64{value[len(value)-1]}
+		//history.Counters[key] = []int64{value[len(value)-1]}
+		history.UpdateCounter(key, value[len(value)-1])
 	}
 	for key, value := range output.Guages {
-		history.Guages[key] = []float64{value[len(value)-1]}
+		//history.Guages[key] = []float64{value[len(value)-1]}
+		history.UpdateGuage(key, value[len(value)-1])
 	}
 	for key, value := range output.Histograms {
 		for subKey, subValue := range value {
-			history.Histograms[key][subKey] = []float64{subValue[len(subValue)-1]}
+			//history.Histograms[key][subKey] = []float64{subValue[len(subValue)-1]}
+			history.UpdateHistogram(key, subKey, subValue[len(subValue)-1])
 		}
 	}
 	for key, value := range output.Meters {
 		for subKey, subValue := range value {
-			history.Meters[key][subKey] = []float64{subValue[len(subValue)-1]}
+			//history.Meters[key][subKey] = []float64{subValue[len(subValue)-1]}
+			history.UpdateMeter(key, subKey, subValue[len(subValue)-1])
 		}
 	}
 	for key, value := range output.Timers {
 		for subKey, subValue := range value {
-			history.Timers[key][subKey] = []float64{subValue[len(subValue)-1]}
+			//history.Timers[key][subKey] = []float64{subValue[len(subValue)-1]}
+			history.UpdateTimer(key, subKey, subValue[len(subValue)-1])
 		}
 	}
-	history.Times = []int64{output.Times[len(output.Times)-1]}
-	return history
+	//history.Times = []int64{output.Times[len(output.Times)-1]}
+	history.UpdateTime(output.Times[len(output.Times)-1])
+	return *history
 }
 
 func updateSummary(outputPath string, output statistics.AggregatorSnapShot) statistics.AggregatorSnapShot {
-	var history = output
+	var history statistics.AggregatorSnapShot
 	data, err := ioutil.ReadFile(outputPath)
 	if err != nil {
 		panic(err)
@@ -72,34 +78,40 @@ func updateSummary(outputPath string, output statistics.AggregatorSnapShot) stat
 		panic(err)
 	}
 	for key, value := range output.Counters {
-		history.Counters[key] = append(history.Counters[key], value[len(value)-1])
+		//history.Counters[key] = append(history.Counters[key], value[len(value)-1])
+		history.UpdateCounter(key, value[len(value)-1])
 	}
 	for key, value := range output.Guages {
-		history.Guages[key] = append(history.Guages[key], value[len(value)-1])
+		//history.Guages[key] = append(history.Guages[key], value[len(value)-1])
+		history.UpdateGuage(key, value[len(value)-1])
 	}
 	for key, value := range output.Histograms {
 		for subKey, subValue := range value {
-			history.Histograms[key][subKey] = append(history.Histograms[key][subKey], subValue[len(subValue)-1])
+			//history.Histograms[key][subKey] = append(history.Histograms[key][subKey], subValue[len(subValue)-1])
+			history.UpdateHistogram(key, subKey, subValue[len(subValue)-1])
 		}
 	}
 	for key, value := range output.Meters {
 		for subKey, subValue := range value {
-			history.Meters[key][subKey] = append(history.Meters[key][subKey], subValue[len(subValue)-1])
+			//history.Meters[key][subKey] = append(history.Meters[key][subKey], subValue[len(subValue)-1])
+			history.UpdateMeter(key, subKey, subValue[len(subValue)-1])
 		}
 	}
 	for key, value := range output.Timers {
 		for subKey, subValue := range value {
-			history.Timers[key][subKey] = append(history.Timers[key][subKey], subValue[len(subValue)-1])
+			//history.Timers[key][subKey] = append(history.Timers[key][subKey], subValue[len(subValue)-1])
+			history.UpdateTimer(key, subKey, subValue[len(subValue)-1])
 		}
 	}
-	history.Times = append(history.Times, output.Times[len(output.Times)-1])
+	//history.Times = append(history.Times, output.Times[len(output.Times)-1])
+	history.UpdateTime(output.Times[len(output.Times)-1])
 	return history
 }
 
 //AddExecutionToHistory ...
 func AddExecutionToHistory(file string, output statistics.AggregatorSnapShot) {
 
-	var history statistics.AggregatorSnapShot
+	var history = output
 
 	outputPath, err := filepath.Abs(file)
 	check(err)
@@ -135,6 +147,7 @@ func main() {
 
 	//TODO these should probably be pushed behind the host.Control.Stop afterall the host is a cmd host
 	GenerateExecutionOutput("./output.yml", output)
+
 	AddExecutionToHistory("./history.yml", output)
 
 	if configuration.Summary {

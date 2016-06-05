@@ -6,7 +6,7 @@ func GetPathRequest(url string) map[string]interface{} {
 		"type":          "HttpRequest",
 		"requesTimeout": 150,
 		"method":        "GET",
-		"url":           url,
+		"url":           TestServer.CreateURL(url),
 		"httpHeaders": map[string]string{
 			"Content-Type": "application/json",
 		},

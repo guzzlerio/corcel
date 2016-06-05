@@ -32,6 +32,72 @@ type AggregatorSnapShot struct {
 	Timers     map[string]map[string][]float64
 }
 
+//NewAggregatorSnapShot ...
+func NewAggregatorSnapShot() *AggregatorSnapShot {
+	return &AggregatorSnapShot{
+		Times:      []int64{},
+		Counters:   map[string][]int64{},
+		Guages:     map[string][]float64{},
+		Histograms: map[string]map[string][]float64{},
+		Meters:     map[string]map[string][]float64{},
+		Timers:     map[string]map[string][]float64{},
+	}
+}
+
+//UpdateCounter ...
+func (instance *AggregatorSnapShot) UpdateCounter(key string, value int64) {
+	if _, ok := instance.Counters[key]; !ok {
+		instance.Counters[key] = []int64{}
+	}
+	instance.Counters[key] = append(instance.Counters[key], value)
+}
+
+//UpdateGuage ...
+func (instance *AggregatorSnapShot) UpdateGuage(key string, value float64) {
+	if _, ok := instance.Guages[key]; !ok {
+		instance.Guages[key] = []float64{}
+	}
+	instance.Guages[key] = append(instance.Guages[key], value)
+}
+
+//UpdateHistogram ...
+func (instance *AggregatorSnapShot) UpdateHistogram(key string, subKey string, value float64) {
+	if _, ok := instance.Histograms[key]; !ok {
+		instance.Histograms[key] = map[string][]float64{}
+	}
+	if _, ok := instance.Histograms[key][subKey]; !ok {
+		instance.Histograms[key][subKey] = []float64{}
+	}
+	instance.Histograms[key][subKey] = append(instance.Histograms[key][subKey], value)
+}
+
+//UpdateMeter ...
+func (instance *AggregatorSnapShot) UpdateMeter(key string, subKey string, value float64) {
+	if _, ok := instance.Meters[key]; !ok {
+		instance.Meters[key] = map[string][]float64{}
+	}
+	if _, ok := instance.Meters[key][subKey]; !ok {
+		instance.Meters[key][subKey] = []float64{}
+	}
+	instance.Meters[key][subKey] = append(instance.Meters[key][subKey], value)
+}
+
+//UpdateTimer ...
+func (instance *AggregatorSnapShot) UpdateTimer(key string, subKey string, value float64) {
+	if _, ok := instance.Timers[key]; !ok {
+		instance.Timers[key] = map[string][]float64{}
+	}
+	if _, ok := instance.Timers[key][subKey]; !ok {
+		instance.Timers[key][subKey] = []float64{}
+	}
+	instance.Timers[key][subKey] = append(instance.Timers[key][subKey], value)
+}
+
+//UpdateTime ...
+func (instance *AggregatorSnapShot) UpdateTime(value int64) {
+	instance.Times = append(instance.Times, value)
+}
+
 //ExecutionSummary ...
 type ExecutionSummary struct {
 	TotalRequests          float64
@@ -332,6 +398,7 @@ func (instance *Aggregator) createSnapshot() {
 
 //Start ...
 func (instance *Aggregator) Start() {
+	instance.createSnapshot()
 	go func() {
 		for _ = range instance.ticker.C {
 			instance.createSnapshot()

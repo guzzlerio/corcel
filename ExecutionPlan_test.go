@@ -16,10 +16,6 @@ import (
 	"ci.guzzler.io/guzzler/corcel/utils"
 )
 
-func GetPeopleTestRequest() map[string]interface{} {
-	return GetPathRequest(TestServer.CreateURL("/people"))
-}
-
 var _ = Describe("ExecutionPlan", func() {
 
 	BeforeEach(func() {
@@ -55,7 +51,7 @@ var _ = Describe("ExecutionPlan", func() {
 					SetWorkers(workers).
 					CreateJob().
 					CreateStep().
-					ToExecuteAction(GetPeopleTestRequest())
+					ToExecuteAction(GetPathRequest("/people"))
 
 				err := ExecutePlanBuilder(planBuilder)
 				Expect(err).To(BeNil())
@@ -80,7 +76,7 @@ var _ = Describe("ExecutionPlan", func() {
 		jobBuilder := planBuilder.CreateJob()
 
 		for i := 0; i < numberOfSteps; i++ {
-			jobBuilder.CreateStep().ToExecuteAction(GetPeopleTestRequest())
+			jobBuilder.CreateStep().ToExecuteAction(GetPathRequest("/people"))
 		}
 
 		err := ExecutePlanBuilder(planBuilder)
@@ -101,7 +97,7 @@ var _ = Describe("ExecutionPlan", func() {
 		planBuilder := test.NewYamlPlanBuilder()
 		planBuilder.SetDuration(duration)
 		jobBuilder := planBuilder.CreateJob()
-		jobBuilder.CreateStep().ToExecuteAction(GetPeopleTestRequest())
+		jobBuilder.CreateStep().ToExecuteAction(GetPathRequest("/people"))
 		err := ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())
 
@@ -192,7 +188,7 @@ var _ = Describe("ExecutionPlan", func() {
 		planBuilder := test.NewYamlPlanBuilder()
 		planBuilder.CreateJob().
 			CreateStep().
-			ToExecuteAction(GetPeopleTestRequest()).
+			ToExecuteAction(GetPathRequest("/people")).
 			WithAssertion(HTTPStatusExactAssertion(201))
 
 		err := ExecutePlanBuilder(planBuilder)

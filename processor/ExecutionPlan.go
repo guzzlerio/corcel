@@ -218,7 +218,6 @@ func (instance *ExecutionPlanParser) Parse(data string) (Plan, error) {
 	}
 
 	executionPlan.Duration, err = time.ParseDuration(yamlExecutionPlan.Duration)
-	fmt.Println(fmt.Sprintf("THE Duration %v", yamlExecutionPlan.Duration))
 	if err != nil {
 		executionPlan.Duration = time.Duration(0)
 	}

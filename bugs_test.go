@@ -18,7 +18,7 @@ import (
 	. "ci.guzzler.io/guzzler/corcel/utils"
 )
 
-var _ = FDescribe("Bugs replication", func() {
+var _ = Describe("Bugs replication", func() {
 
 	BeforeEach(func() {
 		err := os.Remove("./output.yml")
@@ -71,7 +71,7 @@ var _ = FDescribe("Bugs replication", func() {
 		Expect(string(output)).To(ContainSubstring(errormanager.LogMessageVaidURLs))
 	})
 
-	FIt("Issue #49 - Corcel not cancelling on-going requests once the test is due to finish", func() {
+	It("Issue #49 - Corcel not cancelling on-going requests once the test is due to finish", func() {
 		TestServer.Clear()
 		factory := rizo.HTTPResponseFactory(func(w http.ResponseWriter) {
 			time.Sleep(2 * time.Second)
@@ -89,7 +89,6 @@ var _ = FDescribe("Bugs replication", func() {
 		var summary = statistics.CreateSummary(executionOutput)
 
 		runningTime, _ := time.ParseDuration(summary.RunningTime)
-		fmt.Println(summary.RunningTime)
 		Expect(math.Floor(runningTime.Seconds())).To(Equal(float64(1)))
 	})
 })

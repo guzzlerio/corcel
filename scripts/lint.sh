@@ -20,7 +20,7 @@ aligncheck .
 echo "go tool vet ./*.go"
 go tool vet ./*.go
 echo "gocyclo -over ${MAX_COMPLEXITY} ."
-#gocyclo -over ${MAX_COMPLEXITY} .
+gocyclo -over ${MAX_COMPLEXITY} .
 echo "errcheck ."
 errcheck .
 echo "go tool vet --shadow ./*.go"

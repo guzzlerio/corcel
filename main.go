@@ -33,18 +33,6 @@ func GenerateExecutionOutput(file string, output statistics.AggregatorSnapShot) 
 	check(err)
 }
 
-func createSummaryOutput(summary statistics.AggregatorSnapShot, output statistics.AggregatorSnapShot) statistics.AggregatorSnapShot {
-
-	summary.UpdateCounters(output)
-	summary.UpdateGuages(output)
-	summary.UpdateHistograms(output)
-	summary.UpdateMeters(output)
-	summary.UpdateTimers(output)
-	summary.UpdateTime(output.Times[len(output.Times)-1])
-
-	return summary
-}
-
 //AddExecutionToHistory ...
 func AddExecutionToHistory(file string, output statistics.AggregatorSnapShot) {
 
@@ -65,7 +53,7 @@ func AddExecutionToHistory(file string, output statistics.AggregatorSnapShot) {
 			panic(yamlErr)
 		}
 	}
-	summary = createSummaryOutput(summary, output)
+	summary.Update(output)
 
 	yamlOutput, err := yaml.Marshal(&summary)
 	check(err)

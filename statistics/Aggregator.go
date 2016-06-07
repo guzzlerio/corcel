@@ -154,6 +154,16 @@ func (instance *AggregatorSnapShot) UpdateTime(value int64) {
 	instance.Times = append(instance.Times, value)
 }
 
+//Update ...
+func (instance *AggregatorSnapShot) Update(output AggregatorSnapShot) {
+	instance.UpdateCounters(output)
+	instance.UpdateGuages(output)
+	instance.UpdateHistograms(output)
+	instance.UpdateMeters(output)
+	instance.UpdateTimers(output)
+	instance.UpdateTime(output.Times[len(output.Times)-1])
+}
+
 //ExecutionSummary ...
 type ExecutionSummary struct {
 	TotalRequests          float64

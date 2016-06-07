@@ -44,8 +44,7 @@ func NewAggregatorSnapShot() *AggregatorSnapShot {
 	}
 }
 
-//UpdateCounter ...
-func (instance *AggregatorSnapShot) UpdateCounter(key string, value int64) {
+func (instance *AggregatorSnapShot) updateCounter(key string, value int64) {
 	if _, ok := instance.Counters[key]; !ok {
 		instance.Counters[key] = make([]int64, len(instance.Times))
 		for i := 0; i < len(instance.Times)-1; i++ {
@@ -55,15 +54,13 @@ func (instance *AggregatorSnapShot) UpdateCounter(key string, value int64) {
 	instance.Counters[key] = append(instance.Counters[key], value)
 }
 
-//UpdateCounters ...
-func (instance *AggregatorSnapShot) UpdateCounters(output AggregatorSnapShot) {
+func (instance *AggregatorSnapShot) updateCounters(output AggregatorSnapShot) {
 	for key, value := range output.Counters {
-		instance.UpdateCounter(key, value[len(value)-1])
+		instance.updateCounter(key, value[len(value)-1])
 	}
 }
 
-//UpdateGuage ...
-func (instance *AggregatorSnapShot) UpdateGuage(key string, value float64) {
+func (instance *AggregatorSnapShot) updateGuage(key string, value float64) {
 	if _, ok := instance.Guages[key]; !ok {
 		instance.Guages[key] = make([]float64, len(instance.Times))
 		for i := 0; i < len(instance.Times)-1; i++ {
@@ -73,15 +70,13 @@ func (instance *AggregatorSnapShot) UpdateGuage(key string, value float64) {
 	instance.Guages[key] = append(instance.Guages[key], value)
 }
 
-//UpdateGuages ...
-func (instance *AggregatorSnapShot) UpdateGuages(output AggregatorSnapShot) {
+func (instance *AggregatorSnapShot) updateGuages(output AggregatorSnapShot) {
 	for key, value := range output.Guages {
-		instance.UpdateGuage(key, value[len(value)-1])
+		instance.updateGuage(key, value[len(value)-1])
 	}
 }
 
-//UpdateHistogram ...
-func (instance *AggregatorSnapShot) UpdateHistogram(key string, subKey string, value float64) {
+func (instance *AggregatorSnapShot) updateHistogram(key string, subKey string, value float64) {
 	if _, ok := instance.Histograms[key]; !ok {
 		instance.Histograms[key] = map[string][]float64{}
 	}
@@ -94,17 +89,15 @@ func (instance *AggregatorSnapShot) UpdateHistogram(key string, subKey string, v
 	instance.Histograms[key][subKey] = append(instance.Histograms[key][subKey], value)
 }
 
-//UpdateHistograms ...
-func (instance *AggregatorSnapShot) UpdateHistograms(output AggregatorSnapShot) {
+func (instance *AggregatorSnapShot) updateHistograms(output AggregatorSnapShot) {
 	for key, value := range output.Histograms {
 		for subKey, subValue := range value {
-			instance.UpdateHistogram(key, subKey, subValue[len(subValue)-1])
+			instance.updateHistogram(key, subKey, subValue[len(subValue)-1])
 		}
 	}
 }
 
-//UpdateMeter ...
-func (instance *AggregatorSnapShot) UpdateMeter(key string, subKey string, value float64) {
+func (instance *AggregatorSnapShot) updateMeter(key string, subKey string, value float64) {
 	if _, ok := instance.Meters[key]; !ok {
 		instance.Meters[key] = map[string][]float64{}
 	}
@@ -117,17 +110,15 @@ func (instance *AggregatorSnapShot) UpdateMeter(key string, subKey string, value
 	instance.Meters[key][subKey] = append(instance.Meters[key][subKey], value)
 }
 
-//UpdateMeters ...
-func (instance *AggregatorSnapShot) UpdateMeters(output AggregatorSnapShot) {
+func (instance *AggregatorSnapShot) updateMeters(output AggregatorSnapShot) {
 	for key, value := range output.Meters {
 		for subKey, subValue := range value {
-			instance.UpdateMeter(key, subKey, subValue[len(subValue)-1])
+			instance.updateMeter(key, subKey, subValue[len(subValue)-1])
 		}
 	}
 }
 
-//UpdateTimer ...
-func (instance *AggregatorSnapShot) UpdateTimer(key string, subKey string, value float64) {
+func (instance *AggregatorSnapShot) updateTimer(key string, subKey string, value float64) {
 	if _, ok := instance.Timers[key]; !ok {
 		instance.Timers[key] = map[string][]float64{}
 	}
@@ -140,28 +131,26 @@ func (instance *AggregatorSnapShot) UpdateTimer(key string, subKey string, value
 	instance.Timers[key][subKey] = append(instance.Timers[key][subKey], value)
 }
 
-//UpdateTimers ...
-func (instance *AggregatorSnapShot) UpdateTimers(output AggregatorSnapShot) {
+func (instance *AggregatorSnapShot) updateTimers(output AggregatorSnapShot) {
 	for key, value := range output.Timers {
 		for subKey, subValue := range value {
-			instance.UpdateTimer(key, subKey, subValue[len(subValue)-1])
+			instance.updateTimer(key, subKey, subValue[len(subValue)-1])
 		}
 	}
 }
 
-//UpdateTime ...
-func (instance *AggregatorSnapShot) UpdateTime(value int64) {
+func (instance *AggregatorSnapShot) updateTime(value int64) {
 	instance.Times = append(instance.Times, value)
 }
 
 //Update ...
 func (instance *AggregatorSnapShot) Update(output AggregatorSnapShot) {
-	instance.UpdateCounters(output)
-	instance.UpdateGuages(output)
-	instance.UpdateHistograms(output)
-	instance.UpdateMeters(output)
-	instance.UpdateTimers(output)
-	instance.UpdateTime(output.Times[len(output.Times)-1])
+	instance.updateCounters(output)
+	instance.updateGuages(output)
+	instance.updateHistograms(output)
+	instance.updateMeters(output)
+	instance.updateTimers(output)
+	instance.updateTime(output.Times[len(output.Times)-1])
 }
 
 //ExecutionSummary ...

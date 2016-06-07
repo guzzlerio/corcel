@@ -55,6 +55,13 @@ func (instance *AggregatorSnapShot) UpdateCounter(key string, value int64) {
 	instance.Counters[key] = append(instance.Counters[key], value)
 }
 
+//UpdateCounters ...
+func (instance *AggregatorSnapShot) UpdateCounters(output AggregatorSnapShot) {
+	for key, value := range output.Counters {
+		instance.UpdateCounter(key, value[len(value)-1])
+	}
+}
+
 //UpdateGuage ...
 func (instance *AggregatorSnapShot) UpdateGuage(key string, value float64) {
 	if _, ok := instance.Guages[key]; !ok {

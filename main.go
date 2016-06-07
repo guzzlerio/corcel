@@ -49,11 +49,16 @@ func createSummaryOutput(summary statistics.AggregatorSnapShot, output statistic
 	*/
 	summary.UpdateGuages(output)
 
-	for key, value := range output.Histograms {
-		for subKey, subValue := range value {
-			summary.UpdateHistogram(key, subKey, subValue[len(subValue)-1])
+	/*
+		for key, value := range output.Histograms {
+			for subKey, subValue := range value {
+				summary.UpdateHistogram(key, subKey, subValue[len(subValue)-1])
+			}
 		}
-	}
+	*/
+
+	summary.UpdateHistograms(output)
+
 	for key, value := range output.Meters {
 		for subKey, subValue := range value {
 			summary.UpdateMeter(key, subKey, subValue[len(subValue)-1])

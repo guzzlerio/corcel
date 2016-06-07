@@ -94,6 +94,15 @@ func (instance *AggregatorSnapShot) UpdateHistogram(key string, subKey string, v
 	instance.Histograms[key][subKey] = append(instance.Histograms[key][subKey], value)
 }
 
+//UpdateHistograms ...
+func (instance *AggregatorSnapShot) UpdateHistograms(output AggregatorSnapShot) {
+	for key, value := range output.Histograms {
+		for subKey, subValue := range value {
+			instance.UpdateHistogram(key, subKey, subValue[len(subValue)-1])
+		}
+	}
+}
+
 //UpdateMeter ...
 func (instance *AggregatorSnapShot) UpdateMeter(key string, subKey string, value float64) {
 	if _, ok := instance.Meters[key]; !ok {

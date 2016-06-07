@@ -35,35 +35,19 @@ func GenerateExecutionOutput(file string, output statistics.AggregatorSnapShot) 
 
 func createSummaryOutput(summary statistics.AggregatorSnapShot, output statistics.AggregatorSnapShot) statistics.AggregatorSnapShot {
 
-	/*
-		for key, value := range output.Counters {
-			summary.UpdateCounter(key, value[len(value)-1])
-		}
-	*/
 	summary.UpdateCounters(output)
-
-	/*
-		for key, value := range output.Guages {
-			summary.UpdateGuage(key, value[len(value)-1])
-		}
-	*/
 	summary.UpdateGuages(output)
+	summary.UpdateHistograms(output)
 
 	/*
-		for key, value := range output.Histograms {
+		for key, value := range output.Meters {
 			for subKey, subValue := range value {
-				summary.UpdateHistogram(key, subKey, subValue[len(subValue)-1])
+				summary.UpdateMeter(key, subKey, subValue[len(subValue)-1])
 			}
 		}
 	*/
+	summary.UpdateMeters(output)
 
-	summary.UpdateHistograms(output)
-
-	for key, value := range output.Meters {
-		for subKey, subValue := range value {
-			summary.UpdateMeter(key, subKey, subValue[len(subValue)-1])
-		}
-	}
 	for key, value := range output.Timers {
 		for subKey, subValue := range value {
 			summary.UpdateTimer(key, subKey, subValue[len(subValue)-1])

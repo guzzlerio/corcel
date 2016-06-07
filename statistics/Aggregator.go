@@ -117,6 +117,15 @@ func (instance *AggregatorSnapShot) UpdateMeter(key string, subKey string, value
 	instance.Meters[key][subKey] = append(instance.Meters[key][subKey], value)
 }
 
+//UpdateMeters ...
+func (instance *AggregatorSnapShot) UpdateMeters(output AggregatorSnapShot) {
+	for key, value := range output.Meters {
+		for subKey, subValue := range value {
+			instance.UpdateMeter(key, subKey, subValue[len(subValue)-1])
+		}
+	}
+}
+
 //UpdateTimer ...
 func (instance *AggregatorSnapShot) UpdateTimer(key string, subKey string, value float64) {
 	if _, ok := instance.Timers[key]; !ok {

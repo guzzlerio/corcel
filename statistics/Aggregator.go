@@ -140,6 +140,15 @@ func (instance *AggregatorSnapShot) UpdateTimer(key string, subKey string, value
 	instance.Timers[key][subKey] = append(instance.Timers[key][subKey], value)
 }
 
+//UpdateTimers ...
+func (instance *AggregatorSnapShot) UpdateTimers(output AggregatorSnapShot) {
+	for key, value := range output.Timers {
+		for subKey, subValue := range value {
+			instance.UpdateTimer(key, subKey, subValue[len(subValue)-1])
+		}
+	}
+}
+
 //UpdateTime ...
 func (instance *AggregatorSnapShot) UpdateTime(value int64) {
 	instance.Times = append(instance.Times, value)

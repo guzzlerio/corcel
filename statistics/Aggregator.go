@@ -73,6 +73,13 @@ func (instance *AggregatorSnapShot) UpdateGuage(key string, value float64) {
 	instance.Guages[key] = append(instance.Guages[key], value)
 }
 
+//UpdateGuages ...
+func (instance *AggregatorSnapShot) UpdateGuages(output AggregatorSnapShot) {
+	for key, value := range output.Guages {
+		instance.UpdateGuage(key, value[len(value)-1])
+	}
+}
+
 //UpdateHistogram ...
 func (instance *AggregatorSnapShot) UpdateHistogram(key string, subKey string, value float64) {
 	if _, ok := instance.Histograms[key]; !ok {

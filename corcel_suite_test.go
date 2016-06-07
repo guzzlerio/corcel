@@ -47,6 +47,7 @@ func ExecutePlanBuilder(planBuilder *test.YamlPlanBuilder) error {
 	args := []string{"--plan"}
 	cmd := exec.Command(exePath, append(args, file.Name())...)
 	output, err := cmd.CombinedOutput()
+	//fmt.Println(string(output))
 	logger.Log.Println(fmt.Sprintf("%s", output))
 	return err
 }

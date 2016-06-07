@@ -105,24 +105,60 @@ func updateSummary(outputPath string, output statistics.AggregatorSnapShot) stat
 	}
 	//history.Times = append(history.Times, output.Times[len(output.Times)-1])
 	history.UpdateTime(output.Times[len(output.Times)-1])
+	fmt.Println("Returning the history")
 	return history
+}
+
+func createSummaryOutput(summary statistics.AggregatorSnapShot, output statistics.AggregatorSnapShot) statistics.AggregatorSnapShot {
+
+	for key, value := range output.Counters {
+		summary.UpdateCounter(key, value[len(value)-1])
+	}
+	for key, value := range output.Guages {
+		summary.UpdateGuage(key, value[len(value)-1])
+	}
+	for key, value := range output.Histograms {
+		for subKey, subValue := range value {
+			summary.UpdateHistogram(key, subKey, subValue[len(subValue)-1])
+		}
+	}
+	for key, value := range output.Meters {
+		for subKey, subValue := range value {
+			summary.UpdateMeter(key, subKey, subValue[len(subValue)-1])
+		}
+	}
+	for key, value := range output.Timers {
+		for subKey, subValue := range value {
+			summary.UpdateTimer(key, subKey, subValue[len(subValue)-1])
+		}
+	}
+	summary.UpdateTime(output.Times[len(output.Times)-1])
+	return summary
 }
 
 //AddExecutionToHistory ...
 func AddExecutionToHistory(file string, output statistics.AggregatorSnapShot) {
 
-	var history = output
+	var summary statistics.AggregatorSnapShot
 
 	outputPath, err := filepath.Abs(file)
 	check(err)
 
 	if _, err = os.Stat(outputPath); os.IsNotExist(err) {
-		history = createSummary(output)
+		summary = *statistics.NewAggregatorSnapShot()
 	} else {
-		history = updateSummary(outputPath, output)
+		data, dataErr := ioutil.ReadFile(outputPath)
+		if dataErr != nil {
+			panic(dataErr)
+		}
+		yamlErr := yaml.Unmarshal(data, &summary)
+		if yamlErr != nil {
+			panic(yamlErr)
+		}
 	}
+	summary = createSummaryOutput(summary, output)
 
-	yamlOutput, err := yaml.Marshal(&history)
+	yamlOutput, err := yaml.Marshal(&summary)
 	check(err)
 	err = ioutil.WriteFile(outputPath, yamlOutput, 0644)
 	check(err)

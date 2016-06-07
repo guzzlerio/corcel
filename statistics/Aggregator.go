@@ -47,7 +47,10 @@ func NewAggregatorSnapShot() *AggregatorSnapShot {
 //UpdateCounter ...
 func (instance *AggregatorSnapShot) UpdateCounter(key string, value int64) {
 	if _, ok := instance.Counters[key]; !ok {
-		instance.Counters[key] = []int64{}
+		instance.Counters[key] = make([]int64, len(instance.Times))
+		for i := 0; i < len(instance.Times)-1; i++ {
+			instance.Counters[key][i] = int64(0)
+		}
 	}
 	instance.Counters[key] = append(instance.Counters[key], value)
 }
@@ -55,7 +58,10 @@ func (instance *AggregatorSnapShot) UpdateCounter(key string, value int64) {
 //UpdateGuage ...
 func (instance *AggregatorSnapShot) UpdateGuage(key string, value float64) {
 	if _, ok := instance.Guages[key]; !ok {
-		instance.Guages[key] = []float64{}
+		instance.Guages[key] = make([]float64, len(instance.Times))
+		for i := 0; i < len(instance.Times)-1; i++ {
+			instance.Guages[key][i] = float64(0)
+		}
 	}
 	instance.Guages[key] = append(instance.Guages[key], value)
 }
@@ -66,7 +72,10 @@ func (instance *AggregatorSnapShot) UpdateHistogram(key string, subKey string, v
 		instance.Histograms[key] = map[string][]float64{}
 	}
 	if _, ok := instance.Histograms[key][subKey]; !ok {
-		instance.Histograms[key][subKey] = []float64{}
+		instance.Histograms[key][subKey] = make([]float64, len(instance.Times))
+		for i := 0; i < len(instance.Times)-1; i++ {
+			instance.Histograms[key][subKey][i] = float64(0)
+		}
 	}
 	instance.Histograms[key][subKey] = append(instance.Histograms[key][subKey], value)
 }
@@ -77,7 +86,10 @@ func (instance *AggregatorSnapShot) UpdateMeter(key string, subKey string, value
 		instance.Meters[key] = map[string][]float64{}
 	}
 	if _, ok := instance.Meters[key][subKey]; !ok {
-		instance.Meters[key][subKey] = []float64{}
+		instance.Meters[key][subKey] = make([]float64, len(instance.Times))
+		for i := 0; i < len(instance.Times)-1; i++ {
+			instance.Meters[key][subKey][i] = float64(0)
+		}
 	}
 	instance.Meters[key][subKey] = append(instance.Meters[key][subKey], value)
 }
@@ -88,7 +100,10 @@ func (instance *AggregatorSnapShot) UpdateTimer(key string, subKey string, value
 		instance.Timers[key] = map[string][]float64{}
 	}
 	if _, ok := instance.Timers[key][subKey]; !ok {
-		instance.Timers[key][subKey] = []float64{}
+		instance.Timers[key][subKey] = make([]float64, len(instance.Times))
+		for i := 0; i < len(instance.Times)-1; i++ {
+			instance.Timers[key][subKey][i] = float64(0)
+		}
 	}
 	instance.Timers[key][subKey] = append(instance.Timers[key][subKey], value)
 }

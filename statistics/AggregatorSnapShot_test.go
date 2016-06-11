@@ -69,4 +69,25 @@ var _ = FDescribe("AggregatorSnapShot", func() {
 		Expect(targetSnapShot.Histograms[key][subKey]).ToNot(BeNil())
 		Expect(targetSnapShot.Histograms[key][subKey]).To(Equal(subjectSnapShot.Histograms[key][subKey]))
 	})
+
+	It("Updates an empty snap shot meters", func() {
+		key := "m:key"
+		subKey := "m:subkey"
+		value := float64(103.1)
+
+		timeStamp := time.Now().UnixNano()
+		subjectSnapShot.updateMeter(key, subKey, value)
+		subjectSnapShot.updateTime(timeStamp)
+
+		targetSnapShot.Update(*subjectSnapShot)
+
+		Expect(len(targetSnapShot.Times)).To(Equal(1))
+		Expect(targetSnapShot.Times[0]).To(Equal(subjectSnapShot.Times[0]))
+		Expect(targetSnapShot.Meters[key]).ToNot(BeNil())
+		Expect(targetSnapShot.Meters[key][subKey]).ToNot(BeNil())
+		Expect(targetSnapShot.Meters[key][subKey]).To(Equal(subjectSnapShot.Meters[key][subKey]))
+	})
+
+	PIt("Only updates with the last values of the subject snap shot")
+
 })

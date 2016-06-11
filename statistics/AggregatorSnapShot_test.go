@@ -52,4 +52,21 @@ var _ = FDescribe("AggregatorSnapShot", func() {
 		Expect(targetSnapShot.Gauges[key]).To(Equal(subjectSnapShot.Gauges[key]))
 	})
 
+	It("Updates an empty snap shot histograms", func() {
+		key := "h:key"
+		subKey := "h:subkey"
+		value := float64(103.1)
+
+		timeStamp := time.Now().UnixNano()
+		subjectSnapShot.updateHistogram(key, subKey, value)
+		subjectSnapShot.updateTime(timeStamp)
+
+		targetSnapShot.Update(*subjectSnapShot)
+
+		Expect(len(targetSnapShot.Times)).To(Equal(1))
+		Expect(targetSnapShot.Times[0]).To(Equal(subjectSnapShot.Times[0]))
+		Expect(targetSnapShot.Histograms[key]).ToNot(BeNil())
+		Expect(targetSnapShot.Histograms[key][subKey]).ToNot(BeNil())
+		Expect(targetSnapShot.Histograms[key][subKey]).To(Equal(subjectSnapShot.Histograms[key][subKey]))
+	})
 })

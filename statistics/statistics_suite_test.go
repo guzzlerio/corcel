@@ -9,5 +9,5 @@ import (
 
 func TestCorcel(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Request Suite")
+	RunSpecs(t, "Statistics Suite")
 }

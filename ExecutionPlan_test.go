@@ -51,7 +51,7 @@ var _ = Describe("ExecutionPlan", func() {
 					SetWorkers(workers).
 					CreateJob().
 					CreateStep().
-					ToExecuteAction(GetPathRequest("/people"))
+					ToExecuteAction(GetHTTPRequestAction("/people"))
 
 				err := ExecutePlanBuilder(planBuilder)
 				Expect(err).To(BeNil())
@@ -76,7 +76,7 @@ var _ = Describe("ExecutionPlan", func() {
 		jobBuilder := planBuilder.CreateJob()
 
 		for i := 0; i < numberOfSteps; i++ {
-			jobBuilder.CreateStep().ToExecuteAction(GetPathRequest("/people"))
+			jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction("/people"))
 		}
 
 		err := ExecutePlanBuilder(planBuilder)
@@ -97,7 +97,7 @@ var _ = Describe("ExecutionPlan", func() {
 		planBuilder := test.NewYamlPlanBuilder()
 		planBuilder.SetDuration(duration)
 		jobBuilder := planBuilder.CreateJob()
-		jobBuilder.CreateStep().ToExecuteAction(GetPathRequest("/people"))
+		jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction("/people"))
 		err := ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())
 
@@ -119,7 +119,7 @@ var _ = Describe("ExecutionPlan", func() {
 
 		for i := 0; i < numberOfSteps; i++ {
 			jobBuilder := planBuilder.CreateJob()
-			jobBuilder.CreateStep().ToExecuteAction(GetPathRequest(fmt.Sprintf("/%d", i+1)))
+			jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction(fmt.Sprintf("/%d", i+1)))
 		}
 
 		err := ExecutePlanBuilder(planBuilder)
@@ -150,7 +150,7 @@ var _ = Describe("ExecutionPlan", func() {
 			planBuilder := test.NewYamlPlanBuilder()
 			planBuilder.CreateJob().
 				CreateStep().
-				ToExecuteAction(GetPathRequest("/boom")).
+				ToExecuteAction(GetHTTPRequestAction("/boom")).
 				WithAssertion(HTTPStatusExactAssertion(201))
 
 			err := ExecutePlanBuilder(planBuilder)
@@ -169,7 +169,7 @@ var _ = Describe("ExecutionPlan", func() {
 			planBuilder := test.NewYamlPlanBuilder()
 			planBuilder.CreateJob().
 				CreateStep().
-				ToExecuteAction(GetPathRequest("/boom")).
+				ToExecuteAction(GetHTTPRequestAction("/boom")).
 				WithAssertion(HTTPStatusExactAssertion(200))
 
 			err := ExecutePlanBuilder(planBuilder)
@@ -188,7 +188,7 @@ var _ = Describe("ExecutionPlan", func() {
 		planBuilder := test.NewYamlPlanBuilder()
 		planBuilder.CreateJob().
 			CreateStep().
-			ToExecuteAction(GetPathRequest("/people")).
+			ToExecuteAction(GetHTTPRequestAction("/people")).
 			WithAssertion(HTTPStatusExactAssertion(201))
 
 		err := ExecutePlanBuilder(planBuilder)

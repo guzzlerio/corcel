@@ -1,7 +1,7 @@
 package main
 
 //GetPathRequest ...
-func GetPathRequest(url string) map[string]interface{} {
+func GetHTTPRequestAction(url string) map[string]interface{} {
 	return map[string]interface{}{
 		"type":          "HttpRequest",
 		"requesTimeout": 150,

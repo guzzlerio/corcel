@@ -24,7 +24,7 @@ var _ = Describe("Run Summary", func() {
 		planBuilder.SetDuration("1s").
 			CreateJob().
 			CreateStep().
-			ToExecuteAction(GetPathRequest(TestServer.CreateURL("/people")))
+			ToExecuteAction(GetHTTPRequestAction(TestServer.CreateURL("/people")))
 
 		err := ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())

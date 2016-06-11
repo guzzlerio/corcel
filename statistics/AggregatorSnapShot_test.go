@@ -123,6 +123,20 @@ var _ = FDescribe("AggregatorSnapShot", func() {
 			Expect(targetSnapShot.Counters[key][1]).To(Equal(subjectSnapShot.Counters[key][count-1]))
 		})
 
+		It("Gauges", func() {
+			count := 10
+			key := "gauge:1"
+			targetSnapShot.updateGauge(key, float64(0))
+			targetSnapShot.updateTime(time.Now().UnixNano())
+			for i := 0; i < count; i++ {
+				subjectSnapShot.updateGauge(key, float64(i+1))
+				subjectSnapShot.updateTime(time.Now().UnixNano())
+			}
+			targetSnapShot.Update(*subjectSnapShot)
+
+			Expect(len(targetSnapShot.Times)).To(Equal(2))
+			Expect(targetSnapShot.Gauges[key][1]).To(Equal(subjectSnapShot.Gauges[key][count-1]))
+		})
 	})
 
 })

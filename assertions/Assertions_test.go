@@ -6,65 +6,101 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("Assertions", func() {
+var _ = Describe("Assertions", func() {
 
-	It("Exact Assertion Succeeds", func() {
+	Context("Not Equal Assertion", func() {
+
 		key := "some:key"
-		expectedValue := 7
 
-		executionResult := core.ExecutionResult{
-			key: expectedValue,
-		}
+		It("Succeeds", func() {
+			executionResult := core.ExecutionResult{
+				key: 8,
+			}
 
-		assertion := ExactAssertion{
-			Key:      key,
-			Expected: expectedValue,
-		}
+			assertion := NotEqualAssertion{
+				Key:   key,
+				Value: 7,
+			}
 
-		result := assertion.Assert(executionResult)
-		Expect(result["result"]).To(Equal(true))
-		Expect(result["message"]).To(BeNil())
+			result := assertion.Assert(executionResult)
+			Expect(result["result"]).To(Equal(true))
+			Expect(result["message"]).To(BeNil())
+		})
+		It("Fails", func() {
+			executionResult := core.ExecutionResult{
+				key: 7,
+			}
+
+			assertion := NotEqualAssertion{
+				Key:   key,
+				Value: 7,
+			}
+
+			result := assertion.Assert(executionResult)
+			Expect(result["result"]).To(Equal(false))
+			Expect(result["message"]).To(Equal("FAIL: 7 does match 7"))
+		})
 	})
 
-	It("Exact Assertion Fails", func() {
-		key := "some:key"
-		expectedValue := 7
+	Context("Exact Assertion", func() {
+		It("Exact Assertion Succeeds", func() {
+			key := "some:key"
+			expectedValue := 7
 
-		executionResult := core.ExecutionResult{
-			key: 8,
-		}
+			executionResult := core.ExecutionResult{
+				key: expectedValue,
+			}
 
-		assertion := ExactAssertion{
-			Key:      key,
-			Expected: expectedValue,
-		}
+			assertion := ExactAssertion{
+				Key:   key,
+				Value: expectedValue,
+			}
 
-		result := assertion.Assert(executionResult)
-		Expect(result["result"]).To(Equal(false))
-		Expect(result["message"]).To(Equal("FAIL: 8 does not match 7"))
-	})
+			result := assertion.Assert(executionResult)
+			Expect(result["result"]).To(Equal(true))
+			Expect(result["message"]).To(BeNil())
+		})
 
-	//NOTHING is currently using the message when an assertion fails but we will need
-	//it for when we put the errors into the report.  One of the edge cases with the message
-	//is that say the actual value was a string "7" and the expected is an int 7.  The message
-	//will not include the quotes so the message would read 7 does not equal 7 as opposed
-	//to "7" does not equal 7.  Notice this is a type mismatch
-	PIt("Exact Assertion Fails when actual and expected are different types", func() {
-		key := "some:key"
-		expectedValue := 7
+		It("Exact Assertion Fails", func() {
+			key := "some:key"
+			expectedValue := 7
 
-		executionResult := core.ExecutionResult{
-			key: "7",
-		}
+			executionResult := core.ExecutionResult{
+				key: 8,
+			}
 
-		assertion := ExactAssertion{
-			Key:      key,
-			Expected: expectedValue,
-		}
+			assertion := ExactAssertion{
+				Key:   key,
+				Value: expectedValue,
+			}
 
-		result := assertion.Assert(executionResult)
-		Expect(result["result"]).To(Equal(false))
-		Expect(result["message"]).To(Equal("FAIL: \"7\" does not match 7"))
+			result := assertion.Assert(executionResult)
+			Expect(result["result"]).To(Equal(false))
+			Expect(result["message"]).To(Equal("FAIL: 8 does not match 7"))
+		})
+
+		//NOTHING is currently using the message when an assertion fails but we will need
+		//it for when we put the errors into the report.  One of the edge cases with the message
+		//is that say the actual value was a string "7" and the expected is an int 7.  The message
+		//will not include the quotes so the message would read 7 does not equal 7 as opposed
+		//to "7" does not equal 7.  Notice this is a type mismatch
+		PIt("Exact Assertion Fails when actual and expected are different types", func() {
+			key := "some:key"
+			expectedValue := 7
+
+			executionResult := core.ExecutionResult{
+				key: "7",
+			}
+
+			assertion := ExactAssertion{
+				Key:   key,
+				Value: expectedValue,
+			}
+
+			result := assertion.Assert(executionResult)
+			Expect(result["result"]).To(Equal(false))
+			Expect(result["message"]).To(Equal("FAIL: \"7\" does not match 7"))
+		})
 	})
 
 })

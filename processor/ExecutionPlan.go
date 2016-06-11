@@ -91,8 +91,8 @@ type YamlExactAssertionParser struct{}
 //Parse ...
 func (instance YamlExactAssertionParser) Parse(input map[string]interface{}) core.Assertion {
 	return &assertions.ExactAssertion{
-		Key:      input["key"].(string),
-		Expected: input["expected"].(int),
+		Key:   input["key"].(string),
+		Value: input["expected"].(int),
 	}
 }
 

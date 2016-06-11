@@ -8,13 +8,12 @@ import (
 
 //ExactAssertion ...
 type ExactAssertion struct {
-	Key      string
-	Expected interface{}
+	Key   string
+	Value interface{}
 }
 
-//ResultKey ...
-func (instance *ExactAssertion) ResultKey() string {
-	return fmt.Sprintf("assert:exactmatch:%v:%v", instance.Key, instance.Expected)
+func (instance *ExactAssertion) resultKey() string {
+	return fmt.Sprintf("assert:exactmatch:%v:%v", instance.Key, instance.Value)
 }
 
 //Assert ...
@@ -22,15 +21,15 @@ func (instance *ExactAssertion) Assert(executionResult core.ExecutionResult) cor
 	actual := executionResult[instance.Key]
 
 	result := map[string]interface{}{
-		"expected": instance.Expected,
+		"expected": instance.Value,
 		"actual":   actual,
-		"key":      instance.ResultKey(),
+		"key":      instance.resultKey(),
 	}
-	if actual == instance.Expected {
+	if actual == instance.Value {
 		result["result"] = true
 	} else {
 		result["result"] = false
-		result["message"] = fmt.Sprintf("FAIL: %v does not match %v", actual, instance.Expected)
+		result["message"] = fmt.Sprintf("FAIL: %v does not match %v", actual, instance.Value)
 	}
 	return result
 }

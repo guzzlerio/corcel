@@ -85,6 +85,27 @@ Min Response Time: 0 ms
 Max Response Time: 1 ms
 ```
 
+## Ideas about recording assertion failures in the report
+
+In the output file:
+
+```yaml
+AssertionFailures:
+ - jobId : 2
+   stepId: 4
+   action: "POST http://www.google.com"
+   key: "http:response:status"
+   type: Exact
+   expected: 200
+   actuals: 
+      - value: 201
+        count: 10
+      - value: 203
+        count: 20
 ```
-_
-```
+
+In the summary file?  What would it look like and how would it be tracked?
+
+
+Also need to think about the summary so these can be compared.
+

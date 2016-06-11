@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("AggregatorSnapShot", func() {
+var _ = Describe("AggregatorSnapShot", func() {
 
 	var (
 		targetSnapShot  *AggregatorSnapShot

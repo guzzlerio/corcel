@@ -112,7 +112,7 @@ var _ = Describe("Main", func() {
 
 	for _, waitTime := range global.WaitTimeTests {
 		It(fmt.Sprintf("Support wait time of %v between each execution in the list", waitTime), func() {
-			waitTimeTolerance := 0.50
+			waitTimeTolerance := 0.75
 
 			list := []string{
 				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
@@ -408,7 +408,6 @@ func InvokeCorcel(list []string, args ...string) ([]byte, error) {
 func SutExecute(list []string, args ...string) []byte {
 	output, err := InvokeCorcel(list, args...)
 	if err != nil {
-		fmt.Println(fmt.Sprintf("err %v", err))
 		Fail(string(output))
 	}
 	return output

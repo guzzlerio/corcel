@@ -35,9 +35,15 @@ func PathExists(value string) bool {
 //UnmarshalYamlFromFile ...
 func UnmarshalYamlFromFile(path string, output interface{}) {
 	absPath, err := filepath.Abs(path)
-	errormanager.Check(err)
+	if err != nil {
+		panic(err)
+	}
 	data, err := ioutil.ReadFile(absPath)
-	errormanager.Check(err)
+	if err != nil {
+		panic(err)
+	}
 	err = yaml.Unmarshal(data, output)
-	errormanager.Check(err)
+	if err != nil {
+		panic(err)
+	}
 }

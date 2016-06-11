@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"math"
 	"net/http"
-	"os"
-	"os/exec"
-	"path/filepath"
 	"time"
 
 	"github.com/guzzlerio/rizo"
@@ -14,65 +11,10 @@ import (
 	. "github.com/onsi/gomega"
 
 	"ci.guzzler.io/guzzler/corcel/global"
-	"ci.guzzler.io/guzzler/corcel/logger"
 	"ci.guzzler.io/guzzler/corcel/statistics"
 	"ci.guzzler.io/guzzler/corcel/test"
 	"ci.guzzler.io/guzzler/corcel/utils"
 )
-
-func GetPeopleTestRequest() map[string]interface{} {
-	return map[string]interface{}{
-		"type":          "HttpRequest",
-		"requesTimeout": 150,
-		"method":        "GET",
-		"url":           TestServer.CreateURL("/people"),
-		"httpHeaders": map[string]string{
-			"Content-Type": "application/json",
-		},
-	}
-}
-
-func GetPathRequest(path string) map[string]interface{} {
-	return map[string]interface{}{
-		"type":          "HttpRequest",
-		"requesTimeout": 150,
-		"method":        "GET",
-		"url":           TestServer.CreateURL(path),
-		"httpHeaders": map[string]string{
-			"Content-Type": "application/json",
-		},
-	}
-}
-
-func HTTPStatusExactAssertion(code int) map[string]interface{} {
-	return map[string]interface{}{
-		"type":     "ExactAssertion",
-		"key":      "http:response:status",
-		"expected": code,
-	}
-}
-
-func ExecutePlanBuilder(planBuilder *test.YamlPlanBuilder) error {
-	file, err := planBuilder.Build()
-	if err != nil {
-		return err
-	}
-	exePath, err := filepath.Abs("./corcel")
-	if err != nil {
-		return err
-	}
-	defer func() {
-		fileErr := os.Remove(file.Name())
-		if fileErr != nil {
-			panic(fileErr)
-		}
-	}()
-	args := []string{"--plan"}
-	cmd := exec.Command(exePath, append(args, file.Name())...)
-	output, err := cmd.CombinedOutput()
-	logger.Log.Println(fmt.Sprintf("%s", output))
-	return err
-}
 
 var _ = Describe("ExecutionPlan", func() {
 
@@ -109,7 +51,7 @@ var _ = Describe("ExecutionPlan", func() {
 					SetWorkers(workers).
 					CreateJob().
 					CreateStep().
-					ToExecuteAction(GetPeopleTestRequest())
+					ToExecuteAction(GetPathRequest("/people"))
 
 				err := ExecutePlanBuilder(planBuilder)
 				Expect(err).To(BeNil())
@@ -134,7 +76,7 @@ var _ = Describe("ExecutionPlan", func() {
 		jobBuilder := planBuilder.CreateJob()
 
 		for i := 0; i < numberOfSteps; i++ {
-			jobBuilder.CreateStep().ToExecuteAction(GetPeopleTestRequest())
+			jobBuilder.CreateStep().ToExecuteAction(GetPathRequest("/people"))
 		}
 
 		err := ExecutePlanBuilder(planBuilder)
@@ -155,7 +97,7 @@ var _ = Describe("ExecutionPlan", func() {
 		planBuilder := test.NewYamlPlanBuilder()
 		planBuilder.SetDuration(duration)
 		jobBuilder := planBuilder.CreateJob()
-		jobBuilder.CreateStep().ToExecuteAction(GetPeopleTestRequest())
+		jobBuilder.CreateStep().ToExecuteAction(GetPathRequest("/people"))
 		err := ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())
 
@@ -246,7 +188,7 @@ var _ = Describe("ExecutionPlan", func() {
 		planBuilder := test.NewYamlPlanBuilder()
 		planBuilder.CreateJob().
 			CreateStep().
-			ToExecuteAction(GetPeopleTestRequest()).
+			ToExecuteAction(GetPathRequest("/people")).
 			WithAssertion(HTTPStatusExactAssertion(201))
 
 		err := ExecutePlanBuilder(planBuilder)

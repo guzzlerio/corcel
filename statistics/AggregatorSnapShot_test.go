@@ -153,6 +153,22 @@ var _ = FDescribe("AggregatorSnapShot", func() {
 			Expect(len(targetSnapShot.Times)).To(Equal(2))
 			Expect(targetSnapShot.Histograms[key][subKey][1]).To(Equal(subjectSnapShot.Histograms[key][subKey][count-1]))
 		})
+
+		It("Meters", func() {
+			count := 10
+			key := "m:key"
+			subKey := "m:subkey"
+			targetSnapShot.updateMeter(key, subKey, float64(0))
+			targetSnapShot.updateTime(time.Now().UnixNano())
+			for i := 0; i < count; i++ {
+				subjectSnapShot.updateMeter(key, subKey, float64(i+1))
+				subjectSnapShot.updateTime(time.Now().UnixNano())
+			}
+			targetSnapShot.Update(*subjectSnapShot)
+
+			Expect(len(targetSnapShot.Times)).To(Equal(2))
+			Expect(targetSnapShot.Meters[key][subKey][1]).To(Equal(subjectSnapShot.Meters[key][subKey][count-1]))
+		})
 	})
 
 })

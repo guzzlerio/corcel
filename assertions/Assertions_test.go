@@ -44,4 +44,27 @@ var _ = FDescribe("Assertions", func() {
 		Expect(result["message"]).To(Equal("FAIL: 8 does not match 7"))
 	})
 
+	//NOTHING is currently using the message when an assertion fails but we will need
+	//it for when we put the errors into the report.  One of the edge cases with the message
+	//is that say the actual value was a string "7" and the expected is an int 7.  The message
+	//will not include the quotes so the message would read 7 does not equal 7 as opposed
+	//to "7" does not equal 7.  Notice this is a type mismatch
+	PIt("Exact Assertion Fails when actual and expected are different types", func() {
+		key := "some:key"
+		expectedValue := 7
+
+		executionResult := core.ExecutionResult{
+			key: "7",
+		}
+
+		assertion := ExactAssertion{
+			Key:      key,
+			Expected: expectedValue,
+		}
+
+		result := assertion.Assert(executionResult)
+		Expect(result["result"]).To(Equal(false))
+		Expect(result["message"]).To(Equal("FAIL: \"7\" does not match 7"))
+	})
+
 })

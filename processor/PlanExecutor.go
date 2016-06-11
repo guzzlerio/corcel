@@ -41,7 +41,6 @@ func (instance *PlanExecutor) executeStep(step Step, cancellation chan struct{})
 	assertionResults := []core.AssertionResult{}
 	for _, assertion := range step.Assertions {
 		assertionResult := assertion.Assert(executionResult)
-		//executionResult[assertion.ResultKey()] = assertionResult
 		assertionResults = append(assertionResults, assertionResult)
 	}
 	executionResult["assertions"] = assertionResults

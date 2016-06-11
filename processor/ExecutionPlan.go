@@ -89,7 +89,7 @@ func (instance GeneralExecutionResultProcessor) Process(result core.ExecutionRes
 type YamlExactAssertionParser struct{}
 
 //Parse ...
-func (instance YamlExactAssertionParser) Parse(input map[string]interface{}) Assertion {
+func (instance YamlExactAssertionParser) Parse(input map[string]interface{}) core.Assertion {
 	return &assertions.ExactAssertion{
 		Key:      input["key"].(string),
 		Expected: input["expected"].(int),
@@ -133,21 +133,15 @@ type YamlExecutionActionParser interface {
 
 //YamlExecutionAssertionParser ...
 type YamlExecutionAssertionParser interface {
-	Parse(input map[string]interface{}) Assertion
+	Parse(input map[string]interface{}) core.Assertion
 	Key() string
-}
-
-//Assertion ...
-type Assertion interface {
-	ResultKey() string
-	Assert(core.ExecutionResult) core.AssertionResult
 }
 
 //Step ...
 type Step struct {
 	Name       string
 	Action     core.Action
-	Assertions []Assertion
+	Assertions []core.Assertion
 }
 
 //Job ...

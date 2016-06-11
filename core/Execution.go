@@ -10,3 +10,8 @@ type AssertionResult map[string]interface{}
 type Action interface {
 	Execute(cancellation chan struct{}) ExecutionResult
 }
+
+//Assertion ...
+type Assertion interface {
+	Assert(ExecutionResult) AssertionResult
+}

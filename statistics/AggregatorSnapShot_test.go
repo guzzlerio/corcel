@@ -106,6 +106,23 @@ var _ = FDescribe("AggregatorSnapShot", func() {
 		Expect(targetSnapShot.Timers[key][subKey]).To(Equal(subjectSnapShot.Timers[key][subKey]))
 	})
 
-	PIt("Only updates with the last values of the subject snap shot")
+	Context("Only updates with the last values of the subject snap shot for", func() {
+
+		It("Counters", func() {
+			count := 10
+			key := "counter:1"
+			targetSnapShot.updateCounter(key, int64(0))
+			targetSnapShot.updateTime(time.Now().UnixNano())
+			for i := 0; i < count; i++ {
+				subjectSnapShot.updateCounter(key, int64(i+1))
+				subjectSnapShot.updateTime(time.Now().UnixNano())
+			}
+			targetSnapShot.Update(*subjectSnapShot)
+
+			Expect(len(targetSnapShot.Times)).To(Equal(2))
+			Expect(targetSnapShot.Counters[key][1]).To(Equal(subjectSnapShot.Counters[key][count-1]))
+		})
+
+	})
 
 })

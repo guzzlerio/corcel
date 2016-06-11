@@ -137,6 +137,22 @@ var _ = FDescribe("AggregatorSnapShot", func() {
 			Expect(len(targetSnapShot.Times)).To(Equal(2))
 			Expect(targetSnapShot.Gauges[key][1]).To(Equal(subjectSnapShot.Gauges[key][count-1]))
 		})
+
+		It("Histograms", func() {
+			count := 10
+			key := "h:key"
+			subKey := "h:subkey"
+			targetSnapShot.updateHistogram(key, subKey, float64(0))
+			targetSnapShot.updateTime(time.Now().UnixNano())
+			for i := 0; i < count; i++ {
+				subjectSnapShot.updateHistogram(key, subKey, float64(i+1))
+				subjectSnapShot.updateTime(time.Now().UnixNano())
+			}
+			targetSnapShot.Update(*subjectSnapShot)
+
+			Expect(len(targetSnapShot.Times)).To(Equal(2))
+			Expect(targetSnapShot.Histograms[key][subKey][1]).To(Equal(subjectSnapShot.Histograms[key][subKey][count-1]))
+		})
 	})
 
 })

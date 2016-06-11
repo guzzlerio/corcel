@@ -34,7 +34,7 @@ var _ = Describe("Run Summary", func() {
 		for _, counters := range snapshot.Counters {
 			Expect(len(counters)).To(Equal(size))
 		}
-		for _, gauges := range snapshot.Guages {
+		for _, gauges := range snapshot.Gauges {
 			Expect(len(gauges)).To(Equal(size))
 		}
 		for _, value := range snapshot.Histograms {

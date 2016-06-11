@@ -26,7 +26,7 @@ type Aggregator struct {
 type AggregatorSnapShot struct {
 	Times      []int64
 	Counters   map[string][]int64
-	Guages     map[string][]float64
+	Gauges     map[string][]float64
 	Histograms map[string]map[string][]float64
 	Meters     map[string]map[string][]float64
 	Timers     map[string]map[string][]float64
@@ -37,7 +37,7 @@ func NewAggregatorSnapShot() *AggregatorSnapShot {
 	return &AggregatorSnapShot{
 		Times:      []int64{},
 		Counters:   map[string][]int64{},
-		Guages:     map[string][]float64{},
+		Gauges:     map[string][]float64{},
 		Histograms: map[string]map[string][]float64{},
 		Meters:     map[string]map[string][]float64{},
 		Timers:     map[string]map[string][]float64{},
@@ -60,19 +60,19 @@ func (instance *AggregatorSnapShot) updateCounters(output AggregatorSnapShot) {
 	}
 }
 
-func (instance *AggregatorSnapShot) updateGuage(key string, value float64) {
-	if _, ok := instance.Guages[key]; !ok {
-		instance.Guages[key] = make([]float64, len(instance.Times))
+func (instance *AggregatorSnapShot) updateGauge(key string, value float64) {
+	if _, ok := instance.Gauges[key]; !ok {
+		instance.Gauges[key] = make([]float64, len(instance.Times))
 		for i := 0; i < len(instance.Times)-1; i++ {
-			instance.Guages[key][i] = float64(0)
+			instance.Gauges[key][i] = float64(0)
 		}
 	}
-	instance.Guages[key] = append(instance.Guages[key], value)
+	instance.Gauges[key] = append(instance.Gauges[key], value)
 }
 
-func (instance *AggregatorSnapShot) updateGuages(output AggregatorSnapShot) {
-	for key, value := range output.Guages {
-		instance.updateGuage(key, value[len(value)-1])
+func (instance *AggregatorSnapShot) updateGauges(output AggregatorSnapShot) {
+	for key, value := range output.Gauges {
+		instance.updateGauge(key, value[len(value)-1])
 	}
 }
 
@@ -146,7 +146,7 @@ func (instance *AggregatorSnapShot) updateTime(value int64) {
 //Update ...
 func (instance *AggregatorSnapShot) Update(output AggregatorSnapShot) {
 	instance.updateCounters(output)
-	instance.updateGuages(output)
+	instance.updateGauges(output)
 	instance.updateHistograms(output)
 	instance.updateMeters(output)
 	instance.updateTimers(output)
@@ -277,7 +277,7 @@ func (instance *Aggregator) Snapshot() AggregatorSnapShot {
 	return AggregatorSnapShot{
 		Times:      instance.times,
 		Counters:   instance.counters,
-		Guages:     instance.gauges,
+		Gauges:     instance.gauges,
 		Histograms: instance.histograms,
 		Meters:     instance.meters,
 		Timers:     instance.timers,

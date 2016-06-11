@@ -26,4 +26,5 @@ var _ = FDescribe("AggregatorSnapShot", func() {
 		Expect(targetSnapShot.Times[0]).To(Equal(subjectSnapShot.Times[0]))
 
 	})
+
 })

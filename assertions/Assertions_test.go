@@ -117,6 +117,7 @@ var _ = FDescribe("Assertions", func() {
 				NewAsssertionTestCase(int(3), int(6)),
 				NewAsssertionTestCase("5.1", int(6)),
 				NewAsssertionTestCase("fubar", int(6)),
+				NewAsssertionTestCase("fubar", float64(1.1)),
 			}
 
 			assert(testCases, func(actualValue interface{}, instanceValue interface{}) {
@@ -134,10 +135,6 @@ var _ = FDescribe("Assertions", func() {
 				Expect(result["message"]).To(Equal(fmt.Sprintf("FAIL: %v is not greater %v", actualValue, instanceValue)))
 			})
 			/*
-				PIt("When Actual is string and Instance is int", func() {
-
-				})
-
 				PIt("When Actual is string and Instance is float64", func() {
 
 				})

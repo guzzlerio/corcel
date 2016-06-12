@@ -106,6 +106,15 @@ AssertionFailures:
 
 In the summary file?  What would it look like and how would it be tracked?
 
-
 Also need to think about the summary so these can be compared.
 
+## Notes on Assertion Types
+
+The following are the rules which I have followed and here is an example using the Greater Than mathemtical operator.  The other operators will have similar rules but changed to match how they should operate.
+
+-    Something is greater than nil
+-    nil is NOT greater than nil
+-    nil is NOT greater than Something
+-    string which is not a number is NOT greater than any number
+-    number is NOT greater than a string which is not a number
+-    Attempts will first be made to parse strings into a float64

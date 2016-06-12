@@ -92,6 +92,9 @@ func (instance *GreaterThanAssertion) Assert(executionResult core.ExecutionResul
 		default:
 			result["result"] = true
 		}
+	default:
+		result["result"] = false
+
 	}
 
 	if result["result"].(bool) == false {

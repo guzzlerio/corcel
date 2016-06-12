@@ -16,7 +16,7 @@ type AssertionTestCase struct {
 	InstanceStringNumber bool
 }
 
-func NewATC(actual interface{}, instance interface{}) (newInstance AssertionTestCase) {
+func NewAsssertionTestCase(actual interface{}, instance interface{}) (newInstance AssertionTestCase) {
 	newInstance.Actual = actual
 	newInstance.Instance = instance
 	switch actualType := actual.(type) {
@@ -65,24 +65,25 @@ var _ = FDescribe("Assertions", func() {
 	     When Actual is of type int and Instance is of type string. Instance value is a STRING NUMBER
 	*/
 
+	var nilValue interface{}
+
 	FContext("Greater Than", func() {
 
-		FContext("Succeeds", func() {
-			var nilValue interface{}
+		Context("Succeeds", func() {
 			var testCases = []AssertionTestCase{
-				NewATC(float64(1.1), nilValue),
-				NewATC(int(1), nilValue),
-				NewATC("1", nilValue),
-				NewATC("a", nilValue),
-				NewATC(float64(5), float64(1)),
-				NewATC(int(5), float64(1)),
-				NewATC("2.2", float64(1)),
-				NewATC(int(5), int(1)),
-				NewATC("5", int(1)),
-				NewATC("abc", "a"),
-				NewATC(float64(1.3), "1.2"),
-				NewATC(int(3), "1"),
-				NewATC("3.1", "2"),
+				NewAsssertionTestCase(float64(1.1), nilValue),
+				NewAsssertionTestCase(int(1), nilValue),
+				NewAsssertionTestCase("1", nilValue),
+				NewAsssertionTestCase("a", nilValue),
+				NewAsssertionTestCase(float64(5), float64(1)),
+				NewAsssertionTestCase(int(5), float64(1)),
+				NewAsssertionTestCase("2.2", float64(1)),
+				NewAsssertionTestCase(int(5), int(1)),
+				NewAsssertionTestCase("5", int(1)),
+				NewAsssertionTestCase("abc", "a"),
+				NewAsssertionTestCase(float64(1.3), "1.2"),
+				NewAsssertionTestCase(int(3), "1"),
+				NewAsssertionTestCase("3.1", "2"),
 			}
 
 			assert(testCases, func(actualValue interface{}, instanceValue interface{}) {
@@ -102,102 +103,102 @@ var _ = FDescribe("Assertions", func() {
 			})
 		})
 
-		Context("Fails", func() {
-			//key := "some:key"
+		FContext("Fails", func() {
+			var testCases = []AssertionTestCase{
+				NewAsssertionTestCase(nilValue, nilValue),
+			}
 
-			/*
-				assertFalseResult := func(actualValue interface{}, instanceValue interface{}) {
-					executionResult := core.ExecutionResult{
-						key: actualValue,
-					}
-
-					assertion := GreaterThanAssertion{
-						Key:   key,
-						Value: instanceValue,
-					}
-
-					result := assertion.Assert(executionResult)
-					Expect(result["result"]).To(Equal(false))
-					Expect(result["message"]).To(Equal(fmt.Sprintf("FAIL: %v is not greater %v", actualValue, instanceValue)))
+			assert(testCases, func(actualValue interface{}, instanceValue interface{}) {
+				executionResult := core.ExecutionResult{
+					key: actualValue,
 				}
+
+				assertion := GreaterThanAssertion{
+					Key:   key,
+					Value: instanceValue,
+				}
+
+				result := assertion.Assert(executionResult)
+				Expect(result["result"]).To(Equal(false))
+				Expect(result["message"]).To(Equal(fmt.Sprintf("FAIL: %v is not greater %v", actualValue, instanceValue)))
+			})
+			/*
+				PIt("When Actual is nil and Instance is nil", func() {
+
+				})
+
+				PIt("When Actual is nil and Instance is int", func() {
+
+				})
+
+				PIt("When Actual is nil and Instance is string-number", func() {
+
+				})
+
+				PIt("When Actual is nil and Instance is string", func() {
+
+				})
+
+				PIt("When Actual is nil and Instance is float64", func() {
+
+				})
+
+				PIt("When Actual is float64 and Instance is float64", func() {
+
+				})
+
+				PIt("When Actual is int and Instance is float64", func() {
+
+				})
+
+				PIt("When Actual is string-number and Instance is float64", func() {
+
+				})
+
+				PIt("When Actual is float64 and Instance is int", func() {
+
+				})
+
+				PIt("When Actual is float64 and Instance is int", func() {
+
+				})
+
+				PIt("When Actual is int and Instance is int", func() {
+
+				})
+
+				PIt("When Actual is string-number and Instance is int", func() {
+
+				})
+
+				PIt("When Actual is string and Instance is int", func() {
+
+				})
+
+				PIt("When Actual is string and Instance is float64", func() {
+
+				})
+
+				PIt("When Actual is string and Instance is string-number", func() {
+
+				})
+
+				PIt("When Actual is string and Instance is string", func() {
+
+				})
+
+				PIt("When Actual is float64 and Instance is string", func() {
+
+				})
+
+				PIt("When Actual is int and Instance is string", func() {
+
+				})
+
+				PIt("When Actual string-number int and Instance is string", func() {
+
+				})
 			*/
-
-			PIt("When Actual is nil and Instance is nil", func() {
-
-			})
-
-			PIt("When Actual is nil and Instance is int", func() {
-
-			})
-
-			PIt("When Actual is nil and Instance is string-number", func() {
-
-			})
-
-			PIt("When Actual is nil and Instance is string", func() {
-
-			})
-
-			PIt("When Actual is nil and Instance is float64", func() {
-
-			})
-
-			PIt("When Actual is float64 and Instance is float64", func() {
-
-			})
-
-			PIt("When Actual is int and Instance is float64", func() {
-
-			})
-
-			PIt("When Actual is string-number and Instance is float64", func() {
-
-			})
-
-			PIt("When Actual is float64 and Instance is int", func() {
-
-			})
-
-			PIt("When Actual is float64 and Instance is int", func() {
-
-			})
-
-			PIt("When Actual is int and Instance is int", func() {
-
-			})
-
-			PIt("When Actual is string-number and Instance is int", func() {
-
-			})
-
-			PIt("When Actual is string and Instance is int", func() {
-
-			})
-
-			PIt("When Actual is string and Instance is float64", func() {
-
-			})
-
-			PIt("When Actual is string and Instance is string-number", func() {
-
-			})
-
-			PIt("When Actual is string and Instance is string", func() {
-
-			})
-
-			PIt("When Actual is float64 and Instance is string", func() {
-
-			})
-
-			PIt("When Actual is int and Instance is string", func() {
-
-			})
-
-			PIt("When Actual string-number int and Instance is string", func() {
-
-			})
-
 		})
 
 	})

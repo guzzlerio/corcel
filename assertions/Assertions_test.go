@@ -132,8 +132,22 @@ var _ = FDescribe("Assertions", func() {
 				Expect(result["message"]).To(BeNil())
 			})
 
-			PIt("When Actual is int and Instance is float64", func() {
+			It("When Actual is int and Instance is float64", func() {
+				actualValue := 5
+				instanceValue := float64(1)
 
+				executionResult := core.ExecutionResult{
+					key: actualValue,
+				}
+
+				assertion := GreaterThanAssertion{
+					Key:   key,
+					Value: instanceValue,
+				}
+
+				result := assertion.Assert(executionResult)
+				Expect(result["result"]).To(Equal(true))
+				Expect(result["message"]).To(BeNil())
 			})
 
 			PIt("When Actual is string-number and Instance is float64", func() {

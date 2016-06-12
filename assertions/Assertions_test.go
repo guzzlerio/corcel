@@ -36,7 +36,7 @@ func NewAsssertionTestCase(actual interface{}, instance interface{}) (newInstanc
 	return
 }
 
-var _ = FDescribe("Assertions", func() {
+var _ = Describe("Assertions", func() {
 
 	key := "some:key"
 
@@ -67,7 +67,7 @@ var _ = FDescribe("Assertions", func() {
 
 	var nilValue interface{}
 
-	FContext("Greater Than", func() {
+	Context("Greater Than", func() {
 
 		Context("Succeeds", func() {
 			var testCases = []AssertionTestCase{
@@ -103,7 +103,7 @@ var _ = FDescribe("Assertions", func() {
 			})
 		})
 
-		FContext("Fails", func() {
+		Context("Fails", func() {
 			var testCases = []AssertionTestCase{
 				NewAsssertionTestCase(nilValue, nilValue),
 				NewAsssertionTestCase(nilValue, int(5)),
@@ -138,15 +138,6 @@ var _ = FDescribe("Assertions", func() {
 				Expect(result["result"]).To(Equal(false))
 				Expect(result["message"]).To(Equal(fmt.Sprintf("FAIL: %v is not greater %v", actualValue, instanceValue)))
 			})
-			/*
-				PIt("When Actual is int and Instance is string", func() {
-
-				})
-
-				PIt("When Actual string-number int and Instance is string", func() {
-
-				})
-			*/
 		})
 
 	})
@@ -224,23 +215,25 @@ var _ = FDescribe("Assertions", func() {
 		//is that say the actual value was a string "7" and the expected is an int 7.  The message
 		//will not include the quotes so the message would read 7 does not equal 7 as opposed
 		//to "7" does not equal 7.  Notice this is a type mismatch
-		PIt("Exact Assertion Fails when actual and expected are different types", func() {
-			key := "some:key"
-			expectedValue := 7
+		/*
+			PIt("Exact Assertion Fails when actual and expected are different types", func() {
+				key := "some:key"
+				expectedValue := 7
 
-			executionResult := core.ExecutionResult{
-				key: "7",
-			}
+				executionResult := core.ExecutionResult{
+					key: "7",
+				}
 
-			assertion := ExactAssertion{
-				Key:   key,
-				Value: expectedValue,
-			}
+				assertion := ExactAssertion{
+					Key:   key,
+					Value: expectedValue,
+				}
 
-			result := assertion.Assert(executionResult)
-			Expect(result["result"]).To(Equal(false))
-			Expect(result["message"]).To(Equal("FAIL: \"7\" does not match 7"))
-		})
+				result := assertion.Assert(executionResult)
+				Expect(result["result"]).To(Equal(false))
+				Expect(result["message"]).To(Equal("FAIL: \"7\" does not match 7"))
+			})
+		*/
 	})
 
 })

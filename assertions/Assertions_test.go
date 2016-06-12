@@ -1,10 +1,40 @@
 package assertions
 
 import (
+	"fmt"
+	"strconv"
+
 	"ci.guzzler.io/guzzler/corcel/core"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
+
+type ATC struct {
+	Actual               interface{}
+	Instance             interface{}
+	ActualStringNumber   bool
+	InstanceStringNumber bool
+}
+
+func NewATC(actual interface{}, instance interface{}) (newInstance ATC) {
+	newInstance.Actual = actual
+	newInstance.Instance = instance
+	switch actualType := actual.(type) {
+	case string:
+		_, err := strconv.ParseFloat(actualType, 64)
+		if err == nil {
+			newInstance.ActualStringNumber = true
+		}
+	}
+	switch instanceType := instance.(type) {
+	case string:
+		_, err := strconv.ParseFloat(instanceType, 64)
+		if err == nil {
+			newInstance.InstanceStringNumber = true
+		}
+	}
+	return
+}
 
 var _ = FDescribe("Assertions", func() {
 
@@ -42,10 +72,7 @@ var _ = FDescribe("Assertions", func() {
 
 			key := "some:key"
 
-			It("When Actual is float64 and Instance is nil", func() {
-				actualValue := float64(1.1)
-				var instanceValue struct{}
-
+			assertTrueResult := func(actualValue interface{}, instanceValue interface{}) {
 				executionResult := core.ExecutionResult{
 					key: actualValue,
 				}
@@ -58,97 +85,32 @@ var _ = FDescribe("Assertions", func() {
 				result := assertion.Assert(executionResult)
 				Expect(result["result"]).To(Equal(true))
 				Expect(result["message"]).To(BeNil())
-			})
+			}
 
-			It("When Actual is int and Instance is nil", func() {
-				actualValue := 1
-				var instanceValue struct{}
+			var nilValue interface{}
+			var successfulAssertionTestCases = []ATC{
+				NewATC(float64(1.1), nilValue),
+				NewATC(int(1), nilValue),
+				NewATC("1", nilValue),
+				NewATC("a", nilValue),
+				NewATC(float64(5), float64(1)),
+				NewATC(int(5), float64(1)),
+			}
 
-				executionResult := core.ExecutionResult{
-					key: actualValue,
+			for _, successCase := range successfulAssertionTestCases {
+				actualValue := successCase.Actual
+				instanceValue := successCase.Instance
+				testName := fmt.Sprintf("ACTUAL > INSTANCE when Actual is of type %T and Instance is of type %T", actualValue, instanceValue)
+				if successCase.ActualStringNumber {
+					testName = fmt.Sprintf("%s. Actual value is a STRING NUMBER", testName)
 				}
-
-				assertion := GreaterThanAssertion{
-					Key:   key,
-					Value: instanceValue,
+				if successCase.InstanceStringNumber {
+					testName = fmt.Sprintf("%s. Instance value is a STRING NUMBER", testName)
 				}
-
-				result := assertion.Assert(executionResult)
-				Expect(result["result"]).To(Equal(true))
-				Expect(result["message"]).To(BeNil())
-			})
-
-			It("When Actual is string-number and Instance is nil", func() {
-				actualValue := "1"
-				var instanceValue struct{}
-
-				executionResult := core.ExecutionResult{
-					key: actualValue,
-				}
-
-				assertion := GreaterThanAssertion{
-					Key:   key,
-					Value: instanceValue,
-				}
-
-				result := assertion.Assert(executionResult)
-				Expect(result["result"]).To(Equal(true))
-				Expect(result["message"]).To(BeNil())
-			})
-
-			It("When Actual is string and Instance is nil", func() {
-				actualValue := "a"
-				var instanceValue struct{}
-
-				executionResult := core.ExecutionResult{
-					key: actualValue,
-				}
-
-				assertion := GreaterThanAssertion{
-					Key:   key,
-					Value: instanceValue,
-				}
-
-				result := assertion.Assert(executionResult)
-				Expect(result["result"]).To(Equal(true))
-				Expect(result["message"]).To(BeNil())
-			})
-
-			It("When Actual is float64 and Instance is float64", func() {
-				actualValue := float64(5)
-				instanceValue := float64(1)
-
-				executionResult := core.ExecutionResult{
-					key: actualValue,
-				}
-
-				assertion := GreaterThanAssertion{
-					Key:   key,
-					Value: instanceValue,
-				}
-
-				result := assertion.Assert(executionResult)
-				Expect(result["result"]).To(Equal(true))
-				Expect(result["message"]).To(BeNil())
-			})
-
-			It("When Actual is int and Instance is float64", func() {
-				actualValue := 5
-				instanceValue := float64(1)
-
-				executionResult := core.ExecutionResult{
-					key: actualValue,
-				}
-
-				assertion := GreaterThanAssertion{
-					Key:   key,
-					Value: instanceValue,
-				}
-
-				result := assertion.Assert(executionResult)
-				Expect(result["result"]).To(Equal(true))
-				Expect(result["message"]).To(BeNil())
-			})
+				It(testName, func() {
+					assertTrueResult(actualValue, instanceValue)
+				})
+			}
 
 			PIt("When Actual is string-number and Instance is float64", func() {
 

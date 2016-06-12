@@ -95,6 +95,7 @@ var _ = FDescribe("Assertions", func() {
 				NewATC("a", nilValue),
 				NewATC(float64(5), float64(1)),
 				NewATC(int(5), float64(1)),
+				NewATC("2.2", float64(1)),
 			}
 
 			for _, successCase := range successfulAssertionTestCases {
@@ -107,7 +108,7 @@ var _ = FDescribe("Assertions", func() {
 				if successCase.InstanceStringNumber {
 					testName = fmt.Sprintf("%s. Instance value is a STRING NUMBER", testName)
 				}
-				It(testName, func() {
+				FIt(testName, func() {
 					assertTrueResult(actualValue, instanceValue)
 				})
 			}

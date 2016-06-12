@@ -7,18 +7,18 @@ import (
 	"ci.guzzler.io/guzzler/corcel/core"
 )
 
-//GreaterThanAssertion ...
-type GreaterThanAssertion struct {
+//GreaterThanOrEqualAssertion ...
+type GreaterThanOrEqualAssertion struct {
 	Key   string
 	Value interface{}
 }
 
-func (instance *GreaterThanAssertion) resultKey() string {
-	return fmt.Sprintf("assert:gt:%v:%v", instance.Key, instance.Value)
+func (instance *GreaterThanOrEqualAssertion) resultKey() string {
+	return fmt.Sprintf("assert:gte:%v:%v", instance.Key, instance.Value)
 }
 
 //Assert ...
-func (instance *GreaterThanAssertion) Assert(executionResult core.ExecutionResult) core.AssertionResult {
+func (instance *GreaterThanOrEqualAssertion) Assert(executionResult core.ExecutionResult) core.AssertionResult {
 	actual := executionResult[instance.Key]
 
 	result := map[string]interface{}{
@@ -34,17 +34,17 @@ func (instance *GreaterThanAssertion) Assert(executionResult core.ExecutionResul
 	case float64:
 		switch instanceType := instance.Value.(type) {
 		case float64:
-			result["result"] = actualType > instanceType
+			result["result"] = actualType >= instanceType
 			break
 		case int:
-			result["result"] = actualType > float64(instanceType)
+			result["result"] = actualType >= float64(instanceType)
 			break
 		case string:
 			value, err := strconv.ParseFloat(instanceType, 64)
 			if err != nil {
 				result["result"] = false
 			} else {
-				result["result"] = actualType > value
+				result["result"] = actualType >= value
 			}
 		default:
 			result["result"] = true
@@ -52,15 +52,15 @@ func (instance *GreaterThanAssertion) Assert(executionResult core.ExecutionResul
 	case int:
 		switch instanceType := instance.Value.(type) {
 		case float64:
-			result["result"] = float64(actualType) > instanceType
+			result["result"] = float64(actualType) >= instanceType
 		case int:
-			result["result"] = actualType > instanceType
+			result["result"] = actualType >= instanceType
 		case string:
 			value, err := strconv.ParseFloat(instanceType, 64)
 			if err != nil {
 				result["result"] = false
 			} else {
-				result["result"] = float64(actualType) > value
+				result["result"] = float64(actualType) >= value
 			}
 		default:
 			result["result"] = true
@@ -72,22 +72,22 @@ func (instance *GreaterThanAssertion) Assert(executionResult core.ExecutionResul
 			if err != nil {
 				result["result"] = false
 			} else {
-				result["result"] = value > instanceType
+				result["result"] = value >= instanceType
 			}
 		case int:
 			value, err := strconv.ParseFloat(actualType, 64)
 			if err != nil {
 				result["result"] = false
 			} else {
-				result["result"] = value > float64(instanceType)
+				result["result"] = value >= float64(instanceType)
 			}
 		case string:
 			actualStrValue, actualStrErr := strconv.ParseFloat(actualType, 64)
 			instanceStrValue, instanceStrErr := strconv.ParseFloat(instanceType, 64)
 			if actualStrErr != nil && instanceStrErr != nil {
-				result["result"] = actualType > instanceType
+				result["result"] = actualType >= instanceType
 			} else {
-				result["result"] = actualStrValue > instanceStrValue
+				result["result"] = actualStrValue >= instanceStrValue
 			}
 		default:
 			result["result"] = true

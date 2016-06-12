@@ -9,14 +9,14 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-type ATC struct {
+type AssertionTestCase struct {
 	Actual               interface{}
 	Instance             interface{}
 	ActualStringNumber   bool
 	InstanceStringNumber bool
 }
 
-func NewATC(actual interface{}, instance interface{}) (newInstance ATC) {
+func NewATC(actual interface{}, instance interface{}) (newInstance AssertionTestCase) {
 	newInstance.Actual = actual
 	newInstance.Instance = instance
 	switch actualType := actual.(type) {
@@ -40,55 +40,36 @@ var _ = FDescribe("Assertions", func() {
 
 	key := "some:key"
 
-	Context("Greater Than Assertion", func() {
+	assert := func(testCases []AssertionTestCase, test func(actual interface{}, instance interface{})) {
 
-		/*
-					   Test Required
-					                            INSTANCE
-
-			                                 nil      float64    int    string-number   string
-					             ACTUAL
-
-					             float64         x          x          x          x           √
-
-					             int             x          x          x          x           √
-
-					             string-number   x          x          x          x           √
-
-					             string          x          x          x          x           x
-
-					             nil             x          x          x          x           x
-
-		*/
-
-		//To set further context I am making the following assumption
-		//Something is greater than nil
-		//nil is NOT greater than nil
-		//nil is NOT greater than Something
-		//string which is not a number is NOT greater than any number
-		//number is NOT greater than a string which is not a number
-		//Attempts will first be made to parse strings into a float64
-		Context("Succeeds", func() {
-
-			key := "some:key"
-
-			assertTrueResult := func(actualValue interface{}, instanceValue interface{}) {
-				executionResult := core.ExecutionResult{
-					key: actualValue,
-				}
-
-				assertion := GreaterThanAssertion{
-					Key:   key,
-					Value: instanceValue,
-				}
-
-				result := assertion.Assert(executionResult)
-				Expect(result["result"]).To(Equal(true))
-				Expect(result["message"]).To(BeNil())
+		for _, testCase := range testCases {
+			actualValue := testCase.Actual
+			instanceValue := testCase.Instance
+			testName := fmt.Sprintf("When Actual is of type %T and Instance is of type %T", actualValue, instanceValue)
+			if testCase.ActualStringNumber {
+				testName = fmt.Sprintf("%s. Actual value is a STRING NUMBER in this case", testName)
 			}
+			if testCase.InstanceStringNumber {
+				testName = fmt.Sprintf("%s. Instance value is a STRING NUMBER in this case", testName)
+			}
+			It(testName, func() {
+				test(actualValue, instanceValue)
+			})
+		}
+	}
 
+	/*
+	   Using this test function and the test cases we get a nice readable output.  If you run ginkgo -v here is an example of the output
+
+	   Assertions Greater Than Succeeds
+	     When Actual is of type int and Instance is of type string. Instance value is a STRING NUMBER
+	*/
+
+	FContext("Greater Than", func() {
+
+		FContext("Succeeds", func() {
 			var nilValue interface{}
-			var successfulAssertionTestCases = []ATC{
+			var testCases = []AssertionTestCase{
 				NewATC(float64(1.1), nilValue),
 				NewATC(int(1), nilValue),
 				NewATC("1", nilValue),
@@ -104,23 +85,43 @@ var _ = FDescribe("Assertions", func() {
 				NewATC("3.1", "2"),
 			}
 
-			for _, successCase := range successfulAssertionTestCases {
-				actualValue := successCase.Actual
-				instanceValue := successCase.Instance
-				testName := fmt.Sprintf("ACTUAL > INSTANCE when Actual is of type %T and Instance is of type %T", actualValue, instanceValue)
-				if successCase.ActualStringNumber {
-					testName = fmt.Sprintf("%s. Actual value is a STRING NUMBER", testName)
+			assert(testCases, func(actualValue interface{}, instanceValue interface{}) {
+				key := "some:key"
+				executionResult := core.ExecutionResult{
+					key: actualValue,
 				}
-				if successCase.InstanceStringNumber {
-					testName = fmt.Sprintf("%s. Instance value is a STRING NUMBER", testName)
+
+				assertion := GreaterThanAssertion{
+					Key:   key,
+					Value: instanceValue,
 				}
-				FIt(testName, func() {
-					assertTrueResult(actualValue, instanceValue)
-				})
-			}
+
+				result := assertion.Assert(executionResult)
+				Expect(result["result"]).To(Equal(true))
+				Expect(result["message"]).To(BeNil())
+			})
 		})
 
 		Context("Fails", func() {
+			//key := "some:key"
+
+			/*
+				assertFalseResult := func(actualValue interface{}, instanceValue interface{}) {
+					executionResult := core.ExecutionResult{
+						key: actualValue,
+					}
+
+					assertion := GreaterThanAssertion{
+						Key:   key,
+						Value: instanceValue,
+					}
+
+					result := assertion.Assert(executionResult)
+					Expect(result["result"]).To(Equal(false))
+					Expect(result["message"]).To(Equal(fmt.Sprintf("FAIL: %v is not greater %v", actualValue, instanceValue)))
+				}
+			*/
+
 			PIt("When Actual is nil and Instance is nil", func() {
 
 			})

@@ -118,3 +118,23 @@ The following are the rules which I have followed and here is an example using t
 -    string which is not a number is NOT greater than any number
 -    number is NOT greater than a string which is not a number
 -    Attempts will first be made to parse strings into a float64
+
+```
+Test Required
+
+               INSTANCE
+               =======================================================
+ ACTUAL        |    nil   |  float64  |  int  | string-number | string
+======================================================================
+ float64       |     x    |     x     |   x   |       x       |    x
+======================================================================
+ int           |     x    |     x     |   x   |       x       |    x
+======================================================================
+ string-number |     x    |     x     |   x   |       x       |    x
+======================================================================
+ string        |     x    |     x     |   x   |       x       |    x
+======================================================================
+ nil           |     x    |     x     |   x   |       x       |    x
+
+
+```

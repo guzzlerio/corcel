@@ -100,6 +100,7 @@ var _ = FDescribe("Assertions", func() {
 				NewATC("5", int(1)),
 				NewATC("abc", "a"),
 				NewATC(float64(1.3), "1.2"),
+				NewATC(int(3), "1"),
 			}
 
 			for _, successCase := range successfulAssertionTestCases {
@@ -116,10 +117,6 @@ var _ = FDescribe("Assertions", func() {
 					assertTrueResult(actualValue, instanceValue)
 				})
 			}
-
-			PIt("When Actual is float64 and Instance is string-number", func() {
-
-			})
 
 			PIt("When Actual is int and Instance is string-number", func() {
 

@@ -62,6 +62,8 @@ func (instance *GreaterThanAssertion) Assert(executionResult core.ExecutionResul
 			} else {
 				result["result"] = float64(actualType) > value
 			}
+		default:
+			result["result"] = true
 		}
 	case string:
 		switch instanceType := instance.Value.(type) {
@@ -87,6 +89,8 @@ func (instance *GreaterThanAssertion) Assert(executionResult core.ExecutionResul
 			} else {
 				result["result"] = actualStrValue > instanceStrValue
 			}
+		default:
+			result["result"] = true
 		}
 	}
 

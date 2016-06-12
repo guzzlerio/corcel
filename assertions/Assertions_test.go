@@ -40,9 +40,10 @@ var _ = FDescribe("Assertions", func() {
 		//Attempts will first be made to parse strings into a float64
 		Context("Succeeds", func() {
 
+			key := "some:key"
+
 			It("When Actual is float64 and Instance is nil", func() {
-				key := "some:key"
-				actualValue := 1.1
+				actualValue := float64(1.1)
 				var instanceValue struct{}
 
 				executionResult := core.ExecutionResult{
@@ -59,8 +60,22 @@ var _ = FDescribe("Assertions", func() {
 				Expect(result["message"]).To(BeNil())
 			})
 
-			PIt("When Actual is int and Instance is nil", func() {
+			It("When Actual is int and Instance is nil", func() {
+				actualValue := 1
+				var instanceValue struct{}
 
+				executionResult := core.ExecutionResult{
+					key: actualValue,
+				}
+
+				assertion := GreaterThanAssertion{
+					Key:   key,
+					Value: instanceValue,
+				}
+
+				result := assertion.Assert(executionResult)
+				Expect(result["result"]).To(Equal(true))
+				Expect(result["message"]).To(BeNil())
 			})
 
 			PIt("When Actual is string-number and Instance is nil", func() {

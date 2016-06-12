@@ -98,6 +98,7 @@ var _ = FDescribe("Assertions", func() {
 				NewATC("2.2", float64(1)),
 				NewATC(int(5), int(1)),
 				NewATC("5", int(1)),
+				NewATC("abc", "a"),
 			}
 
 			for _, successCase := range successfulAssertionTestCases {

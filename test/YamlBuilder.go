@@ -72,6 +72,15 @@ func (instance YamlPlanBuilder) GreaterThanOrEqualAssertion(key string, expected
 	}
 }
 
+//LessThanAssertion ...
+func (instance YamlPlanBuilder) LessThanAssertion(key string, expected interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"type":     "LessThanAssertion",
+		"key":      key,
+		"expected": expected,
+	}
+}
+
 //DummyAction ...
 func (instance YamlPlanBuilder) DummyAction() DummyActionBuilder {
 	return DummyActionBuilder{

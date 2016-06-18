@@ -75,6 +75,9 @@ func main() {
 
 	logger.ConfigureLogging(configuration)
 
+	//TODO: This is not as efficient as it could be for example:
+	//Ideally we would only add the HTTP result processor IF an HTTP Action was used
+	//Currently every result processor needs to be added.
 	registry := core.CreateRegistry().
 		AddActionParser(inproc.YamlDummyActionParser{}).
 		AddActionParser(http.YamlHTTPRequestParser{}).
@@ -82,6 +85,7 @@ func main() {
 		AddAssertionParser(yaml.EmptyAssertionParser{}).
 		AddAssertionParser(yaml.GreaterThanAssertionParser{}).
 		AddAssertionParser(yaml.GreaterThanOrEqualAssertionParser{}).
+		AddAssertionParser(yaml.LessThanAssertionParser{}).
 		AddResultProcessor(http.NewHTTPExecutionResultProcessor()).
 		AddResultProcessor(inproc.NewGeneralExecutionResultProcessor())
 

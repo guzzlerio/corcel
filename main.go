@@ -8,9 +8,8 @@ import (
 	"path/filepath"
 
 	"github.com/dustin/go-humanize"
-	"gopkg.in/yaml.v2"
+	yamlv2 "gopkg.in/yaml.v2"
 
-	"ci.guzzler.io/guzzler/corcel/assertions/parsers"
 	"ci.guzzler.io/guzzler/corcel/cmd"
 	"ci.guzzler.io/guzzler/corcel/config"
 	"ci.guzzler.io/guzzler/corcel/core"
@@ -18,6 +17,7 @@ import (
 	"ci.guzzler.io/guzzler/corcel/infrastructure/http"
 	"ci.guzzler.io/guzzler/corcel/infrastructure/inproc"
 	"ci.guzzler.io/guzzler/corcel/logger"
+	"ci.guzzler.io/guzzler/corcel/serialisation/yaml"
 	"ci.guzzler.io/guzzler/corcel/statistics"
 )
 
@@ -31,7 +31,7 @@ func check(err error) {
 func GenerateExecutionOutput(file string, output statistics.AggregatorSnapShot) {
 	outputPath, err := filepath.Abs(file)
 	check(err)
-	yamlOutput, err := yaml.Marshal(&output)
+	yamlOutput, err := yamlv2.Marshal(&output)
 	check(err)
 	err = ioutil.WriteFile(outputPath, yamlOutput, 0644)
 	check(err)
@@ -52,14 +52,14 @@ func AddExecutionToHistory(file string, output statistics.AggregatorSnapShot) {
 		if dataErr != nil {
 			panic(dataErr)
 		}
-		yamlErr := yaml.Unmarshal(data, &summary)
+		yamlErr := yamlv2.Unmarshal(data, &summary)
 		if yamlErr != nil {
 			panic(yamlErr)
 		}
 	}
 	summary.Update(output)
 
-	yamlOutput, err := yaml.Marshal(&summary)
+	yamlOutput, err := yamlv2.Marshal(&summary)
 	check(err)
 	err = ioutil.WriteFile(outputPath, yamlOutput, 0644)
 	check(err)
@@ -78,7 +78,8 @@ func main() {
 	registry := core.CreateRegistry().
 		AddActionParser(inproc.YamlDummyActionParser{}).
 		AddActionParser(http.YamlHTTPRequestParser{}).
-		AddAssertionParser(parsers.YamlExactAssertionParser{}).
+		AddAssertionParser(yaml.YamlExactAssertionParser{}).
+		AddAssertionParser(yaml.YamlEmptyAssertionParser{}).
 		AddResultProcessor(http.NewHTTPExecutionResultProcessor()).
 		AddResultProcessor(inproc.NewGeneralExecutionResultProcessor())
 

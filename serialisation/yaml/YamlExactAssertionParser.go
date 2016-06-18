@@ -1,4 +1,4 @@
-package parsers
+package yaml
 
 import (
 	"ci.guzzler.io/guzzler/corcel/assertions"

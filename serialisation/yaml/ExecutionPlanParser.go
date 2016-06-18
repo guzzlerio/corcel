@@ -61,7 +61,7 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 				if parser := instance.ExecutionAssertionParsers[assertionType]; parser != nil {
 					step.Assertions = append(step.Assertions, parser.Parse(yamlAssertion))
 				} else {
-					panic(fmt.Sprintf("No parser configured for action %s", actionType))
+					panic(fmt.Sprintf("No parser configured for assertion %s", assertionType))
 				}
 			}
 

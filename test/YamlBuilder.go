@@ -46,6 +46,14 @@ func (instance YamlPlanBuilder) ExactAssertion(key string, expected interface{})
 	}
 }
 
+//EmptyAssertion ...
+func (instance YamlPlanBuilder) EmptyAssertion(key string) map[string]interface{} {
+	return map[string]interface{}{
+		"type": "EmptyAssertion",
+		"key":  key,
+	}
+}
+
 //DummyAction ...
 func (instance YamlPlanBuilder) DummyAction() DummyActionBuilder {
 	return DummyActionBuilder{

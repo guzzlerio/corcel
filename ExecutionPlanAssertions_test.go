@@ -8,12 +8,11 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("ExecutionPlan Assertions", func() {
+var _ = FDescribe("ExecutionPlan Assertions", func() {
 
 	Context("ExactAssertion", func() {
 
 		It("Succeeds", func() {
-
 			planBuilder := test.NewYamlPlanBuilder()
 
 			planBuilder.
@@ -52,19 +51,35 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 		})
 
 	})
-	/*
 
-		Context("EmptyAssertion", func() {
+	Context("EmptyAssertion", func() {
 
-			It("Succeeds", func() {
+		It("Succeeds", func() {
+			planBuilder := test.NewYamlPlanBuilder()
 
-			})
+			planBuilder.
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Set("value:1", "").Build()).
+				WithAssertion(planBuilder.EmptyAssertion("value:1"))
 
-			It("Fails", func() {
+			err := ExecutePlanBuilder(planBuilder)
+			Expect(err).To(BeNil())
 
-			})
+			var executionOutput statistics.AggregatorSnapShot
+			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var summary = statistics.CreateSummary(executionOutput)
+
+			Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 
 		})
+
+		It("Fails", func() {
+
+		})
+
+	})
+	/*
 
 		Context("GreaterThanAssertion", func() {
 

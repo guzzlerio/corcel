@@ -10,9 +10,13 @@ import (
 	"github.com/dustin/go-humanize"
 	"gopkg.in/yaml.v2"
 
+	"ci.guzzler.io/guzzler/corcel/assertions/parsers"
 	"ci.guzzler.io/guzzler/corcel/cmd"
 	"ci.guzzler.io/guzzler/corcel/config"
+	"ci.guzzler.io/guzzler/corcel/core"
 	"ci.guzzler.io/guzzler/corcel/errormanager"
+	"ci.guzzler.io/guzzler/corcel/infrastructure/http"
+	"ci.guzzler.io/guzzler/corcel/infrastructure/inproc"
 	"ci.guzzler.io/guzzler/corcel/logger"
 	"ci.guzzler.io/guzzler/corcel/statistics"
 )
@@ -71,10 +75,17 @@ func main() {
 
 	logger.ConfigureLogging(configuration)
 
+	registry := core.CreateRegistry().
+		AddActionParser(inproc.YamlDummyActionParser{}).
+		AddActionParser(http.YamlHTTPRequestParser{}).
+		AddAssertionParser(parsers.YamlExactAssertionParser{}).
+		AddResultProcessor(http.NewHTTPExecutionResultProcessor()).
+		AddResultProcessor(inproc.NewGeneralExecutionResultProcessor())
+
 	_, err = filepath.Abs(configuration.FilePath)
 	check(err)
 
-	host := cmd.NewConsoleHost(configuration)
+	host := cmd.NewConsoleHost(configuration, registry)
 	id, _ := host.Control.Start(configuration) //will this block?
 	output := host.Control.Stop(id)
 

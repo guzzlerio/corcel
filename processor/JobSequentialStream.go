@@ -1,15 +1,19 @@
 package processor
 
-import "math"
+import (
+	"math"
+
+	"ci.guzzler.io/guzzler/corcel/core"
+)
 
 //JobSequentialStream ...
 type JobSequentialStream struct {
-	items    []Job
+	items    []core.Job
 	position int
 }
 
 //CreateJobSequentialStream ...
-func CreateJobSequentialStream(items []Job) *JobSequentialStream {
+func CreateJobSequentialStream(items []core.Job) *JobSequentialStream {
 	return &JobSequentialStream{
 		items:    items,
 		position: 0,
@@ -22,7 +26,7 @@ func (instance *JobSequentialStream) HasNext() bool {
 }
 
 //Next ...
-func (instance *JobSequentialStream) Next() Job {
+func (instance *JobSequentialStream) Next() core.Job {
 	element := instance.items[instance.position]
 	instance.position++
 	return element

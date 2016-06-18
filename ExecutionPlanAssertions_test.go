@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = PDescribe("ExecutionPlan Assertions", func() {
+var _ = Describe("ExecutionPlan Assertions", func() {
 
 	Context("ExactAssertion", func() {
 
@@ -19,22 +19,36 @@ var _ = PDescribe("ExecutionPlan Assertions", func() {
 			planBuilder.
 				CreateJob().
 				CreateStep().
-				ToExecuteAction(map[string]interface{}{
-				"type": "DummyAction",
-				"results": map[string]string{
-					"value:1": "talula",
-				},
-			})
+				ToExecuteAction(planBuilder.DummyAction().Set("value:1", "talula").Build()).
+				WithAssertion(planBuilder.ExactAssertion("value:1", "talula"))
 
 			err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
 			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var summary = statistics.CreateSummary(executionOutput)
+
+			Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 		})
 
 		It("Fails", func() {
+			planBuilder := test.NewYamlPlanBuilder()
 
+			planBuilder.
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Set("value:1", 2).Build()).
+				WithAssertion(planBuilder.ExactAssertion("value:1", 1))
+
+			err := ExecutePlanBuilder(planBuilder)
+			Expect(err).To(BeNil())
+
+			var executionOutput statistics.AggregatorSnapShot
+			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var summary = statistics.CreateSummary(executionOutput)
+
+			Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
 		})
 
 	})

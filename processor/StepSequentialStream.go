@@ -1,15 +1,19 @@
 package processor
 
-import "math"
+import (
+	"math"
+
+	"ci.guzzler.io/guzzler/corcel/core"
+)
 
 //StepSequentialStream ...
 type StepSequentialStream struct {
-	items    []Step
+	items    []core.Step
 	position int
 }
 
 //CreateStepSequentialStream ...
-func CreateStepSequentialStream(items []Step) *StepSequentialStream {
+func CreateStepSequentialStream(items []core.Step) *StepSequentialStream {
 	return &StepSequentialStream{
 		items:    items,
 		position: 0,
@@ -22,7 +26,7 @@ func (instance *StepSequentialStream) HasNext() bool {
 }
 
 //Next ...
-func (instance *StepSequentialStream) Next() Step {
+func (instance *StepSequentialStream) Next() core.Step {
 	element := instance.items[instance.position]
 	instance.position++
 	return element

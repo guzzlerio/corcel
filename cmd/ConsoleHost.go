@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"ci.guzzler.io/guzzler/corcel/config"
+	"ci.guzzler.io/guzzler/corcel/core"
 	"ci.guzzler.io/guzzler/corcel/processor"
 )
 
@@ -18,10 +19,10 @@ func (host *ConsoleHost) SetControl(control processor.Control) {
 }
 
 // NewConsoleHost ...
-func NewConsoleHost(config *config.Configuration) ConsoleHost {
+func NewConsoleHost(config *config.Configuration, registry core.Registry) ConsoleHost {
 	host := ConsoleHost{}
 	bar := NewProgressBar(100, config)
-	control := processor.NewControl(bar)
+	control := processor.NewControl(bar, registry)
 	host.SetControl(control)
 	return host
 }

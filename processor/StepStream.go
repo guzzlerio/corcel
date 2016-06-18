@@ -3,6 +3,8 @@ package processor
 import (
 	"math/rand"
 	"time"
+
+	"ci.guzzler.io/guzzler/corcel/core"
 )
 
 var (
@@ -15,7 +17,7 @@ var (
 //StepStream ...
 type StepStream interface {
 	HasNext() bool
-	Next() Step
+	Next() core.Step
 	Reset()
 	Progress() int
 	Size() int

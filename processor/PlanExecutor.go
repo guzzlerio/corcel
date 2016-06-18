@@ -13,7 +13,7 @@ import (
 
 //ExecutionBranch ...
 type ExecutionBranch interface {
-	Execute(plan Plan) error
+	Execute(plan core.Plan) error
 }
 
 //PlanExecutor ...
@@ -33,7 +33,7 @@ func CreatePlanExecutor(config *config.Configuration, bar ProgressBar) *PlanExec
 	}
 }
 
-func (instance *PlanExecutor) executeStep(step Step, cancellation chan struct{}) core.ExecutionResult {
+func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan struct{}) core.ExecutionResult {
 	start := time.Now()
 	executionResult := step.Action.Execute(cancellation)
 	duration := time.Since(start) / time.Millisecond
@@ -48,7 +48,7 @@ func (instance *PlanExecutor) executeStep(step Step, cancellation chan struct{})
 	return executionResult
 }
 
-func (instance *PlanExecutor) workerExecuteJob(talula Job, cancellation chan struct{}) {
+func (instance *PlanExecutor) workerExecuteJob(talula core.Job, cancellation chan struct{}) {
 	defer func() { //catch or finally
 		if err := recover(); err != nil { //catch
 			errormanager.Log(err)
@@ -69,7 +69,7 @@ func (instance *PlanExecutor) workerExecuteJob(talula Job, cancellation chan str
 	}
 }
 
-func (instance *PlanExecutor) workerExecuteJobs(jobs []Job) {
+func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job) {
 	var jobStream JobStream
 	jobStream = CreateJobSequentialStream(jobs)
 
@@ -100,11 +100,11 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []Job) {
 	}
 }
 
-func (instance *PlanExecutor) executeJobs(plan Plan) {
+func (instance *PlanExecutor) executeJobs(plan core.Plan) {
 	var wg sync.WaitGroup
 	wg.Add(instance.Config.Workers)
 	for i := 0; i < instance.Config.Workers; i++ {
-		go func(executionPlan Plan) {
+		go func(executionPlan core.Plan) {
 			instance.workerExecuteJobs(executionPlan.Jobs)
 			wg.Done()
 		}(plan)
@@ -113,7 +113,7 @@ func (instance *PlanExecutor) executeJobs(plan Plan) {
 }
 
 // Execute ...
-func (instance *PlanExecutor) Execute(plan Plan) error {
+func (instance *PlanExecutor) Execute(plan core.Plan) error {
 	instance.start = time.Now()
 	instance.executeJobs(plan)
 

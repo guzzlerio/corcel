@@ -78,8 +78,8 @@ func main() {
 	registry := core.CreateRegistry().
 		AddActionParser(inproc.YamlDummyActionParser{}).
 		AddActionParser(http.YamlHTTPRequestParser{}).
-		AddAssertionParser(yaml.YamlExactAssertionParser{}).
-		AddAssertionParser(yaml.YamlEmptyAssertionParser{}).
+		AddAssertionParser(yaml.ExactAssertionParser{}).
+		AddAssertionParser(yaml.EmptyAssertionParser{}).
 		AddResultProcessor(http.NewHTTPExecutionResultProcessor()).
 		AddResultProcessor(inproc.NewGeneralExecutionResultProcessor())
 

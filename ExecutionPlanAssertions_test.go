@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("ExecutionPlan Assertions", func() {
+var _ = Describe("ExecutionPlan Assertions", func() {
 
 	Context("ExactAssertion", func() {
 

@@ -17,7 +17,7 @@ type ExecutionPlanParser struct {
 //Parse ...
 func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 	var executionPlan core.Plan
-	var yamlExecutionPlan YamlExecutionPlan
+	var yamlExecutionPlan ExecutionPlan
 
 	err := yaml.Unmarshal([]byte(data), &yamlExecutionPlan)
 

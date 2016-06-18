@@ -115,7 +115,7 @@ func (instance *YamlPlanBuilder) CreateJob() *YamlJobBuilder {
 
 //Build ...
 func (instance *YamlPlanBuilder) Build() (*os.File, error) {
-	plan := yaml.YamlExecutionPlan{
+	plan := yaml.ExecutionPlan{
 		Random:   instance.Random,
 		Workers:  instance.NumberOfWorkers,
 		WaitTime: instance.WaitTime,
@@ -166,8 +166,8 @@ func (instance *YamlJobBuilder) CurrentStepBuilder() *YamlStepBuilder {
 }
 
 //Build ...
-func (instance *YamlJobBuilder) Build() yaml.YamlExecutionJob {
-	job := yaml.YamlExecutionJob{}
+func (instance *YamlJobBuilder) Build() yaml.ExecutionJob {
+	job := yaml.ExecutionJob{}
 	for _, stepBuilder := range instance.StepBuilders {
 		step := stepBuilder.Build()
 		job.Steps = append(job.Steps, step)
@@ -190,8 +190,8 @@ type YamlStepBuilder struct {
 }
 
 //Build ...
-func (instance *YamlStepBuilder) Build() yaml.YamlExecutionStep {
-	step := yaml.YamlExecutionStep{}
+func (instance *YamlStepBuilder) Build() yaml.ExecutionStep {
+	step := yaml.ExecutionStep{}
 	step.Action = instance.Action
 	step.Assertions = instance.Assertions
 	return step

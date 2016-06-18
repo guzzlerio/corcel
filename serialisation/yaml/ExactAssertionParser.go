@@ -5,11 +5,11 @@ import (
 	"ci.guzzler.io/guzzler/corcel/core"
 )
 
-//YamlExactAssertionParser ...
-type YamlExactAssertionParser struct{}
+//ExactAssertionParser ...
+type ExactAssertionParser struct{}
 
 //Parse ...
-func (instance YamlExactAssertionParser) Parse(input map[string]interface{}) core.Assertion {
+func (instance ExactAssertionParser) Parse(input map[string]interface{}) core.Assertion {
 	return &assertions.ExactAssertion{
 		Key:   input["key"].(string),
 		Value: input["expected"],
@@ -17,6 +17,6 @@ func (instance YamlExactAssertionParser) Parse(input map[string]interface{}) cor
 }
 
 //Key ...
-func (instance YamlExactAssertionParser) Key() string {
+func (instance ExactAssertionParser) Key() string {
 	return "ExactAssertion"
 }

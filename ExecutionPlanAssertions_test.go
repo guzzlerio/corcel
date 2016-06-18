@@ -71,7 +71,6 @@ var _ = FDescribe("ExecutionPlan Assertions", func() {
 			var summary = statistics.CreateSummary(executionOutput)
 
 			Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
-
 		})
 
 		It("Fails", func() {
@@ -91,35 +90,94 @@ var _ = FDescribe("ExecutionPlan Assertions", func() {
 			var summary = statistics.CreateSummary(executionOutput)
 
 			Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
+		})
 
+	})
+
+	Context("GreaterThanAssertion", func() {
+
+		It("Succeeds", func() {
+			planBuilder := test.NewYamlPlanBuilder()
+
+			planBuilder.
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Set("value:1", 5).Build()).
+				WithAssertion(planBuilder.GreaterThanAssertion("value:1", 2))
+
+			err := ExecutePlanBuilder(planBuilder)
+			Expect(err).To(BeNil())
+
+			var executionOutput statistics.AggregatorSnapShot
+			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var summary = statistics.CreateSummary(executionOutput)
+
+			Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+		})
+
+		It("Fails", func() {
+			planBuilder := test.NewYamlPlanBuilder()
+
+			planBuilder.
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Set("value:1", 2).Build()).
+				WithAssertion(planBuilder.GreaterThanAssertion("value:1", 5))
+
+			err := ExecutePlanBuilder(planBuilder)
+			Expect(err).To(BeNil())
+
+			var executionOutput statistics.AggregatorSnapShot
+			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var summary = statistics.CreateSummary(executionOutput)
+
+			Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
+		})
+
+	})
+
+	Context("GreaterThanOrEqualAssertion", func() {
+
+		It("Succeeds", func() {
+			planBuilder := test.NewYamlPlanBuilder()
+
+			planBuilder.
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Set("value:1", 5).Build()).
+				WithAssertion(planBuilder.GreaterThanOrEqualAssertion("value:1", 5))
+
+			err := ExecutePlanBuilder(planBuilder)
+			Expect(err).To(BeNil())
+
+			var executionOutput statistics.AggregatorSnapShot
+			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var summary = statistics.CreateSummary(executionOutput)
+
+			Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+		})
+
+		It("Fails", func() {
+			planBuilder := test.NewYamlPlanBuilder()
+
+			planBuilder.
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Set("value:1", 2).Build()).
+				WithAssertion(planBuilder.GreaterThanOrEqualAssertion("value:1", 5))
+
+			err := ExecutePlanBuilder(planBuilder)
+			Expect(err).To(BeNil())
+
+			var executionOutput statistics.AggregatorSnapShot
+			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var summary = statistics.CreateSummary(executionOutput)
+
+			Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
 		})
 
 	})
 	/*
-
-		Context("GreaterThanAssertion", func() {
-
-			It("Succeeds", func() {
-
-			})
-
-			It("Fails", func() {
-
-			})
-
-		})
-
-		Context("GreaterThanOrEqualAssertion", func() {
-
-			It("Succeeds", func() {
-
-			})
-
-			It("Fails", func() {
-
-			})
-
-		})
 
 		Context("LessThanAssertion", func() {
 

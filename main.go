@@ -86,6 +86,7 @@ func main() {
 		AddAssertionParser(yaml.GreaterThanAssertionParser{}).
 		AddAssertionParser(yaml.GreaterThanOrEqualAssertionParser{}).
 		AddAssertionParser(yaml.LessThanAssertionParser{}).
+		AddAssertionParser(yaml.LessThanOrEqualAssertionParser{}).
 		AddResultProcessor(http.NewHTTPExecutionResultProcessor()).
 		AddResultProcessor(inproc.NewGeneralExecutionResultProcessor())
 

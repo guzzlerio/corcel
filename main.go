@@ -82,6 +82,7 @@ func main() {
 		AddActionParser(inproc.YamlDummyActionParser{}).
 		AddActionParser(http.YamlHTTPRequestParser{}).
 		AddAssertionParser(yaml.ExactAssertionParser{}).
+		AddAssertionParser(yaml.NotEqualAssertionParser{}).
 		AddAssertionParser(yaml.EmptyAssertionParser{}).
 		AddAssertionParser(yaml.NotEmptyAssertionParser{}).
 		AddAssertionParser(yaml.GreaterThanAssertionParser{}).

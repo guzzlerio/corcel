@@ -98,6 +98,15 @@ func (instance YamlPlanBuilder) NotEmptyAssertion(key string) map[string]interfa
 	}
 }
 
+//NotEqualAssertion ...
+func (instance YamlPlanBuilder) NotEqualAssertion(key string, expected interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"type":     "NotEqualAssertion",
+		"key":      key,
+		"expected": expected,
+	}
+}
+
 //DummyAction ...
 func (instance YamlPlanBuilder) DummyAction() DummyActionBuilder {
 	return DummyActionBuilder{

@@ -262,29 +262,57 @@ var _ = FDescribe("ExecutionPlan Assertions", func() {
 
 	})
 
-	/*
-		Context("NotEmptyAssertion", func() {
+	Context("NotEmptyAssertion", func() {
 
-			It("Succeeds", func() {
+		It("Succeeds", func() {
+			planBuilder := test.NewYamlPlanBuilder()
 
-			})
+			planBuilder.
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Set("value:1", 5).Build()).
+				WithAssertion(planBuilder.NotEmptyAssertion("value:1"))
 
-			It("Fails", func() {
+			err := ExecutePlanBuilder(planBuilder)
+			Expect(err).To(BeNil())
 
-			})
+			var executionOutput statistics.AggregatorSnapShot
+			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var summary = statistics.CreateSummary(executionOutput)
+
+			Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+		})
+
+		It("Fails", func() {
+			planBuilder := test.NewYamlPlanBuilder()
+
+			planBuilder.
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Set("value:2", 5).Build()).
+				WithAssertion(planBuilder.NotEmptyAssertion("value:1"))
+
+			err := ExecutePlanBuilder(planBuilder)
+			Expect(err).To(BeNil())
+
+			var executionOutput statistics.AggregatorSnapShot
+			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var summary = statistics.CreateSummary(executionOutput)
+
+			Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
+		})
+
+	})
+
+	Context("NotEqualAssertion", func() {
+
+		It("Succeeds", func() {
 
 		})
 
-		Context("NotEmptyAssertion", func() {
-
-			It("Succeeds", func() {
-
-			})
-
-			It("Fails", func() {
-
-			})
+		It("Fails", func() {
 
 		})
-	*/
+
+	})
 })

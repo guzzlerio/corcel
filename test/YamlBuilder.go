@@ -90,6 +90,14 @@ func (instance YamlPlanBuilder) LessThanOrEqualAssertion(key string, expected in
 	}
 }
 
+//NotEmptyAssertion ...
+func (instance YamlPlanBuilder) NotEmptyAssertion(key string) map[string]interface{} {
+	return map[string]interface{}{
+		"type": "NotEmptyAssertion",
+		"key":  key,
+	}
+}
+
 //DummyAction ...
 func (instance YamlPlanBuilder) DummyAction() DummyActionBuilder {
 	return DummyActionBuilder{

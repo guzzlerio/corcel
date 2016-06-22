@@ -85,6 +85,56 @@ Min Response Time: 0 ms
 Max Response Time: 1 ms
 ```
 
+## Ideas about recording assertion failures in the report
+
+In the output file:
+
+```yaml
+AssertionFailures:
+ - jobId : 2
+   stepId: 4
+   action: "POST http://www.google.com"
+   key: "http:response:status"
+   type: Exact
+   expected: 200
+   actuals: 
+      - value: 201
+        count: 10
+      - value: 203
+        count: 20
 ```
-_
+
+In the summary file?  What would it look like and how would it be tracked?
+
+Also need to think about the summary so these can be compared.
+
+## Notes on Assertion Types
+
+The following are the rules which I have followed and here is an example using the Greater Than mathemtical operator.  The other operators will have similar rules but changed to match how they should operate.
+
+-    Something is greater than nil
+-    nil is NOT greater than nil
+-    nil is NOT greater than Something
+-    string which is not a number is NOT greater than any number
+-    number is NOT greater than a string which is not a number
+-    Attempts will first be made to parse strings into a float64
+
+```
+Test Required
+
+               INSTANCE
+               =======================================================
+ ACTUAL        |    nil   |  float64  |  int  | string-number | string
+======================================================================
+ float64       |     x    |     x     |   x   |       x       |    x
+======================================================================
+ int           |     x    |     x     |   x   |       x       |    x
+======================================================================
+ string-number |     x    |     x     |   x   |       x       |    x
+======================================================================
+ string        |     x    |     x     |   x   |       x       |    x
+======================================================================
+ nil           |     x    |     x     |   x   |       x       |    x
+
+
 ```

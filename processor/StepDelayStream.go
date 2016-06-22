@@ -1,6 +1,10 @@
 package processor
 
-import "time"
+import (
+	"time"
+
+	"ci.guzzler.io/guzzler/corcel/core"
+)
 
 //StepDelayStream ...
 type StepDelayStream struct {
@@ -22,7 +26,7 @@ func (instance StepDelayStream) HasNext() bool {
 }
 
 //Next ...
-func (instance StepDelayStream) Next() Step {
+func (instance StepDelayStream) Next() core.Step {
 	element := instance.stream.Next()
 	time.Sleep(instance.delay)
 	return element

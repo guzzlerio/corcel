@@ -12,6 +12,7 @@ import (
 	"ci.guzzler.io/guzzler/corcel/errormanager"
 	"ci.guzzler.io/guzzler/corcel/infrastructure/http"
 	"ci.guzzler.io/guzzler/corcel/request"
+	"ci.guzzler.io/guzzler/corcel/serialisation/yaml"
 	"ci.guzzler.io/guzzler/corcel/statistics"
 )
 
@@ -29,15 +30,12 @@ type Controller struct {
 	executions map[*ExecutionID]ExecutionBranch
 	bar        ProgressBar
 	aggregator *statistics.Aggregator
+	registry   core.Registry
 }
 
 //Start ...
 func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, error) {
 	id := NewExecutionID()
-	resultProcessors := []ExecutionResultProcessor{
-		http.NewHTTPExecutionResultProcessor(),
-		NewGeneralExecutionResultProcessor(),
-	}
 
 	instance.aggregator = statistics.NewAggregator(metrics.DefaultRegistry)
 
@@ -49,14 +47,14 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 	go func() {
 		for executionResult := range subscription.Channel {
 			result := executionResult.(core.ExecutionResult)
-			for _, processor := range resultProcessors {
+			for _, processor := range instance.registry.ResultProcessors {
 				processor.Process(result, metrics.DefaultRegistry)
 			}
 		}
 		wg.Done()
 	}()
 	instance.executions[&id] = executor
-	plan := GetPlan(config)
+	plan := GetPlan(config, instance.registry)
 	instance.aggregator.Start()
 	err := executor.Execute(plan)
 	subscription.RemoveFrom(executor.Publisher)
@@ -65,13 +63,13 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 }
 
 //GetPlan ...
-func GetPlan(config *config.Configuration) Plan {
-	var plan Plan
+func GetPlan(config *config.Configuration, registry core.Registry) core.Plan {
+	var plan core.Plan
 	var err error
 	if !config.Plan {
 		plan = CreatePlanFromConfiguration(config)
 	} else {
-		parser := CreateExecutionPlanParser()
+		parser := yaml.CreateExecutionPlanParser(registry)
 		data, dataErr := ioutil.ReadFile(config.FilePath)
 		if dataErr != nil {
 			panic(dataErr)
@@ -95,12 +93,12 @@ func GetPlan(config *config.Configuration) Plan {
 }
 
 //CreatePlanFromConfiguration ...
-func CreatePlanFromConfiguration(config *config.Configuration) Plan {
-	plan := Plan{
+func CreatePlanFromConfiguration(config *config.Configuration) core.Plan {
+	plan := core.Plan{
 		Name:     "Plan from urls in file",
 		Workers:  config.Workers,
 		WaitTime: config.WaitTime,
-		Jobs:     []Job{},
+		Jobs:     []core.Job{},
 	}
 
 	reader := request.NewRequestReader(config.FilePath)
@@ -108,16 +106,16 @@ func CreatePlanFromConfiguration(config *config.Configuration) Plan {
 	stream := request.NewSequentialRequestStream(reader)
 
 	for stream.HasNext() {
-		job := Job{
+		job := core.Job{
 			Name:  "Job for the urls in file",
-			Steps: []Step{},
+			Steps: []core.Step{},
 		}
 
 		request, err := stream.Next()
 		if err != nil {
 			errormanager.Check(err)
 		}
-		step := Step{}
+		step := core.Step{}
 
 		action := &http.HTTPRequestExecutionAction{
 			//Client:  client,
@@ -158,8 +156,12 @@ func (instance *Controller) Events() <-chan string {
 }
 
 // NewControl ...
-func NewControl(bar ProgressBar) Control {
+func NewControl(bar ProgressBar, registry core.Registry) Control {
 	executions := make(map[*ExecutionID]ExecutionBranch)
-	control := Controller{executions: executions, bar: bar}
+	control := Controller{
+		executions: executions,
+		bar:        bar,
+		registry:   registry,
+	}
 	return &control
 }

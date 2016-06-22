@@ -8,12 +8,16 @@ import (
 	"path/filepath"
 
 	"github.com/dustin/go-humanize"
-	"gopkg.in/yaml.v2"
+	yamlv2 "gopkg.in/yaml.v2"
 
 	"ci.guzzler.io/guzzler/corcel/cmd"
 	"ci.guzzler.io/guzzler/corcel/config"
+	"ci.guzzler.io/guzzler/corcel/core"
 	"ci.guzzler.io/guzzler/corcel/errormanager"
+	"ci.guzzler.io/guzzler/corcel/infrastructure/http"
+	"ci.guzzler.io/guzzler/corcel/infrastructure/inproc"
 	"ci.guzzler.io/guzzler/corcel/logger"
+	"ci.guzzler.io/guzzler/corcel/serialisation/yaml"
 	"ci.guzzler.io/guzzler/corcel/statistics"
 )
 
@@ -27,7 +31,7 @@ func check(err error) {
 func GenerateExecutionOutput(file string, output statistics.AggregatorSnapShot) {
 	outputPath, err := filepath.Abs(file)
 	check(err)
-	yamlOutput, err := yaml.Marshal(&output)
+	yamlOutput, err := yamlv2.Marshal(&output)
 	check(err)
 	err = ioutil.WriteFile(outputPath, yamlOutput, 0644)
 	check(err)
@@ -48,14 +52,14 @@ func AddExecutionToHistory(file string, output statistics.AggregatorSnapShot) {
 		if dataErr != nil {
 			panic(dataErr)
 		}
-		yamlErr := yaml.Unmarshal(data, &summary)
+		yamlErr := yamlv2.Unmarshal(data, &summary)
 		if yamlErr != nil {
 			panic(yamlErr)
 		}
 	}
 	summary.Update(output)
 
-	yamlOutput, err := yaml.Marshal(&summary)
+	yamlOutput, err := yamlv2.Marshal(&summary)
 	check(err)
 	err = ioutil.WriteFile(outputPath, yamlOutput, 0644)
 	check(err)
@@ -71,10 +75,27 @@ func main() {
 
 	logger.ConfigureLogging(configuration)
 
+	//TODO: This is not as efficient as it could be for example:
+	//Ideally we would only add the HTTP result processor IF an HTTP Action was used
+	//Currently every result processor needs to be added.
+	registry := core.CreateRegistry().
+		AddActionParser(inproc.YamlDummyActionParser{}).
+		AddActionParser(http.YamlHTTPRequestParser{}).
+		AddAssertionParser(yaml.ExactAssertionParser{}).
+		AddAssertionParser(yaml.NotEqualAssertionParser{}).
+		AddAssertionParser(yaml.EmptyAssertionParser{}).
+		AddAssertionParser(yaml.NotEmptyAssertionParser{}).
+		AddAssertionParser(yaml.GreaterThanAssertionParser{}).
+		AddAssertionParser(yaml.GreaterThanOrEqualAssertionParser{}).
+		AddAssertionParser(yaml.LessThanAssertionParser{}).
+		AddAssertionParser(yaml.LessThanOrEqualAssertionParser{}).
+		AddResultProcessor(http.NewHTTPExecutionResultProcessor()).
+		AddResultProcessor(inproc.NewGeneralExecutionResultProcessor())
+
 	_, err = filepath.Abs(configuration.FilePath)
 	check(err)
 
-	host := cmd.NewConsoleHost(configuration)
+	host := cmd.NewConsoleHost(configuration, registry)
 	id, _ := host.Control.Start(configuration) //will this block?
 	output := host.Control.Stop(id)
 

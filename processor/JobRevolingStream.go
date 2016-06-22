@@ -1,5 +1,7 @@
 package processor
 
+import "ci.guzzler.io/guzzler/corcel/core"
+
 //JobRevolvingStream ...
 type JobRevolvingStream struct {
 	stream JobStream
@@ -11,7 +13,7 @@ func (instance JobRevolvingStream) HasNext() bool {
 }
 
 //Next ...
-func (instance JobRevolvingStream) Next() Job {
+func (instance JobRevolvingStream) Next() core.Job {
 	if !instance.stream.HasNext() {
 		instance.stream.Reset()
 	}

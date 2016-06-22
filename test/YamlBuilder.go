@@ -5,11 +5,28 @@ import (
 	"os"
 	"time"
 
-	"ci.guzzler.io/guzzler/corcel/processor"
+	"ci.guzzler.io/guzzler/corcel/serialisation/yaml"
 	"ci.guzzler.io/guzzler/corcel/utils"
 
-	"gopkg.in/yaml.v2"
+	yamlFormat "gopkg.in/yaml.v2"
 )
+
+//DummyActionBuilder ...
+type DummyActionBuilder struct {
+	data map[string]interface{}
+}
+
+//Set ...
+func (instance DummyActionBuilder) Set(key string, value interface{}) DummyActionBuilder {
+	instance.data["results"].(map[string]interface{})[key] = value
+
+	return instance
+}
+
+//Build ...
+func (instance DummyActionBuilder) Build() map[string]interface{} {
+	return instance.data
+}
 
 //YamlPlanBuilder ...
 type YamlPlanBuilder struct {
@@ -18,6 +35,86 @@ type YamlPlanBuilder struct {
 	WaitTime        string
 	Duration        string
 	JobBuilders     []*YamlJobBuilder
+}
+
+//ExactAssertion ...
+func (instance YamlPlanBuilder) ExactAssertion(key string, expected interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"type":     "ExactAssertion",
+		"key":      key,
+		"expected": expected,
+	}
+}
+
+//EmptyAssertion ...
+func (instance YamlPlanBuilder) EmptyAssertion(key string) map[string]interface{} {
+	return map[string]interface{}{
+		"type": "EmptyAssertion",
+		"key":  key,
+	}
+}
+
+//GreaterThanAssertion ...
+func (instance YamlPlanBuilder) GreaterThanAssertion(key string, expected interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"type":     "GreaterThanAssertion",
+		"key":      key,
+		"expected": expected,
+	}
+}
+
+//GreaterThanOrEqualAssertion ...
+func (instance YamlPlanBuilder) GreaterThanOrEqualAssertion(key string, expected interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"type":     "GreaterThanOrEqualAssertion",
+		"key":      key,
+		"expected": expected,
+	}
+}
+
+//LessThanAssertion ...
+func (instance YamlPlanBuilder) LessThanAssertion(key string, expected interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"type":     "LessThanAssertion",
+		"key":      key,
+		"expected": expected,
+	}
+}
+
+//LessThanOrEqualAssertion ...
+func (instance YamlPlanBuilder) LessThanOrEqualAssertion(key string, expected interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"type":     "LessThanOrEqualAssertion",
+		"key":      key,
+		"expected": expected,
+	}
+}
+
+//NotEmptyAssertion ...
+func (instance YamlPlanBuilder) NotEmptyAssertion(key string) map[string]interface{} {
+	return map[string]interface{}{
+		"type": "NotEmptyAssertion",
+		"key":  key,
+	}
+}
+
+//NotEqualAssertion ...
+func (instance YamlPlanBuilder) NotEqualAssertion(key string, expected interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"type":     "NotEqualAssertion",
+		"key":      key,
+		"expected": expected,
+	}
+}
+
+//DummyAction ...
+func (instance YamlPlanBuilder) DummyAction() DummyActionBuilder {
+	return DummyActionBuilder{
+		data: map[string]interface{}{
+			"type":    "DummyAction",
+			"results": map[string]interface{}{},
+		},
+	}
 }
 
 //NewYamlPlanBuilder ...
@@ -71,7 +168,7 @@ func (instance *YamlPlanBuilder) CreateJob() *YamlJobBuilder {
 
 //Build ...
 func (instance *YamlPlanBuilder) Build() (*os.File, error) {
-	plan := processor.YamlExecutionPlan{
+	plan := yaml.ExecutionPlan{
 		Random:   instance.Random,
 		Workers:  instance.NumberOfWorkers,
 		WaitTime: instance.WaitTime,
@@ -88,7 +185,7 @@ func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 	defer func() {
 		utils.CheckErr(file.Close())
 	}()
-	contents, err := yaml.Marshal(&plan)
+	contents, err := yamlFormat.Marshal(&plan)
 	if err != nil {
 		return nil, err
 	}
@@ -122,8 +219,8 @@ func (instance *YamlJobBuilder) CurrentStepBuilder() *YamlStepBuilder {
 }
 
 //Build ...
-func (instance *YamlJobBuilder) Build() processor.YamlExecutionJob {
-	job := processor.YamlExecutionJob{}
+func (instance *YamlJobBuilder) Build() yaml.ExecutionJob {
+	job := yaml.ExecutionJob{}
 	for _, stepBuilder := range instance.StepBuilders {
 		step := stepBuilder.Build()
 		job.Steps = append(job.Steps, step)
@@ -146,8 +243,8 @@ type YamlStepBuilder struct {
 }
 
 //Build ...
-func (instance *YamlStepBuilder) Build() processor.YamlExecutionStep {
-	step := processor.YamlExecutionStep{}
+func (instance *YamlStepBuilder) Build() yaml.ExecutionStep {
+	step := yaml.ExecutionStep{}
 	step.Action = instance.Action
 	step.Assertions = instance.Assertions
 	return step

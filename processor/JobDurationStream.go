@@ -3,6 +3,8 @@ package processor
 import (
 	"math"
 	"time"
+
+	"ci.guzzler.io/guzzler/corcel/core"
 )
 
 //JobDurationStream ...
@@ -29,7 +31,7 @@ func (instance *JobDurationStream) HasNext() bool {
 }
 
 //Next ...
-func (instance *JobDurationStream) Next() Job {
+func (instance *JobDurationStream) Next() core.Job {
 	if instance.start.IsZero() {
 		instance.start = time.Now()
 	}

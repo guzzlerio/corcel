@@ -72,6 +72,7 @@ func (instance *HTTPRequestExecutionAction) Execute(cancellation chan struct{}) 
 	result["action:bytes:received"] = len(responseBytes)
 	result["http:request:headers"] = req.Header
 	result["http:response:status"] = response.StatusCode
+	result["http:response:body"] = string(responseBytes)
 
 	return result
 }

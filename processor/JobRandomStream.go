@@ -1,15 +1,19 @@
 package processor
 
-import "math"
+import (
+	"math"
+
+	"ci.guzzler.io/guzzler/corcel/core"
+)
 
 //JobRandomStream ...
 type JobRandomStream struct {
-	items []Job
+	items []core.Job
 	count int
 }
 
 //CreateJobRandomStream ...
-func CreateJobRandomStream(items []Job) *JobRandomStream {
+func CreateJobRandomStream(items []core.Job) *JobRandomStream {
 	return &JobRandomStream{
 		items: items,
 		count: 0,
@@ -22,7 +26,7 @@ func (instance *JobRandomStream) HasNext() bool {
 }
 
 //Next ...
-func (instance *JobRandomStream) Next() Job {
+func (instance *JobRandomStream) Next() core.Job {
 	max := instance.Size() - 1
 	if max == 0 {
 		max = 1

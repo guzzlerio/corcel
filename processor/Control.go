@@ -117,11 +117,21 @@ func CreatePlanFromConfiguration(config *config.Configuration) core.Plan {
 		}
 		step := core.Step{}
 
+		var body string
+		if request.Body != nil {
+			data, _ := ioutil.ReadAll(request.Body)
+			if err != nil {
+				errormanager.Check(err)
+			} else {
+				body = string(data)
+			}
+		}
 		action := &http.HTTPRequestExecutionAction{
 			//Client:  client,
 			URL:     request.URL.String(),
 			Method:  request.Method,
 			Headers: request.Header,
+			Body:    body,
 		}
 
 		step.Action = action

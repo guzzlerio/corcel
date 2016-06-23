@@ -3,7 +3,6 @@ package main_test
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -16,7 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("ExecutionPlanHttpRequest", func() {
+var _ = Describe("ExecutionPlanHttpRequest", func() {
 	BeforeEach(func() {
 		TestServer.Clear()
 		factory := rizo.HTTPResponseFactory(func(w http.ResponseWriter) {
@@ -46,14 +45,19 @@ var _ = FDescribe("ExecutionPlanHttpRequest", func() {
 		content := []byte("temporary file's content")
 		dir, err := ioutil.TempDir("", "ExecutionPlanHttpRequest")
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 
-		defer os.RemoveAll(dir) // clean up
+		defer func() {
+			err := os.RemoveAll(dir) // clean up
+			if err != nil {
+				panic(err)
+			}
+		}()
 
 		tmpfn := filepath.Join(dir, "tmpfile")
 		if err := ioutil.WriteFile(tmpfn, content, 0666); err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 
 		path := "/people"

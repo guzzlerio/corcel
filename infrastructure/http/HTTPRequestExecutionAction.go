@@ -36,7 +36,7 @@ func (instance *HTTPRequestExecutionAction) Execute(cancellation chan struct{}) 
 
 	result := core.ExecutionResult{}
 
-	if instance.Body[0] == '@' {
+	if instance.Body != "" && instance.Body[0] == '@' {
 		contents, err := ioutil.ReadFile(instance.Body[1:])
 		if err != nil {
 			result["action:error"] = err

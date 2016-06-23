@@ -1,7 +1,12 @@
 package main_test
 
 import (
+	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	. "ci.guzzler.io/guzzler/corcel"
 	"ci.guzzler.io/guzzler/corcel/test"
@@ -35,5 +40,34 @@ var _ = FDescribe("ExecutionPlanHttpRequest", func() {
 		err := ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())
 		Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithBody(body))).To(Equal(true))
+	})
+
+	It("Supplies a payload as a file reference to the HTTP Request", func() {
+		content := []byte("temporary file's content")
+		dir, err := ioutil.TempDir("", "ExecutionPlanHttpRequest")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		defer os.RemoveAll(dir) // clean up
+
+		tmpfn := filepath.Join(dir, "tmpfile")
+		if err := ioutil.WriteFile(tmpfn, content, 0666); err != nil {
+			log.Fatal(err)
+		}
+
+		path := "/people"
+		body := fmt.Sprintf("@%s", tmpfn)
+
+		planBuilder := test.NewYamlPlanBuilder()
+
+		planBuilder.
+			CreateJob().
+			CreateStep().
+			ToExecuteAction(planBuilder.HTTPRequestAction().URL(TestServer.CreateURL(path)).Body(body).Build())
+
+		err = ExecutePlanBuilder(planBuilder)
+		Expect(err).To(BeNil())
+		Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithBody(string(content)))).To(Equal(true))
 	})
 })

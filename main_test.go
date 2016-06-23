@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"math"
 
 	. "github.com/onsi/ginkgo"
@@ -296,8 +297,8 @@ var _ = Describe("Main", func() {
 	})
 
 	Describe("Support sending data with http request", func() {
-		for _, method := range global.HTTPMethodsWithRequestBody {
-			It(fmt.Sprintf("in the body for verb %s", method), func() {
+		for _, method := range global.HTTPMethodsWithRequestBody[:1] {
+			PIt(fmt.Sprintf("in the body for verb %s", method), func() {
 				data := "a=1&b=2&c=3"
 				list := []string{fmt.Sprintf(`%s -X %s -d %s`, URLForTestServer("/A"), method, data)}
 				SutExecute(list)
@@ -317,7 +318,10 @@ var _ = Describe("Main", func() {
 				predicates := []rizo.HTTPRequestPredicate{}
 				predicates = append(predicates, rizo.RequestWithPath("/A"))
 				predicates = append(predicates, rizo.RequestWithMethod(method))
-				predicates = append(predicates, rizo.RequestWithBody(data))
+
+				bodyData, err := ioutil.ReadFile(data[1:])
+				Expect(err).To(BeNil())
+				predicates = append(predicates, rizo.RequestWithBody(string(bodyData)))
 				Expect(TestServer.Find(predicates...)).To(Equal(true))
 			})
 		}
@@ -399,6 +403,7 @@ func InvokeCorcel(list []string, args ...string) ([]byte, error) {
 	}()
 	cmd := exec.Command(exePath, append(args, file.Name())...)
 	output, err := cmd.CombinedOutput()
+	//fmt.Println(string(output))
 	if len(output) > 0 {
 		logger.Log.Println(fmt.Sprintf("%s", output))
 	}

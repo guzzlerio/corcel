@@ -24,9 +24,6 @@ var _ = Describe("ExecutionPlan", func() {
 			w.WriteHeader(http.StatusOK)
 		})
 
-		//Add more methods to the TestServer so that there is not a need
-		//to explicitly create a factory.  It would be good to be able to
-		//do TestServer.ReturnHttpStatus(200).For(rizo.RequestWithPath("/people"))
 		TestServer.Use(factory).For(rizo.RequestWithPath("/people"))
 	})
 

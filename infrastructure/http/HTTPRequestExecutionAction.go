@@ -1,7 +1,9 @@
 package http
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 
@@ -14,6 +16,7 @@ type HTTPRequestExecutionAction struct {
 	Client  *http.Client
 	URL     string
 	Method  string
+	Body    string
 	Headers http.Header
 }
 
@@ -33,7 +36,17 @@ func (instance *HTTPRequestExecutionAction) Execute(cancellation chan struct{}) 
 
 	result := core.ExecutionResult{}
 
-	req, err := http.NewRequest(instance.Method, instance.URL, nil)
+	if instance.Body != "" && instance.Body[0] == '@' {
+		contents, err := ioutil.ReadFile(instance.Body[1:])
+		if err != nil {
+			result["action:error"] = err
+			return result
+		}
+		instance.Body = string(contents)
+	}
+
+	body := bytes.NewBuffer([]byte(instance.Body))
+	req, err := http.NewRequest(instance.Method, instance.URL, body)
 	req.Cancel = cancellation
 	//This should be a configuration item.  It allows the client to work
 	//in a way similar to a server which does not support HTTP KeepAlive
@@ -48,6 +61,7 @@ func (instance *HTTPRequestExecutionAction) Execute(cancellation chan struct{}) 
 	}
 
 	req.Header = instance.Headers
+
 	response, err := instance.Client.Do(req)
 	if err != nil {
 		result["action:error"] = err

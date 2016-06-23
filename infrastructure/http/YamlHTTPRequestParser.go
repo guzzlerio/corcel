@@ -19,6 +19,11 @@ func (instance YamlHTTPRequestParser) Parse(input map[string]interface{}) core.A
 	for key, value := range input["httpHeaders"].(map[interface{}]interface{}) {
 		action.Headers.Set(key.(string), value.(string))
 	}
+
+	if _, ok := input["body"]; ok {
+		action.Body = input["body"].(string)
+	}
+
 	return &action
 }
 

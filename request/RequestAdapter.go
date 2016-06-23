@@ -66,7 +66,6 @@ func HandlerForData(options []string, index int, req *http.Request) (outReq *htt
 		if strings.HasPrefix(rawBody, "@") {
 			body = loadRequestBodyFromFile(string(bytes.TrimLeft(bodyBytes, "@")))
 		} else {
-			logger.Log.Println("body from request")
 			body = bytes.NewBuffer(bodyBytes)
 		}
 		outReq, err = http.NewRequest(req.Method, req.URL.String(), body)

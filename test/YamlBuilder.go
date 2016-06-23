@@ -11,6 +11,15 @@ import (
 	yamlFormat "gopkg.in/yaml.v2"
 )
 
+//YamlPlanBuilder ...
+type YamlPlanBuilder struct {
+	Random          bool
+	NumberOfWorkers int
+	WaitTime        string
+	Duration        string
+	JobBuilders     []*YamlJobBuilder
+}
+
 //DummyActionBuilder ...
 type DummyActionBuilder struct {
 	data map[string]interface{}
@@ -28,13 +37,55 @@ func (instance DummyActionBuilder) Build() map[string]interface{} {
 	return instance.data
 }
 
-//YamlPlanBuilder ...
-type YamlPlanBuilder struct {
-	Random          bool
-	NumberOfWorkers int
-	WaitTime        string
-	Duration        string
-	JobBuilders     []*YamlJobBuilder
+//HTTPRequestBuilder ...
+type HTTPRequestBuilder struct {
+	data map[string]interface{}
+}
+
+//Timeout ...
+func (instance HTTPRequestBuilder) Timeout(value int) HTTPRequestBuilder {
+	instance.data["requestTimeout"] = value
+	return instance
+}
+
+//Method ...
+func (instance HTTPRequestBuilder) Method(value string) HTTPRequestBuilder {
+	instance.data["method"] = value
+	return instance
+}
+
+//URL ...
+func (instance HTTPRequestBuilder) URL(value string) HTTPRequestBuilder {
+	instance.data["url"] = value
+	return instance
+}
+
+//Header ...
+func (instance HTTPRequestBuilder) Header(key string, value string) HTTPRequestBuilder {
+	instance.data["httpHeaders"].(map[string]string)[key] = value
+	return instance
+}
+
+//Body ...
+func (instance HTTPRequestBuilder) Body(value string) HTTPRequestBuilder {
+	instance.data["body"] = value
+	return instance
+}
+
+//Build ...
+func (instance HTTPRequestBuilder) Build() map[string]interface{} {
+	return instance.data
+}
+
+//NewYamlPlanBuilder ...
+func NewYamlPlanBuilder() *YamlPlanBuilder {
+	return &YamlPlanBuilder{
+		Random:          false,
+		NumberOfWorkers: 1,
+		Duration:        "0s",
+		WaitTime:        "0s",
+		JobBuilders:     []*YamlJobBuilder{},
+	}
 }
 
 //ExactAssertion ...
@@ -117,14 +168,15 @@ func (instance YamlPlanBuilder) DummyAction() DummyActionBuilder {
 	}
 }
 
-//NewYamlPlanBuilder ...
-func NewYamlPlanBuilder() *YamlPlanBuilder {
-	return &YamlPlanBuilder{
-		Random:          false,
-		NumberOfWorkers: 1,
-		Duration:        "0s",
-		WaitTime:        "0s",
-		JobBuilders:     []*YamlJobBuilder{},
+//HTTPRequestAction ...
+func (instance YamlPlanBuilder) HTTPRequestAction() HTTPRequestBuilder {
+	return HTTPRequestBuilder{
+		data: map[string]interface{}{
+			"type":        "HttpRequest",
+			"method":      "GET",
+			"url":         "",
+			"httpHeaders": map[string]string{},
+		},
 	}
 }
 

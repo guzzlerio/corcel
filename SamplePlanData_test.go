@@ -3,10 +3,10 @@ package main
 //GetPathRequest ...
 func GetHTTPRequestAction(url string) map[string]interface{} {
 	return map[string]interface{}{
-		"type":          "HttpRequest",
-		"requesTimeout": 150,
-		"method":        "GET",
-		"url":           TestServer.CreateURL(url),
+		"type":           "HttpRequest",
+		"requestTimeout": 150,
+		"method":         "GET",
+		"url":            TestServer.CreateURL(url),
 		"httpHeaders": map[string]string{
 			"Content-Type": "application/json",
 		},

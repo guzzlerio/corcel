@@ -262,7 +262,7 @@ var _ = Describe("Main", func() {
 			fmt.Sprintf(`%s -X POST -d @missing-file.json`, URLForTestServer("/success")),
 		}
 
-		output, _ := InvokeCorcel(list, "--progress", "none")
+		output, _ := InvokeCorcel(list)
 
 		Expect(string(output)).To(ContainSubstring("Request body file not found: missing-file.json"))
 	})
@@ -401,9 +401,9 @@ func InvokeCorcel(list []string, args ...string) ([]byte, error) {
 			logger.Log.Printf("Error removing file %v", err)
 		}
 	}()
-	cmd := exec.Command(exePath, append(args, file.Name())...)
+	cmd := exec.Command(exePath, append(append([]string{"run", "--progress", "none"}, args...), file.Name())...)
 	output, err := cmd.CombinedOutput()
-	//fmt.Println(string(output))
+	fmt.Println(string(output))
 	if len(output) > 0 {
 		logger.Log.Println(fmt.Sprintf("%s", output))
 	}

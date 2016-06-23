@@ -13,16 +13,9 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/imdario/mergo"
 	"github.com/mitchellh/go-homedir"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
-)
-
-var (
-	applicationVersion = "v0.1.4-alpha"
-	//CommandLine ...
-	CommandLine = kingpin.New("corcel", "")
 )
 
 //Configuration ...
@@ -49,47 +42,16 @@ func (instance *Configuration) validate() error {
 	return nil
 }
 
-func Usage() {
-	CommandLine.Usage(os.Args[1:])
-}
+var verbosity int
+var logLevel = log.FatalLevel
 
 //ParseConfiguration ...
 func ParseConfiguration(args []string) (*Configuration, error) {
-	verbosity = 0
-	logLevel = log.FatalLevel
-	config := Configuration{}
-	defaults := DefaultConfig()
-	cmd, err := cmdConfig(args)
-	if err != nil {
-		return nil, err
-	}
-	log.SetLevel(logLevel)
-
-	pwd, err := pwdConfig()
-	if err != nil {
-		return nil, err
-	}
-	usr, err := userDirConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	eachConfig := []interface{}{cmd, pwd, usr, &defaults}
-	for _, item := range eachConfig {
-		if err := mergo.Merge(&config, item); err != nil {
-			return nil, err
-		}
-	}
-	setLogLevel(&config, eachConfig)
-	log.WithFields(log.Fields{"config": config}).Info("Configuration")
-
-	return &config, err
+	return &Configuration{}, nil
 }
 
-var verbosity int
-var logLevel log.Level
-
-func setLogLevel(config *Configuration, each []interface{}) {
+//SetLogLevel ...
+func SetLogLevel(config *Configuration, each []interface{}) {
 	max := log.PanicLevel
 	for _, value := range each {
 		if value.(*Configuration).LogLevel > max {
@@ -99,7 +61,8 @@ func setLogLevel(config *Configuration, each []interface{}) {
 	config.LogLevel = max
 }
 
-func counter(c *kingpin.ParseContext) error {
+//Counter ...
+func Counter(c *kingpin.ParseContext) error {
 	verbosity++
 	switch verbosity {
 	case 1:
@@ -112,29 +75,8 @@ func counter(c *kingpin.ParseContext) error {
 	return nil
 }
 
-func cmdConfig(args []string) (*Configuration, error) {
-	CommandLine := kingpin.New("corcel", "")
-	CommandLine.HelpFlag.Short('h')
-	CommandLine.UsageTemplate(kingpin.LongHelpTemplate)
-
-	CommandLine.Version(applicationVersion)
-
-	config := Configuration{}
-	CommandLine.Arg("file", "Corcel file contains URLs or an ExecutionPlan (see the --plan argument)").Required().StringVar(&config.FilePath)
-	CommandLine.Flag("summary", "Output summary to STDOUT").BoolVar(&config.Summary)
-	CommandLine.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").Default("0s").DurationVar(&config.Duration)
-	CommandLine.Flag("wait-time", "Time to wait between each execution").Default("0s").DurationVar(&config.WaitTime)
-	CommandLine.Flag("workers", "The number of workers to execute the requests").IntVar(&config.Workers)
-	CommandLine.Flag("random", "Select the url at random for each execution").BoolVar(&config.Random)
-	CommandLine.Flag("plan", "Indicate that the corcel file is an ExecutionPlan").BoolVar(&config.Plan)
-	CommandLine.Flag("verbose", "verbosity").Short('v').Action(counter).Bool()
-	CommandLine.Flag("progress", "Progress reporter").EnumVar(&config.Progress, "bar", "logo", "none")
-
-	_, err := CommandLine.Parse(args)
-
-	if err != nil {
-		return nil, err
-	}
+//CmdConfig ...
+func CmdConfig(config *Configuration) (*Configuration, error) {
 
 	if verbosity > 0 {
 		config.Progress = "none"
@@ -142,11 +84,11 @@ func cmdConfig(args []string) (*Configuration, error) {
 
 	config.LogLevel = logLevel
 
-	if err = config.handleHTTPEndpointForURLFile(); err != nil {
+	if err := config.handleHTTPEndpointForURLFile(); err != nil {
 		return nil, err
 	}
 
-	if _, err = os.Stat(config.FilePath); os.IsNotExist(err) {
+	if _, err := os.Stat(config.FilePath); os.IsNotExist(err) {
 		return nil, errors.New("required argument 'file' not provided")
 	}
 
@@ -154,10 +96,11 @@ func cmdConfig(args []string) (*Configuration, error) {
 		return nil, validationErr
 	}
 
-	return &config, nil
+	return config, nil
 }
 
-func pwdConfig() (*Configuration, error) {
+//PwdConfig ...
+func PwdConfig() (*Configuration, error) {
 	pwd, _ := os.Getwd()
 	// can we get the application name programatically?
 	filename := path.Join(pwd, fmt.Sprintf(".%src", "corcel"))
@@ -173,7 +116,8 @@ func pwdConfig() (*Configuration, error) {
 	return &config, nil
 }
 
-func userDirConfig() (*Configuration, error) {
+//UserDirConfig ...
+func UserDirConfig() (*Configuration, error) {
 	dir, err := homedir.Dir()
 	if err != nil {
 		return nil, err

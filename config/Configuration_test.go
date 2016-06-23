@@ -18,7 +18,7 @@ import (
 	"github.com/oleiade/reflections"
 )
 
-var _ = Describe("Configuration", func() {
+var _ = PDescribe("Configuration", func() {
 	var configuration *Configuration
 	var args []string
 	defaultWaitTime := time.Duration(0)

@@ -70,4 +70,6 @@ var _ = FDescribe("ExecutionPlanHttpRequest", func() {
 		Expect(err).To(BeNil())
 		Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithBody(string(content)))).To(Equal(true))
 	})
+
+	PIt("Returns an error when the file path does not exist", func() {})
 })

@@ -20,6 +20,22 @@ type YamlPlanBuilder struct {
 	JobBuilders     []*YamlJobBuilder
 }
 
+//NewYamlPlanBuilder ...
+func NewYamlPlanBuilder() *YamlPlanBuilder {
+	return &YamlPlanBuilder{
+		Random:          false,
+		NumberOfWorkers: 1,
+		Duration:        "0s",
+		WaitTime:        "0s",
+		JobBuilders:     []*YamlJobBuilder{},
+	}
+}
+
+//RegexExtractorBuilder ...
+type RegexExtractorBuilder struct {
+	data map[string]interface{}
+}
+
 //DummyActionBuilder ...
 type DummyActionBuilder struct {
 	data map[string]interface{}
@@ -35,6 +51,16 @@ func (instance DummyActionBuilder) Set(key string, value interface{}) DummyActio
 //Build ...
 func (instance DummyActionBuilder) Build() map[string]interface{} {
 	return instance.data
+}
+
+//DummyAction ...
+func (instance YamlPlanBuilder) DummyAction() DummyActionBuilder {
+	return DummyActionBuilder{
+		data: map[string]interface{}{
+			"type":    "DummyAction",
+			"results": map[string]interface{}{},
+		},
+	}
 }
 
 //HTTPRequestBuilder ...
@@ -77,14 +103,15 @@ func (instance HTTPRequestBuilder) Build() map[string]interface{} {
 	return instance.data
 }
 
-//NewYamlPlanBuilder ...
-func NewYamlPlanBuilder() *YamlPlanBuilder {
-	return &YamlPlanBuilder{
-		Random:          false,
-		NumberOfWorkers: 1,
-		Duration:        "0s",
-		WaitTime:        "0s",
-		JobBuilders:     []*YamlJobBuilder{},
+//HTTPRequestAction ...
+func (instance YamlPlanBuilder) HTTPRequestAction() HTTPRequestBuilder {
+	return HTTPRequestBuilder{
+		data: map[string]interface{}{
+			"type":        "HttpRequest",
+			"method":      "GET",
+			"url":         "",
+			"httpHeaders": map[string]string{},
+		},
 	}
 }
 
@@ -155,28 +182,6 @@ func (instance YamlPlanBuilder) NotEqualAssertion(key string, expected interface
 		"type":     "NotEqualAssertion",
 		"key":      key,
 		"expected": expected,
-	}
-}
-
-//DummyAction ...
-func (instance YamlPlanBuilder) DummyAction() DummyActionBuilder {
-	return DummyActionBuilder{
-		data: map[string]interface{}{
-			"type":    "DummyAction",
-			"results": map[string]interface{}{},
-		},
-	}
-}
-
-//HTTPRequestAction ...
-func (instance YamlPlanBuilder) HTTPRequestAction() HTTPRequestBuilder {
-	return HTTPRequestBuilder{
-		data: map[string]interface{}{
-			"type":        "HttpRequest",
-			"method":      "GET",
-			"url":         "",
-			"httpHeaders": map[string]string{},
-		},
 	}
 }
 

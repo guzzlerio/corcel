@@ -37,8 +37,27 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 
 			PIt("Extends the name with index access with any non-named groups", func() {})
 		})
-		PContext("Job Scope", func() {
+		Context("Job Scope", func() {
+			PIt("Matches simple pattern", func() {
+				planBuilder := test.NewYamlPlanBuilder()
 
+				planBuilder.
+					CreateJob().
+					CreateStep().
+					ToExecuteAction(planBuilder.DummyAction().Set("value:1", "talula 123 bang bang").Build()).
+					WithExtractor(planBuilder.RegexExtractor().Name("regex:match:1").Key("value:1").Match("\\d+").Build()).
+					CreateStep().
+					WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
+
+				err := ExecutePlanBuilder(planBuilder)
+				Expect(err).To(BeNil())
+
+				var executionOutput statistics.AggregatorSnapShot
+				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+				var summary = statistics.CreateSummary(executionOutput)
+
+				Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+			})
 		})
 		PContext("Plan Scope", func() {
 

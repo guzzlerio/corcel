@@ -35,7 +35,12 @@ func CreatePlanExecutor(config *config.Configuration, bar ProgressBar) *PlanExec
 
 func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan struct{}) core.ExecutionResult {
 	start := time.Now()
-	executionResult := step.Action.Execute(cancellation)
+
+	var executionResult = core.ExecutionResult{}
+
+	if step.Action != nil {
+		executionResult = step.Action.Execute(cancellation)
+	}
 
 	for _, extractor := range step.Extractors {
 		extractorResult := extractor.Extract(executionResult)

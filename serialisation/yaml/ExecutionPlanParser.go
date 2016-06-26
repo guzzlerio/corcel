@@ -50,12 +50,14 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 			step := core.Step{
 				Name: yamlStep.Name,
 			}
-			actionType := yamlStep.Action["type"].(string)
+			if yamlStep.Action["type"] != nil {
+				actionType := yamlStep.Action["type"].(string)
 
-			if parser := instance.ExecutionActionParsers[actionType]; parser != nil {
-				step.Action = parser.Parse(yamlStep.Action)
-			} else {
-				panic(fmt.Sprintf("No parser configured for action %s", actionType))
+				if parser := instance.ExecutionActionParsers[actionType]; parser != nil {
+					step.Action = parser.Parse(yamlStep.Action)
+				} else {
+					panic(fmt.Sprintf("No parser configured for action %s", actionType))
+				}
 			}
 
 			for _, yamlAssertion := range yamlStep.Assertions {
@@ -67,10 +69,8 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 				}
 			}
 
-			fmt.Println("Finding the extractors")
 			for _, yamlExtractor := range yamlStep.Extractors {
 				extractorType := yamlExtractor["type"].(string)
-				fmt.Println(fmt.Sprintf("specific extractor %s %v", extractorType, instance.ExecutionExtractorParsers))
 				if parser := instance.ExecutionExtractorParsers[extractorType]; parser != nil {
 					step.Extractors = append(step.Extractors, parser.Parse(yamlExtractor))
 				} else {

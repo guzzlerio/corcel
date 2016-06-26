@@ -60,7 +60,7 @@ var _ = Describe("Plan Executor", func() {
 		configuration.Duration = time.Duration(5 * time.Second)
 
 		executor := CreatePlanExecutor(&configuration, bar)
-		plan := CreatePlanFromConfiguration(&configuration)
+		plan := CreatePlanFromURLList(&configuration)
 		executor.Execute(plan)
 
 		duration := time.Since(start)
@@ -73,7 +73,7 @@ var _ = Describe("Plan Executor", func() {
 
 		tries := 50
 		firstPaths := []string{}
-		plan := CreatePlanFromConfiguration(&configuration)
+		plan := CreatePlanFromURLList(&configuration)
 		for i := 0; i < tries; i++ {
 			executor.Execute(plan)
 			if !ContainsString(firstPaths, TestServer.Requests[0].Request.URL.Path) {
@@ -90,7 +90,7 @@ var _ = Describe("Plan Executor", func() {
 
 		executor := CreatePlanExecutor(&configuration, bar)
 
-		plan := CreatePlanFromConfiguration(&configuration)
+		plan := CreatePlanFromURLList(&configuration)
 		executor.Execute(plan)
 
 		Expect(len(TestServer.Requests)).To(Equal(configuration.Workers * len(list)))
@@ -102,7 +102,7 @@ var _ = Describe("Plan Executor", func() {
 		configuration.WaitTime = time.Duration(time.Duration(waitTimeInMilliseconds) * time.Millisecond)
 
 		executor := CreatePlanExecutor(&configuration, bar)
-		plan := CreatePlanFromConfiguration(&configuration)
+		plan := CreatePlanFromURLList(&configuration)
 
 		start := time.Now()
 		executor.Execute(plan)

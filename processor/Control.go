@@ -67,7 +67,7 @@ func GetPlan(config *config.Configuration, registry core.Registry) core.Plan {
 	var plan core.Plan
 	var err error
 	if !config.Plan {
-		plan = CreatePlanFromConfiguration(config)
+		plan = CreatePlanFromURLList(config)
 	} else {
 		parser := yaml.CreateExecutionPlanParser(registry)
 		data, dataErr := ioutil.ReadFile(config.FilePath)
@@ -92,8 +92,8 @@ func GetPlan(config *config.Configuration, registry core.Registry) core.Plan {
 	return plan
 }
 
-//CreatePlanFromConfiguration ...
-func CreatePlanFromConfiguration(config *config.Configuration) core.Plan {
+//CreatePlanFromURLList ...
+func CreatePlanFromURLList(config *config.Configuration) core.Plan {
 	plan := core.Plan{
 		Name:     "Plan from urls in file",
 		Workers:  config.Workers,
@@ -136,7 +136,8 @@ func CreatePlanFromConfiguration(config *config.Configuration) core.Plan {
 
 		step.Action = action
 		job.Steps = append(job.Steps, step)
-		plan.Jobs = append(plan.Jobs, job)
+		//plan.Jobs = append(plan.Jobs, job)
+		plan = plan.AddJob(job)
 	}
 
 	return plan

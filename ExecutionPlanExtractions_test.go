@@ -11,27 +11,50 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("ExecutionPlanExtractions", func() {
+var _ = FDescribe("ExecutionPlanExtractions", func() {
 	Context("Regex", func() {
 		Context("Step Scope", func() {
-			It("Matches simple pattern", func() {
-				planBuilder := test.NewYamlPlanBuilder()
+			Context("Succeeds", func() {
+				It("Matches simple pattern", func() {
+					planBuilder := test.NewYamlPlanBuilder()
 
-				planBuilder.
-					CreateJob().
-					CreateStep().
-					ToExecuteAction(planBuilder.DummyAction().Set("value:1", "talula 123 bang bang").Build()).
-					WithExtractor(planBuilder.RegexExtractor().Name("regex:match:1").Key("value:1").Match("\\d+").Build()).
-					WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
+					planBuilder.
+						CreateJob().
+						CreateStep().
+						ToExecuteAction(planBuilder.DummyAction().Set("value:1", "talula 123 bang bang").Build()).
+						WithExtractor(planBuilder.RegexExtractor().Name("regex:match:1").Key("value:1").Match("\\d+").Build()).
+						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
-				err := ExecutePlanBuilder(planBuilder)
-				Expect(err).To(BeNil())
+					err := ExecutePlanBuilder(planBuilder)
+					Expect(err).To(BeNil())
 
-				var executionOutput statistics.AggregatorSnapShot
-				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-				var summary = statistics.CreateSummary(executionOutput)
+					var executionOutput statistics.AggregatorSnapShot
+					utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+					var summary = statistics.CreateSummary(executionOutput)
 
-				Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+					Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+				})
+			})
+			Context("Fails", func() {
+				It("Matches simple pattern", func() {
+					planBuilder := test.NewYamlPlanBuilder()
+
+					planBuilder.
+						CreateJob().
+						CreateStep().
+						ToExecuteAction(planBuilder.DummyAction().Set("value:1", "talula 123 bang bang").Build()).
+						WithExtractor(planBuilder.RegexExtractor().Name("regex:match:1").Key("value:1").Match("boom").Build()).
+						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
+
+					err := ExecutePlanBuilder(planBuilder)
+					Expect(err).To(BeNil())
+
+					var executionOutput statistics.AggregatorSnapShot
+					utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+					var summary = statistics.CreateSummary(executionOutput)
+
+					Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
+				})
 			})
 
 			PIt("Extends the name with any named groups", func() {})

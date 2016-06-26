@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("ExecutionPlanExtractions", func() {
+var _ = Describe("ExecutionPlanExtractions", func() {
 	Context("Regex", func() {
 		Context("Step Scope", func() {
 			Context("Succeeds", func() {
@@ -173,14 +173,85 @@ var _ = FDescribe("ExecutionPlanExtractions", func() {
 	})
 
 	Context("XPAth", func() {
-		PContext("Step Scope", func() {
+		Context("Step Scope", func() {
+			It("Succeeds", func() {
+				sampleContent := `<library>
+          <!-- Great book. -->
+          <book id="b0836217462" available="true">
+            <isbn>0836217462</isbn>
+            <title lang="en">Being a Dog Is a Full-Time Job</title>
+            <quote>I'd dog paddle the deepest ocean.</quote>
+            <author id="CMS">
+              <?echo "go rocks"?>
+              <name>Charles M Schulz</name>
+              <born>1922-11-26</born>
+              <dead>2000-02-12</dead>
+            </author>
+            <character id="PP">
+              <name>Peppermint Patty</name>
+              <born>1966-08-22</born>
+              <qualification>bold, brash and tomboyish</qualification>
+            </character>
+            <character id="Snoopy">
+              <name>Snoopy</name>
+              <born>1950-10-04</born>
+              <qualification>extroverted beagle</qualification>
+            </character>
+          </book>
+        </library>`
 
+				testCases := map[string]string{
+					"/library/book/isbn":                              "0836217462",
+					"library/*/isbn":                                  "0836217462",
+					"/library/book/../book/./isbn":                    "0836217462",
+					"/library/book/character[2]/name":                 "Snoopy",
+					"/library/book/character[born='1950-10-04']/name": "Snoopy",
+					"/library/book//node()[@id='PP']/name":            "Peppermint Patty",
+					"//book[author/@id='CMS']/title":                  "Being a Dog Is a Full-Time Job",
+					"/library/book/preceding::comment()":              " Great book. ",
+					"//*[contains(born,'1922')]/name":                 "Charles M Schulz",
+					"//*[@id='PP' or @id='Snoopy']/born":              "1966-08-22",
+				}
+
+				for testCase, expectedValue := range testCases {
+					planBuilder := test.NewYamlPlanBuilder()
+
+					planBuilder.
+						CreateJob().
+						CreateStep().
+						ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
+						WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath(testCase).Build()).
+						WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
+
+					err := ExecutePlanBuilder(planBuilder)
+					Expect(err).To(BeNil())
+
+					var executionOutput statistics.AggregatorSnapShot
+					utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+					var summary = statistics.CreateSummary(executionOutput)
+
+					Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+				}
+			})
+			It("Fails", func() {
+
+			})
 		})
 		PContext("Job Scope", func() {
+			Context("Succeeds", func() {
 
+			})
+			Context("Fails", func() {
+
+			})
 		})
 		PContext("Plan Scope", func() {
+			Context("Succeeds", func() {
 
+			})
+			Context("Fails", func() {
+
+			})
 		})
 	})
 

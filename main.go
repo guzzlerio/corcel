@@ -74,18 +74,19 @@ func AddExecutionToHistory(file string, output statistics.AggregatorSnapShot) {
 // ServerCommand ...
 type ServerCommand struct {
 	Port     int
-	registry Registry
+	registry *core.Registry
 }
 
-func (cmd *ServerCommand) run(c *kingpin.ParseContext) error {
-	// have access to cmd.registry
+func (instance *ServerCommand) run(c *kingpin.ParseContext) error {
+	// have access to c.registry
 	//Start HTTP Server
 	// construct HTTP Host
 	// Start HTTP Host from cmd options
+	fmt.Printf("Would now be starting the HTTP server on %v\n", instance.Port)
 	return nil
 }
 
-func configureServerCommand(app *kingpin.Application, registry *Registry) {
+func configureServerCommand(app *kingpin.Application, registry *core.Registry) {
 	c := &ServerCommand{
 		registry: registry,
 	}
@@ -93,24 +94,65 @@ func configureServerCommand(app *kingpin.Application, registry *Registry) {
 	server.Flag("port", "Port").Default("54332").IntVar(&c.Port)
 }
 
-func main() {
-	args := os.Args[1:]
+// RunCommand ...
+type RunCommand struct {
+	Config   *config.Configuration
+	registry *core.Registry
+}
 
-	logger.Initialise()
+func (instance *RunCommand) run(c *kingpin.ParseContext) error {
+	configuration, err := config.CmdConfig(instance.Config)
+	if err != nil {
+		return err
+	}
+	//log.SetLevel(logLevel)
 
-	//define registry
+	pwd, err := config.PwdConfig()
+	if err != nil {
+		return err
+	}
+	usr, err := config.UserDirConfig()
+	if err != nil {
+		return err
+	}
 
+	defaults := config.DefaultConfig()
+	eachConfig := []interface{}{configuration, pwd, usr, &defaults}
+	for _, item := range eachConfig {
+		if err := mergo.Merge(configuration, item); err != nil {
+			return err
+		}
+	}
+	config.SetLogLevel(configuration, eachConfig)
+	//log.WithFields(log.Fields{"config": config}).Info("Configuration")
+	logger.ConfigureLogging(configuration)
+
+	_, err = filepath.Abs(configuration.FilePath)
+	//TODO Why is this a check rather than return err?
+	check(err)
+
+	host := cmd.NewConsoleHost(configuration, *instance.registry)
+	id, _ := host.Control.Start(configuration) //will this block?
+	output := host.Control.Stop(id)
+
+	//TODO these should probably be pushed behind the host.Control.Stop afterall the host is a cmd host
+	GenerateExecutionOutput("./output.yml", output)
+
+	AddExecutionToHistory("./history.yml", output)
+
+	if configuration.Summary {
+		OutputSummary(output)
+	}
+	return nil
+}
+
+func configureRunCommand(app *kingpin.Application, registry *core.Registry) {
 	configuration := &config.Configuration{}
-
-	kingpin.UsageTemplate(kingpin.CompactUsageTemplate).Version(applicationVersion).Author("Andrew Rea").Author("James Allen")
-	kingpin.CommandLine.Help = "An example implementation of curl."
-	app := kingpin.New("corcel", "")
-	app.HelpFlag.Short('h')
-	app.UsageTemplate(kingpin.LongHelpTemplate)
-
-	configureServerCommand(app, registry)
-
-	run := app.Command("run", "Execute performance test thing")
+	c := &RunCommand{
+		Config:   configuration,
+		registry: registry,
+	}
+	run := app.Command("run", "Execute performance test thing").Action(c.run)
 	run.Arg("file", "Corcel file contains URLs or an ExecutionPlan (see the --plan argument)").Required().StringVar(&configuration.FilePath)
 	run.Flag("summary", "Output summary to STDOUT").BoolVar(&configuration.Summary)
 	run.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").Default("0s").DurationVar(&configuration.Duration)
@@ -120,80 +162,39 @@ func main() {
 	run.Flag("plan", "Indicate that the corcel file is an ExecutionPlan").BoolVar(&configuration.Plan)
 	run.Flag("verbose", "verbosity").Short('v').Action(config.Counter).Bool()
 	run.Flag("progress", "Progress reporter").EnumVar(&configuration.Progress, "bar", "logo", "none")
+}
 
-	var err error
-	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
-	case run.FullCommand():
-		configuration, err = config.CmdConfig(configuration)
-		if err != nil {
-			app.Usage(args)
-			os.Exit(1)
-		}
-		//log.SetLevel(logLevel)
+func main() {
+	logger.Initialise()
 
-		pwd, err := config.PwdConfig()
-		if err != nil {
-			app.Usage(args)
-			os.Exit(1)
-		}
-		usr, err := config.UserDirConfig()
-		if err != nil {
-			app.Usage(args)
-			os.Exit(1)
-		}
+	//TODO: This is not as efficient as it could be for example:
+	//Ideally we would only add the HTTP result processor IF an HTTP Action was used
+	//Currently every result processor needs to be added.
+	//TODO add a ScanForActions .ScanForAssertions .ScanForProcessors .ScanForExtractors .ScanForContexts
+	registry := core.CreateRegistry().
+		AddActionParser(inproc.YamlDummyActionParser{}).
+		AddActionParser(http.YamlHTTPRequestParser{}).
+		AddAssertionParser(yaml.ExactAssertionParser{}).
+		AddAssertionParser(yaml.NotEqualAssertionParser{}).
+		AddAssertionParser(yaml.EmptyAssertionParser{}).
+		AddAssertionParser(yaml.NotEmptyAssertionParser{}).
+		AddAssertionParser(yaml.GreaterThanAssertionParser{}).
+		AddAssertionParser(yaml.GreaterThanOrEqualAssertionParser{}).
+		AddAssertionParser(yaml.LessThanAssertionParser{}).
+		AddAssertionParser(yaml.LessThanOrEqualAssertionParser{}).
+		AddResultProcessor(http.NewHTTPExecutionResultProcessor()).
+		AddResultProcessor(inproc.NewGeneralExecutionResultProcessor())
 
-		defaults := config.DefaultConfig()
-		eachConfig := []interface{}{configuration, pwd, usr, &defaults}
-		for _, item := range eachConfig {
-			if err := mergo.Merge(configuration, item); err != nil {
-				app.Usage(args)
-				os.Exit(1)
-			}
-		}
-		config.SetLogLevel(configuration, eachConfig)
-		//log.WithFields(log.Fields{"config": config}).Info("Configuration")
-		if err != nil {
-			app.Usage(args)
-			os.Exit(1)
-		}
+	kingpin.UsageTemplate(kingpin.CompactUsageTemplate).Version(applicationVersion).Author("Andrew Rea").Author("James Allen")
+	kingpin.CommandLine.Help = "An example implementation of curl."
+	app := kingpin.New("corcel", "")
+	app.HelpFlag.Short('h')
+	app.UsageTemplate(kingpin.LongHelpTemplate)
 
-		logger.ConfigureLogging(configuration)
+	configureRunCommand(app, &registry)
+	configureServerCommand(app, &registry)
 
-		//TODO: This is not as efficient as it could be for example:
-		//Ideally we would only add the HTTP result processor IF an HTTP Action was used
-		//Currently every result processor needs to be added.
-		//TODO add a ScanForActions .ScanForAssertions .ScanForProcessors .ScanForExtractors .ScanForContexts
-		registry := core.CreateRegistry().
-			AddActionParser(inproc.YamlDummyActionParser{}).
-			AddActionParser(http.YamlHTTPRequestParser{}).
-			AddAssertionParser(yaml.ExactAssertionParser{}).
-			AddAssertionParser(yaml.NotEqualAssertionParser{}).
-			AddAssertionParser(yaml.EmptyAssertionParser{}).
-			AddAssertionParser(yaml.NotEmptyAssertionParser{}).
-			AddAssertionParser(yaml.GreaterThanAssertionParser{}).
-			AddAssertionParser(yaml.GreaterThanOrEqualAssertionParser{}).
-			AddAssertionParser(yaml.LessThanAssertionParser{}).
-			AddAssertionParser(yaml.LessThanOrEqualAssertionParser{}).
-			AddResultProcessor(http.NewHTTPExecutionResultProcessor()).
-			AddResultProcessor(inproc.NewGeneralExecutionResultProcessor())
-
-		_, err = filepath.Abs(configuration.FilePath)
-		check(err)
-
-		host := cmd.NewConsoleHost(configuration, registry)
-		id, _ := host.Control.Start(configuration) //will this block?
-		output := host.Control.Stop(id)
-
-		//TODO these should probably be pushed behind the host.Control.Stop afterall the host is a cmd host
-		GenerateExecutionOutput("./output.yml", output)
-
-		AddExecutionToHistory("./history.yml", output)
-
-		if configuration.Summary {
-			OutputSummary(output)
-		}
-	}
-
+	kingpin.MustParse(app.Parse(os.Args[1:]))
 }
 
 //OutputSummary ...

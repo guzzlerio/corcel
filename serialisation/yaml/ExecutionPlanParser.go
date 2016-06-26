@@ -42,14 +42,13 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 	executionPlan.Workers = yamlExecutionPlan.Workers
 
 	for _, yamlJob := range yamlExecutionPlan.Jobs {
-		job := core.Job{
-			Name: yamlJob.Name,
-		}
+		job := executionPlan.CreateJob()
+		job.Name = yamlJob.Name
 
 		for _, yamlStep := range yamlJob.Steps {
-			step := core.Step{
-				Name: yamlStep.Name,
-			}
+			step := job.CreateStep()
+			step.Name = yamlStep.Name
+
 			if yamlStep.Action["type"] != nil {
 				actionType := yamlStep.Action["type"].(string)
 
@@ -78,11 +77,9 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 				}
 			}
 
-			//job.Steps = append(job.Steps, step)
 			job = job.AddStep(step)
 		}
 
-		//executionPlan.Jobs = append(executionPlan.Jobs, job)
 		executionPlan = executionPlan.AddJob(job)
 	}
 

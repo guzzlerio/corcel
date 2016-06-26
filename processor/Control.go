@@ -106,16 +106,14 @@ func CreatePlanFromURLList(config *config.Configuration) core.Plan {
 	stream := request.NewSequentialRequestStream(reader)
 
 	for stream.HasNext() {
-		job := core.Job{
-			Name:  "Job for the urls in file",
-			Steps: []core.Step{},
-		}
+		job := plan.CreateJob()
+		job.Name = "Job for the urls in file"
 
 		request, err := stream.Next()
 		if err != nil {
 			errormanager.Check(err)
 		}
-		step := core.Step{}
+		step := job.CreateStep()
 
 		var body string
 		if request.Body != nil {

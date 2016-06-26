@@ -1,7 +1,6 @@
 package processor
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -66,13 +65,11 @@ func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan stru
 	for _, extractor := range step.Extractors {
 		extractorResult := extractor.Extract(executionResult)
 
-		fmt.Println(fmt.Sprintf("Inside of the extractor loop with scope of %s", extractorResult.Scope()))
 		switch extractorResult.Scope() {
 		case core.PlanScope:
 			instance.PlanContext = merge(instance.PlanContext, extractorResult)
 			fallthrough
 		case core.JobScope:
-			fmt.Println("Inside of JOB SCOPE")
 			instance.JobContexts[step.JobID] = merge(instance.JobContexts[step.JobID], extractorResult)
 			fallthrough
 		case core.StepScope:

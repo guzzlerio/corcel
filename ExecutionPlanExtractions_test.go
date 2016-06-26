@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("ExecutionPlanExtractions", func() {
+var _ = Describe("ExecutionPlanExtractions", func() {
 	Context("Regex", func() {
 		Context("Step Scope", func() {
 			It("Matches simple pattern", func() {
@@ -20,7 +20,7 @@ var _ = FDescribe("ExecutionPlanExtractions", func() {
 					CreateJob().
 					CreateStep().
 					ToExecuteAction(planBuilder.DummyAction().Set("value:1", "talula 123 bang bang").Build()).
-					WithExtractor(planBuilder.RegexExtractor().Name("regex:match:1").Key("value:1").Match("\\d+")).
+					WithExtractor(planBuilder.RegexExtractor().Name("regex:match:1").Key("value:1").Match("\\d+").Build()).
 					WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
 				err := ExecutePlanBuilder(planBuilder)

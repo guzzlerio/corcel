@@ -36,6 +36,14 @@ func CreatePlanExecutor(config *config.Configuration, bar ProgressBar) *PlanExec
 func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan struct{}) core.ExecutionResult {
 	start := time.Now()
 	executionResult := step.Action.Execute(cancellation)
+
+	for _, extractor := range step.Extractors {
+		extractorResult := extractor.Extract(executionResult)
+		for k, v := range extractorResult {
+			executionResult[k] = v
+		}
+	}
+
 	duration := time.Since(start) / time.Millisecond
 	executionResult["action:duration"] = duration
 	assertionResults := []core.AssertionResult{}

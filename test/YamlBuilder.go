@@ -53,6 +53,38 @@ func (instance DummyActionBuilder) Build() map[string]interface{} {
 	return instance.data
 }
 
+//RegexExtractor ...
+func (instance YamlPlanBuilder) RegexExtractor() RegexExtractorBuilder {
+	return RegexExtractorBuilder{
+		data: map[string]interface{}{
+			"type": "RegexExtractor",
+		},
+	}
+}
+
+//Name ...
+func (instance RegexExtractorBuilder) Name(value string) RegexExtractorBuilder {
+	instance.data["name"] = value
+	return instance
+}
+
+//Key ...
+func (instance RegexExtractorBuilder) Key(value string) RegexExtractorBuilder {
+	instance.data["key"] = value
+	return instance
+}
+
+//Match ...
+func (instance RegexExtractorBuilder) Match(value string) RegexExtractorBuilder {
+	instance.data["match"] = value
+	return instance
+}
+
+//Build ...
+func (instance RegexExtractorBuilder) Build() map[string]interface{} {
+	return instance.data
+}
+
 //DummyAction ...
 func (instance YamlPlanBuilder) DummyAction() DummyActionBuilder {
 	return DummyActionBuilder{
@@ -297,6 +329,7 @@ func (instance *YamlJobBuilder) CreateStep() *YamlJobBuilder {
 type YamlStepBuilder struct {
 	Action     map[string]interface{}
 	Assertions []map[string]interface{}
+	Extractors []map[string]interface{}
 }
 
 //Build ...
@@ -304,6 +337,7 @@ func (instance *YamlStepBuilder) Build() yaml.ExecutionStep {
 	step := yaml.ExecutionStep{}
 	step.Action = instance.Action
 	step.Assertions = instance.Assertions
+	step.Extractors = instance.Extractors
 	return step
 }
 
@@ -327,5 +361,12 @@ func (instance *YamlJobBuilder) ToExecuteAction(data map[string]interface{}) *Ya
 func (instance *YamlJobBuilder) WithAssertion(data map[string]interface{}) *YamlJobBuilder {
 	stepBuilder := instance.CurrentStepBuilder()
 	stepBuilder.Assertions = append(stepBuilder.Assertions, data)
+	return instance
+}
+
+//WithExtractor ...
+func (instance *YamlJobBuilder) WithExtractor(data map[string]interface{}) *YamlJobBuilder {
+	stepBuilder := instance.CurrentStepBuilder()
+	stepBuilder.Extractors = append(stepBuilder.Extractors, data)
 	return instance
 }

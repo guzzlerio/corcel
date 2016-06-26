@@ -12,6 +12,7 @@ import (
 type ExecutionPlanParser struct {
 	ExecutionActionParsers    map[string]core.ExecutionActionParser
 	ExecutionAssertionParsers map[string]core.ExecutionAssertionParser
+	ExecutionExtractorParsers map[string]core.ExecutionExtractorParser
 }
 
 //Parse ...
@@ -56,6 +57,7 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 			} else {
 				panic(fmt.Sprintf("No parser configured for action %s", actionType))
 			}
+
 			for _, yamlAssertion := range yamlStep.Assertions {
 				assertionType := yamlAssertion["type"].(string)
 				if parser := instance.ExecutionAssertionParsers[assertionType]; parser != nil {
@@ -65,15 +67,22 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 				}
 			}
 
+			fmt.Println("Finding the extractors")
+			for _, yamlExtractor := range yamlStep.Extractors {
+				extractorType := yamlExtractor["type"].(string)
+				fmt.Println(fmt.Sprintf("specific extractor %s %v", extractorType, instance.ExecutionExtractorParsers))
+				if parser := instance.ExecutionExtractorParsers[extractorType]; parser != nil {
+					step.Extractors = append(step.Extractors, parser.Parse(yamlExtractor))
+				} else {
+					panic(fmt.Sprintf("No parser configured for extractor %s", extractorType))
+				}
+			}
+
 			job.Steps = append(job.Steps, step)
 		}
 
 		executionPlan.Jobs = append(executionPlan.Jobs, job)
 	}
-
-	//We have an execution plan
-
-	//Now we need to execute it.
 
 	return executionPlan, nil
 }
@@ -94,6 +103,14 @@ func (instance *ExecutionPlanParser) AddAssertionParser(assertionType string, pa
 	instance.ExecutionAssertionParsers[assertionType] = parser
 }
 
+//AddExtractorParser ...
+func (instance *ExecutionPlanParser) AddExtractorParser(assertionType string, parser core.ExecutionExtractorParser) {
+	if instance.ExecutionExtractorParsers == nil {
+		instance.ExecutionExtractorParsers = map[string]core.ExecutionExtractorParser{}
+	}
+	instance.ExecutionExtractorParsers[assertionType] = parser
+}
+
 //CreateExecutionPlanParser ...
 func CreateExecutionPlanParser(registry core.Registry) *ExecutionPlanParser {
 	parser := &ExecutionPlanParser{}
@@ -106,6 +123,11 @@ func CreateExecutionPlanParser(registry core.Registry) *ExecutionPlanParser {
 	//This can be refactored so that the Key method is invoked inside the AddActionParser
 	for _, assertionParser := range registry.AssertionParsers {
 		parser.AddAssertionParser(assertionParser.Key(), assertionParser)
+	}
+
+	//This can be refactored so that the Key method is invoked inside the AddActionParser
+	for _, extractorParser := range registry.ExtractorParsers {
+		parser.AddExtractorParser(extractorParser.Key(), extractorParser)
 	}
 	return parser
 }

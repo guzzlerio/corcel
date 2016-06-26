@@ -90,7 +90,8 @@ func main() {
 		AddAssertionParser(yaml.LessThanAssertionParser{}).
 		AddAssertionParser(yaml.LessThanOrEqualAssertionParser{}).
 		AddResultProcessor(http.NewHTTPExecutionResultProcessor()).
-		AddResultProcessor(inproc.NewGeneralExecutionResultProcessor())
+		AddResultProcessor(inproc.NewGeneralExecutionResultProcessor()).
+		AddExtractorParser(yaml.RegexExtractorParser{})
 
 	_, err = filepath.Abs(configuration.FilePath)
 	check(err)

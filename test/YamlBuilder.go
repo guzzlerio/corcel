@@ -80,6 +80,12 @@ func (instance RegexExtractorBuilder) Match(value string) RegexExtractorBuilder 
 	return instance
 }
 
+//Scope ...
+func (instance RegexExtractorBuilder) Scope(value string) RegexExtractorBuilder {
+	instance.data["scope"] = value
+	return instance
+}
+
 //Build ...
 func (instance RegexExtractorBuilder) Build() map[string]interface{} {
 	return instance.data

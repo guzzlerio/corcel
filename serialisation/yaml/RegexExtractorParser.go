@@ -10,11 +10,18 @@ type RegexExtractorParser struct{}
 
 //Parse ...
 func (instance RegexExtractorParser) Parse(input map[string]interface{}) core.Extractor {
-	return &extractors.RegexExtractor{
+	extractor := extractors.RegexExtractor{
 		Name:  input["name"].(string),
 		Key:   input["key"].(string),
 		Match: input["match"].(string),
+		Scope: core.StepScope,
 	}
+
+	if input["scope"] != nil {
+		extractor.Scope = input["scope"].(string)
+	}
+
+	return extractor
 }
 
 //Key ...

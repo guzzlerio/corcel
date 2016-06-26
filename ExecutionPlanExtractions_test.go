@@ -2,6 +2,7 @@ package main_test
 
 import (
 	. "ci.guzzler.io/guzzler/corcel"
+	"ci.guzzler.io/guzzler/corcel/core"
 	"ci.guzzler.io/guzzler/corcel/statistics"
 	"ci.guzzler.io/guzzler/corcel/test"
 	"ci.guzzler.io/guzzler/corcel/utils"
@@ -38,25 +39,54 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 			PIt("Extends the name with index access with any non-named groups", func() {})
 		})
 		Context("Job Scope", func() {
-			It("Matches simple pattern", func() {
-				planBuilder := test.NewYamlPlanBuilder()
+			Context("Succeeds", func() {
+				It("Matches simple pattern", func() {
+					planBuilder := test.NewYamlPlanBuilder()
 
-				planBuilder.
-					CreateJob().
-					CreateStep().
-					ToExecuteAction(planBuilder.DummyAction().Set("value:1", "talula 123 bang bang").Build()).
-					WithExtractor(planBuilder.RegexExtractor().Name("regex:match:1").Key("value:1").Match("\\d+").Build()).
-					CreateStep().
-					WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
+					planBuilder.
+						CreateJob().
+						CreateStep().
+						ToExecuteAction(planBuilder.DummyAction().Set("value:1", "talula 123 bang bang").Build()).
+						WithExtractor(planBuilder.RegexExtractor().
+						Name("regex:match:1").
+						Key("value:1").Match("\\d+").
+						Scope(core.JobScope).Build()).
+						CreateStep().
+						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
-				err := ExecutePlanBuilder(planBuilder)
-				Expect(err).To(BeNil())
+					err := ExecutePlanBuilder(planBuilder)
+					Expect(err).To(BeNil())
 
-				var executionOutput statistics.AggregatorSnapShot
-				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-				var summary = statistics.CreateSummary(executionOutput)
+					var executionOutput statistics.AggregatorSnapShot
+					utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+					var summary = statistics.CreateSummary(executionOutput)
 
-				Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+					Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+				})
+			})
+			Context("Fails", func() {
+				It("Matches simple pattern but scope not set to Job and so defaults to Step", func() {
+					planBuilder := test.NewYamlPlanBuilder()
+
+					planBuilder.
+						CreateJob().
+						CreateStep().
+						ToExecuteAction(planBuilder.DummyAction().Set("value:1", "talula 123 bang bang").Build()).
+						WithExtractor(planBuilder.RegexExtractor().
+						Name("regex:match:1").
+						Key("value:1").Match("\\d+").Build()).
+						CreateStep().
+						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
+
+					err := ExecutePlanBuilder(planBuilder)
+					Expect(err).To(BeNil())
+
+					var executionOutput statistics.AggregatorSnapShot
+					utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+					var summary = statistics.CreateSummary(executionOutput)
+
+					Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
+				})
 			})
 		})
 		PContext("Plan Scope", func() {

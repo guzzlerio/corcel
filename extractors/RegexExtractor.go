@@ -11,6 +11,7 @@ type RegexExtractor struct {
 	Name  string
 	Key   string
 	Match string
+	Scope string
 }
 
 //Extract ...
@@ -26,5 +27,6 @@ func (instance RegexExtractor) Extract(result core.ExecutionResult) core.Extract
 
 	return core.ExtractionResult{
 		instance.Name: res,
+		"scope":       instance.Scope,
 	}
 }

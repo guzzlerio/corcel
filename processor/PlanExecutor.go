@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -25,20 +26,24 @@ type ExecutionBranch interface {
 
 //PlanExecutor ...
 type PlanExecutor struct {
-	Config      *config.Configuration
-	Bar         ProgressBar
-	start       time.Time
-	Publisher   telegraph.LinkedPublisher
-	JobContexts map[int]core.ExtractionResult
+	Config       *config.Configuration
+	Bar          ProgressBar
+	start        time.Time
+	Publisher    telegraph.LinkedPublisher
+	PlanContext  core.ExtractionResult
+	JobContexts  map[int]core.ExtractionResult
+	StepContexts map[int]map[int]core.ExtractionResult
 }
 
 //CreatePlanExecutor ...
 func CreatePlanExecutor(config *config.Configuration, bar ProgressBar) *PlanExecutor {
 	return &PlanExecutor{
-		Config:      config,
-		Bar:         bar,
-		Publisher:   telegraph.NewLinkedPublisher(),
-		JobContexts: map[int]core.ExtractionResult{},
+		Config:       config,
+		Bar:          bar,
+		Publisher:    telegraph.NewLinkedPublisher(),
+		PlanContext:  core.ExtractionResult{},
+		JobContexts:  map[int]core.ExtractionResult{},
+		StepContexts: map[int]map[int]core.ExtractionResult{},
 	}
 }
 
@@ -46,9 +51,13 @@ func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan stru
 	start := time.Now()
 	if instance.JobContexts[step.JobID] == nil {
 		instance.JobContexts[step.JobID] = map[string]interface{}{}
+		instance.StepContexts[step.JobID] = map[int]core.ExtractionResult{}
+		instance.StepContexts[step.JobID][step.ID] = map[string]interface{}{}
 	}
 
-	var executionResult = merge(core.ExecutionResult{}, instance.JobContexts[step.JobID])
+	var executionResult = merge(core.ExecutionResult{}, instance.PlanContext)
+	executionResult = merge(executionResult, instance.JobContexts[step.JobID])
+	executionResult = merge(executionResult, instance.StepContexts[step.JobID][step.ID])
 
 	if step.Action != nil {
 		executionResult = step.Action.Execute(cancellation)
@@ -56,7 +65,21 @@ func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan stru
 
 	for _, extractor := range step.Extractors {
 		extractorResult := extractor.Extract(executionResult)
-		instance.JobContexts[step.JobID] = merge(instance.JobContexts[step.JobID], extractorResult)
+
+		fmt.Println(fmt.Sprintf("Inside of the extractor loop with scope of %s", extractorResult.Scope()))
+		switch extractorResult.Scope() {
+		case core.PlanScope:
+			instance.PlanContext = merge(instance.PlanContext, extractorResult)
+			fallthrough
+		case core.JobScope:
+			fmt.Println("Inside of JOB SCOPE")
+			instance.JobContexts[step.JobID] = merge(instance.JobContexts[step.JobID], extractorResult)
+			fallthrough
+		case core.StepScope:
+			instance.StepContexts[step.JobID][step.ID] = merge(instance.StepContexts[step.JobID][step.ID], extractorResult)
+		}
+
+		//instance.JobContexts[step.JobID] = merge(instance.JobContexts[step.JobID], extractorResult)
 		for k, v := range extractorResult {
 			executionResult[k] = v
 		}

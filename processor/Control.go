@@ -135,7 +135,8 @@ func CreatePlanFromURLList(config *config.Configuration) core.Plan {
 		}
 
 		step.Action = action
-		job.Steps = append(job.Steps, step)
+		//job.Steps = append(job.Steps, step)
+		job = job.AddStep(step)
 		//plan.Jobs = append(plan.Jobs, job)
 		plan = plan.AddJob(job)
 	}

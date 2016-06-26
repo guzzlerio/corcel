@@ -78,10 +78,12 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 				}
 			}
 
-			job.Steps = append(job.Steps, step)
+			//job.Steps = append(job.Steps, step)
+			job = job.AddStep(step)
 		}
 
-		executionPlan.Jobs = append(executionPlan.Jobs, job)
+		//executionPlan.Jobs = append(executionPlan.Jobs, job)
+		executionPlan = executionPlan.AddJob(job)
 	}
 
 	return executionPlan, nil

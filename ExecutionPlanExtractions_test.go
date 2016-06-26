@@ -38,7 +38,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 			PIt("Extends the name with index access with any non-named groups", func() {})
 		})
 		Context("Job Scope", func() {
-			PIt("Matches simple pattern", func() {
+			It("Matches simple pattern", func() {
 				planBuilder := test.NewYamlPlanBuilder()
 
 				planBuilder.

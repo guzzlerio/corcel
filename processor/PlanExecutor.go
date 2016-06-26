@@ -11,6 +11,13 @@ import (
 	"github.com/REAANDREW/telegraph"
 )
 
+func merge(source map[string]interface{}, extra map[string]interface{}) map[string]interface{} {
+	for k, v := range extra {
+		source[k] = v
+	}
+	return source
+}
+
 //ExecutionBranch ...
 type ExecutionBranch interface {
 	Execute(plan core.Plan) error
@@ -18,25 +25,30 @@ type ExecutionBranch interface {
 
 //PlanExecutor ...
 type PlanExecutor struct {
-	Config    *config.Configuration
-	Bar       ProgressBar
-	start     time.Time
-	Publisher telegraph.LinkedPublisher
+	Config      *config.Configuration
+	Bar         ProgressBar
+	start       time.Time
+	Publisher   telegraph.LinkedPublisher
+	JobContexts map[int]core.ExtractionResult
 }
 
 //CreatePlanExecutor ...
 func CreatePlanExecutor(config *config.Configuration, bar ProgressBar) *PlanExecutor {
 	return &PlanExecutor{
-		Config:    config,
-		Bar:       bar,
-		Publisher: telegraph.NewLinkedPublisher(),
+		Config:      config,
+		Bar:         bar,
+		Publisher:   telegraph.NewLinkedPublisher(),
+		JobContexts: map[int]core.ExtractionResult{},
 	}
 }
 
 func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan struct{}) core.ExecutionResult {
 	start := time.Now()
+	if instance.JobContexts[step.JobID] == nil {
+		instance.JobContexts[step.JobID] = map[string]interface{}{}
+	}
 
-	var executionResult = core.ExecutionResult{}
+	var executionResult = merge(core.ExecutionResult{}, instance.JobContexts[step.JobID])
 
 	if step.Action != nil {
 		executionResult = step.Action.Execute(cancellation)
@@ -44,6 +56,7 @@ func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan stru
 
 	for _, extractor := range step.Extractors {
 		extractorResult := extractor.Extract(executionResult)
+		instance.JobContexts[step.JobID] = merge(instance.JobContexts[step.JobID], extractorResult)
 		for k, v := range extractorResult {
 			executionResult[k] = v
 		}

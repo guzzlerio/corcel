@@ -18,6 +18,7 @@ import (
 
 	"github.com/guzzlerio/rizo"
 
+	"ci.guzzler.io/guzzler/corcel/errormanager"
 	"ci.guzzler.io/guzzler/corcel/global"
 	"ci.guzzler.io/guzzler/corcel/logger"
 	"ci.guzzler.io/guzzler/corcel/statistics"
@@ -423,4 +424,10 @@ func Requests(recordedRequests []rizo.RecordedRequest) (result []*http.Request) 
 		result = append(result, recordedRequest.Request)
 	}
 	return
+}
+
+func check(err error) {
+	if err != nil {
+		errormanager.Log(err)
+	}
 }

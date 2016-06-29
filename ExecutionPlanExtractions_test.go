@@ -1,6 +1,9 @@
 package main_test
 
 import (
+	"fmt"
+	"net/url"
+
 	. "ci.guzzler.io/guzzler/corcel"
 	"ci.guzzler.io/guzzler/corcel/core"
 	"ci.guzzler.io/guzzler/corcel/statistics"
@@ -173,9 +176,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 	})
 
 	Context("XPAth", func() {
-		Context("Step Scope", func() {
-			It("Succeeds", func() {
-				sampleContent := `<library>
+		sampleContent := `<library>
           <!-- Great book. -->
           <book id="b0836217462" available="true">
             <isbn>0836217462</isbn>
@@ -199,21 +200,21 @@ var _ = Describe("ExecutionPlanExtractions", func() {
             </character>
           </book>
         </library>`
-
-				testCases := map[string]string{
-					"/library/book/isbn":                              "0836217462",
-					"library/*/isbn":                                  "0836217462",
-					"/library/book/../book/./isbn":                    "0836217462",
-					"/library/book/character[2]/name":                 "Snoopy",
-					"/library/book/character[born='1950-10-04']/name": "Snoopy",
-					"/library/book//node()[@id='PP']/name":            "Peppermint Patty",
-					"//book[author/@id='CMS']/title":                  "Being a Dog Is a Full-Time Job",
-					"/library/book/preceding::comment()":              " Great book. ",
-					"//*[contains(born,'1922')]/name":                 "Charles M Schulz",
-					"//*[@id='PP' or @id='Snoopy']/born":              "1966-08-22",
-				}
-
-				for testCase, expectedValue := range testCases {
+		testCases := map[string]string{
+			"/library/book/isbn":                              "0836217462",
+			"library/*/isbn":                                  "0836217462",
+			"/library/book/../book/./isbn":                    "0836217462",
+			"/library/book/character[2]/name":                 "Snoopy",
+			"/library/book/character[born='1950-10-04']/name": "Snoopy",
+			"/library/book//node()[@id='PP']/name":            "Peppermint Patty",
+			"//book[author/@id='CMS']/title":                  "Being a Dog Is a Full-Time Job",
+			"/library/book/preceding::comment()":              " Great book. ",
+			"//*[contains(born,'1922')]/name":                 "Charles M Schulz",
+			"//*[@id='PP' or @id='Snoopy']/born":              "1966-08-22",
+		}
+		Context("Step Scope", func() {
+			for testCase, expectedValue := range testCases {
+				It(fmt.Sprintf("Succeeds with %s", url.QueryEscape(testCase)), func() {
 					planBuilder := test.NewYamlPlanBuilder()
 
 					planBuilder.
@@ -231,26 +232,133 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 					var summary = statistics.CreateSummary(executionOutput)
 
 					Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+				})
+			}
+			It("Fails", func() {
+				planBuilder := test.NewYamlPlanBuilder()
+
+				planBuilder.
+					CreateJob().
+					CreateStep().
+					ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
+					WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath("fubar").Build()).
+					WithAssertion(planBuilder.ExactAssertion("xpath:match:1", "123"))
+
+				err := ExecutePlanBuilder(planBuilder)
+				Expect(err).To(BeNil())
+
+				var executionOutput statistics.AggregatorSnapShot
+				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+				var summary = statistics.CreateSummary(executionOutput)
+
+				Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
+			})
+		})
+		Context("Job Scope", func() {
+			Context("Succeeds", func() {
+				for testCase, expectedValue := range testCases {
+					It(fmt.Sprintf("Succeeds with %s", url.QueryEscape(testCase)), func() {
+						planBuilder := test.NewYamlPlanBuilder()
+
+						planBuilder.
+							CreateJob().
+							CreateStep().
+							ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
+							WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath(testCase).Scope(core.JobScope).Build()).
+							CreateStep().
+							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
+
+						err := ExecutePlanBuilder(planBuilder)
+						Expect(err).To(BeNil())
+
+						var executionOutput statistics.AggregatorSnapShot
+						utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+						var summary = statistics.CreateSummary(executionOutput)
+
+						Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+					})
 				}
 			})
-			It("Fails", func() {
+			Context("Fails", func() {
+				for testCase, expectedValue := range testCases {
+					It(fmt.Sprintf("Fails with %s", url.QueryEscape(testCase)), func() {
+						planBuilder := test.NewYamlPlanBuilder()
 
+						planBuilder.
+							CreateJob().
+							CreateStep().
+							ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
+							WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath(testCase).Build()).
+							CreateStep().
+							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
+
+						err := ExecutePlanBuilder(planBuilder)
+						Expect(err).To(BeNil())
+
+						var executionOutput statistics.AggregatorSnapShot
+						utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+						var summary = statistics.CreateSummary(executionOutput)
+
+						Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
+					})
+				}
 			})
 		})
-		PContext("Job Scope", func() {
-			Context("Succeeds", func() {
 
+		Context("Plan Scope", func() {
+			Context("Succeeds", func() {
+				for testCase, expectedValue := range testCases {
+					It(fmt.Sprintf("Succeeds with %s", url.QueryEscape(testCase)), func() {
+						planBuilder := test.NewYamlPlanBuilder()
+
+						planBuilder.
+							CreateJob().
+							CreateStep().
+							ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
+							WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath(testCase).Scope(core.PlanScope).Build())
+
+						planBuilder.
+							CreateJob().
+							CreateStep().
+							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
+
+						err := ExecutePlanBuilder(planBuilder)
+						Expect(err).To(BeNil())
+
+						var executionOutput statistics.AggregatorSnapShot
+						utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+						var summary = statistics.CreateSummary(executionOutput)
+
+						Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+					})
+				}
 			})
 			Context("Fails", func() {
+				for testCase, expectedValue := range testCases {
+					It(fmt.Sprintf("Fails with %s", url.QueryEscape(testCase)), func() {
+						planBuilder := test.NewYamlPlanBuilder()
 
-			})
-		})
-		PContext("Plan Scope", func() {
-			Context("Succeeds", func() {
+						planBuilder.
+							CreateJob().
+							CreateStep().
+							ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
+							WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath(testCase).Build())
 
-			})
-			Context("Fails", func() {
+						planBuilder.
+							CreateJob().
+							CreateStep().
+							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
+						err := ExecutePlanBuilder(planBuilder)
+						Expect(err).To(BeNil())
+
+						var executionOutput statistics.AggregatorSnapShot
+						utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+						var summary = statistics.CreateSummary(executionOutput)
+
+						Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
+					})
+				}
 			})
 		})
 	})

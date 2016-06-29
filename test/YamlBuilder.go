@@ -123,6 +123,12 @@ func (instance XPathExtractorBuilder) XPath(value string) XPathExtractorBuilder 
 	return instance
 }
 
+//Scope ...
+func (instance XPathExtractorBuilder) Scope(value string) XPathExtractorBuilder {
+	instance.data["scope"] = value
+	return instance
+}
+
 //Build ...
 func (instance XPathExtractorBuilder) Build() map[string]interface{} {
 	return instance.data

@@ -363,15 +363,205 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 		})
 	})
 
-	Context("JSON Path", func() {
-		PContext("Step Scope", func() {
+	PContext("JSON Path", func() {
+		sampleContent := `{
+      "store": {
+        "book": [
+        {
+          "category": "reference",
+          "author": "Nigel Rees",
+          "title": "Sayings of the Century",
+          "price": 8.95
+        },
+        {
+          "category": "fiction",
+          "author": "Evelyn Waugh",
+          "title": "Sword of Honour",
+          "price": 12.99
+        },
+        {
+          "category": "fiction",
+          "author": "Herman Melville",
+          "title": "Moby Dick",
+          "isbn": "0-553-21311-3",
+          "price": 8.99
+        },
+        {
+          "category": "fiction",
+          "author": "J. R. R. Tolkien",
+          "title": "The Lord of the Rings",
+          "isbn": "0-395-19395-8",
+          "price": 22.99
+        }
+        ],
+        "bicycle": {
+          "color": "red",
+          "price": 19.95
+        }
+      },
+      "expensive": 10
+    }`
+		testCases := map[string]string{
+			"$.expensive": "10",
+			/*
+				"$.store.book[0].price":                        "8.95",
+				"$.store.book[-1].isbn":                        "0-395-19395-8",
+				"$.store.book[0,1].price":                      "[8.95, 12.99]",
+				"$.store.book[0:2].price":                      "[8.95, 12.99, 8.99]",
+				"$.store.book[?(@.isbn)].price":                "[8.99, 22.99]",
+				"$.store.book[?(@.price > 10)].title":          "[\"Sword of Honour\", \"The Lord of the Rings\"]",
+				"$.store.book[?(@.price < $.expensive)].price": "[8.95, 8.99]",
+				"$.store.book[:].price":                        "[8.9.5, 12.99, 8.9.9, 22.99]",
+			*/
+		}
+		FContext("Step Scope", func() {
+			for testCase, expectedValue := range testCases {
+				FIt(fmt.Sprintf("Succeeds with %s", url.QueryEscape(testCase)), func() {
+					planBuilder := test.NewYamlPlanBuilder()
 
+					planBuilder.
+						CreateJob().
+						CreateStep().
+						ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
+						WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath(testCase).Build()).
+						WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
+
+					err := ExecutePlanBuilder(planBuilder)
+					Expect(err).To(BeNil())
+
+					var executionOutput statistics.AggregatorSnapShot
+					utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+					var summary = statistics.CreateSummary(executionOutput)
+
+					Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+				})
+			}
+			It("Fails", func() {
+				planBuilder := test.NewYamlPlanBuilder()
+
+				planBuilder.
+					CreateJob().
+					CreateStep().
+					ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
+					WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath("fubar").Build()).
+					WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", "123"))
+
+				err := ExecutePlanBuilder(planBuilder)
+				Expect(err).To(BeNil())
+
+				var executionOutput statistics.AggregatorSnapShot
+				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+				var summary = statistics.CreateSummary(executionOutput)
+
+				Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
+			})
 		})
-		PContext("Job Scope", func() {
+		Context("Job Scope", func() {
+			Context("Succeeds", func() {
+				for testCase, expectedValue := range testCases {
+					It(fmt.Sprintf("Succeeds with %s", url.QueryEscape(testCase)), func() {
+						planBuilder := test.NewYamlPlanBuilder()
 
+						planBuilder.
+							CreateJob().
+							CreateStep().
+							ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
+							WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath(testCase).Scope(core.JobScope).Build()).
+							CreateStep().
+							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
+
+						err := ExecutePlanBuilder(planBuilder)
+						Expect(err).To(BeNil())
+
+						var executionOutput statistics.AggregatorSnapShot
+						utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+						var summary = statistics.CreateSummary(executionOutput)
+
+						Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+					})
+				}
+			})
+			Context("Fails", func() {
+				for testCase, expectedValue := range testCases {
+					It(fmt.Sprintf("Fails with %s", url.QueryEscape(testCase)), func() {
+						planBuilder := test.NewYamlPlanBuilder()
+
+						planBuilder.
+							CreateJob().
+							CreateStep().
+							ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
+							WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath(testCase).Build()).
+							CreateStep().
+							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
+
+						err := ExecutePlanBuilder(planBuilder)
+						Expect(err).To(BeNil())
+
+						var executionOutput statistics.AggregatorSnapShot
+						utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+						var summary = statistics.CreateSummary(executionOutput)
+
+						Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
+					})
+				}
+			})
 		})
-		PContext("Plan Scope", func() {
 
+		Context("Plan Scope", func() {
+			Context("Succeeds", func() {
+				for testCase, expectedValue := range testCases {
+					It(fmt.Sprintf("Succeeds with %s", url.QueryEscape(testCase)), func() {
+						planBuilder := test.NewYamlPlanBuilder()
+
+						planBuilder.
+							CreateJob().
+							CreateStep().
+							ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
+							WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath(testCase).Scope(core.PlanScope).Build())
+
+						planBuilder.
+							CreateJob().
+							CreateStep().
+							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
+
+						err := ExecutePlanBuilder(planBuilder)
+						Expect(err).To(BeNil())
+
+						var executionOutput statistics.AggregatorSnapShot
+						utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+						var summary = statistics.CreateSummary(executionOutput)
+
+						Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+					})
+				}
+			})
+			Context("Fails", func() {
+				for testCase, expectedValue := range testCases {
+					It(fmt.Sprintf("Fails with %s", url.QueryEscape(testCase)), func() {
+						planBuilder := test.NewYamlPlanBuilder()
+
+						planBuilder.
+							CreateJob().
+							CreateStep().
+							ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
+							WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath(testCase).Build())
+
+						planBuilder.
+							CreateJob().
+							CreateStep().
+							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
+
+						err := ExecutePlanBuilder(planBuilder)
+						Expect(err).To(BeNil())
+
+						var executionOutput statistics.AggregatorSnapShot
+						utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+						var summary = statistics.CreateSummary(executionOutput)
+
+						Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
+					})
+				}
+			})
 		})
 	})
 

@@ -92,7 +92,8 @@ func main() {
 		AddResultProcessor(http.NewHTTPExecutionResultProcessor()).
 		AddResultProcessor(inproc.NewGeneralExecutionResultProcessor()).
 		AddExtractorParser(yaml.RegexExtractorParser{}).
-		AddExtractorParser(yaml.XPathExtractorParser{})
+		AddExtractorParser(yaml.XPathExtractorParser{}).
+		AddExtractorParser(yaml.JSONPathExtractorParser{})
 
 	_, err = filepath.Abs(configuration.FilePath)
 	check(err)

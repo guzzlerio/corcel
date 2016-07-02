@@ -20,6 +20,32 @@ type YamlPlanBuilder struct {
 	JobBuilders     []*YamlJobBuilder
 }
 
+//NewYamlPlanBuilder ...
+func NewYamlPlanBuilder() *YamlPlanBuilder {
+	return &YamlPlanBuilder{
+		Random:          false,
+		NumberOfWorkers: 1,
+		Duration:        "0s",
+		WaitTime:        "0s",
+		JobBuilders:     []*YamlJobBuilder{},
+	}
+}
+
+//RegexExtractorBuilder ...
+type RegexExtractorBuilder struct {
+	data map[string]interface{}
+}
+
+//XPathExtractorBuilder ...
+type XPathExtractorBuilder struct {
+	data map[string]interface{}
+}
+
+//JSONPathExtractorBuilder ...
+type JSONPathExtractorBuilder struct {
+	data map[string]interface{}
+}
+
 //DummyActionBuilder ...
 type DummyActionBuilder struct {
 	data map[string]interface{}
@@ -35,6 +61,130 @@ func (instance DummyActionBuilder) Set(key string, value interface{}) DummyActio
 //Build ...
 func (instance DummyActionBuilder) Build() map[string]interface{} {
 	return instance.data
+}
+
+//RegexExtractor ...
+func (instance YamlPlanBuilder) RegexExtractor() RegexExtractorBuilder {
+	return RegexExtractorBuilder{
+		data: map[string]interface{}{
+			"type": "RegexExtractor",
+		},
+	}
+}
+
+//Name ...
+func (instance RegexExtractorBuilder) Name(value string) RegexExtractorBuilder {
+	instance.data["name"] = value
+	return instance
+}
+
+//Key ...
+func (instance RegexExtractorBuilder) Key(value string) RegexExtractorBuilder {
+	instance.data["key"] = value
+	return instance
+}
+
+//Match ...
+func (instance RegexExtractorBuilder) Match(value string) RegexExtractorBuilder {
+	instance.data["match"] = value
+	return instance
+}
+
+//Scope ...
+func (instance RegexExtractorBuilder) Scope(value string) RegexExtractorBuilder {
+	instance.data["scope"] = value
+	return instance
+}
+
+//Build ...
+func (instance RegexExtractorBuilder) Build() map[string]interface{} {
+	return instance.data
+}
+
+//JSONPathExtractor ...
+func (instance YamlPlanBuilder) JSONPathExtractor() JSONPathExtractorBuilder {
+	return JSONPathExtractorBuilder{
+		data: map[string]interface{}{
+			"type": "JSONPathExtractor",
+		},
+	}
+}
+
+//Name ...
+func (instance JSONPathExtractorBuilder) Name(value string) JSONPathExtractorBuilder {
+	instance.data["name"] = value
+	return instance
+}
+
+//Key ...
+func (instance JSONPathExtractorBuilder) Key(value string) JSONPathExtractorBuilder {
+	instance.data["key"] = value
+	return instance
+}
+
+//JSONPath ...
+func (instance JSONPathExtractorBuilder) JSONPath(value string) JSONPathExtractorBuilder {
+	instance.data["jsonpath"] = value
+	return instance
+}
+
+//Scope ...
+func (instance JSONPathExtractorBuilder) Scope(value string) JSONPathExtractorBuilder {
+	instance.data["scope"] = value
+	return instance
+}
+
+//Build ...
+func (instance JSONPathExtractorBuilder) Build() map[string]interface{} {
+	return instance.data
+}
+
+//XPathExtractor ...
+func (instance YamlPlanBuilder) XPathExtractor() XPathExtractorBuilder {
+	return XPathExtractorBuilder{
+		data: map[string]interface{}{
+			"type": "XPathExtractor",
+		},
+	}
+}
+
+//Name ...
+func (instance XPathExtractorBuilder) Name(value string) XPathExtractorBuilder {
+	instance.data["name"] = value
+	return instance
+}
+
+//Key ...
+func (instance XPathExtractorBuilder) Key(value string) XPathExtractorBuilder {
+	instance.data["key"] = value
+	return instance
+}
+
+//XPath ...
+func (instance XPathExtractorBuilder) XPath(value string) XPathExtractorBuilder {
+	instance.data["xpath"] = value
+	return instance
+}
+
+//Scope ...
+func (instance XPathExtractorBuilder) Scope(value string) XPathExtractorBuilder {
+	instance.data["scope"] = value
+	return instance
+}
+
+//Build ...
+func (instance XPathExtractorBuilder) Build() map[string]interface{} {
+	return instance.data
+}
+
+//DummyAction ...
+func (instance YamlPlanBuilder) DummyAction() DummyActionBuilder {
+	return DummyActionBuilder{
+		data: map[string]interface{}{
+			"type":    "DummyAction",
+			"results": map[string]interface{}{},
+		},
+	}
 }
 
 //HTTPRequestBuilder ...
@@ -77,14 +227,15 @@ func (instance HTTPRequestBuilder) Build() map[string]interface{} {
 	return instance.data
 }
 
-//NewYamlPlanBuilder ...
-func NewYamlPlanBuilder() *YamlPlanBuilder {
-	return &YamlPlanBuilder{
-		Random:          false,
-		NumberOfWorkers: 1,
-		Duration:        "0s",
-		WaitTime:        "0s",
-		JobBuilders:     []*YamlJobBuilder{},
+//HTTPRequestAction ...
+func (instance YamlPlanBuilder) HTTPRequestAction() HTTPRequestBuilder {
+	return HTTPRequestBuilder{
+		data: map[string]interface{}{
+			"type":        "HttpRequest",
+			"method":      "GET",
+			"url":         "",
+			"httpHeaders": map[string]string{},
+		},
 	}
 }
 
@@ -155,28 +306,6 @@ func (instance YamlPlanBuilder) NotEqualAssertion(key string, expected interface
 		"type":     "NotEqualAssertion",
 		"key":      key,
 		"expected": expected,
-	}
-}
-
-//DummyAction ...
-func (instance YamlPlanBuilder) DummyAction() DummyActionBuilder {
-	return DummyActionBuilder{
-		data: map[string]interface{}{
-			"type":    "DummyAction",
-			"results": map[string]interface{}{},
-		},
-	}
-}
-
-//HTTPRequestAction ...
-func (instance YamlPlanBuilder) HTTPRequestAction() HTTPRequestBuilder {
-	return HTTPRequestBuilder{
-		data: map[string]interface{}{
-			"type":        "HttpRequest",
-			"method":      "GET",
-			"url":         "",
-			"httpHeaders": map[string]string{},
-		},
 	}
 }
 
@@ -292,6 +421,7 @@ func (instance *YamlJobBuilder) CreateStep() *YamlJobBuilder {
 type YamlStepBuilder struct {
 	Action     map[string]interface{}
 	Assertions []map[string]interface{}
+	Extractors []map[string]interface{}
 }
 
 //Build ...
@@ -299,6 +429,7 @@ func (instance *YamlStepBuilder) Build() yaml.ExecutionStep {
 	step := yaml.ExecutionStep{}
 	step.Action = instance.Action
 	step.Assertions = instance.Assertions
+	step.Extractors = instance.Extractors
 	return step
 }
 
@@ -322,5 +453,12 @@ func (instance *YamlJobBuilder) ToExecuteAction(data map[string]interface{}) *Ya
 func (instance *YamlJobBuilder) WithAssertion(data map[string]interface{}) *YamlJobBuilder {
 	stepBuilder := instance.CurrentStepBuilder()
 	stepBuilder.Assertions = append(stepBuilder.Assertions, data)
+	return instance
+}
+
+//WithExtractor ...
+func (instance *YamlJobBuilder) WithExtractor(data map[string]interface{}) *YamlJobBuilder {
+	stepBuilder := instance.CurrentStepBuilder()
+	stepBuilder.Extractors = append(stepBuilder.Extractors, data)
 	return instance
 }

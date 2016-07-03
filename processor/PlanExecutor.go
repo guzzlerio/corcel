@@ -61,6 +61,11 @@ func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan stru
 		executionContext[pKey] = pValue
 	}
 
+	job := instance.Plan.GetJob(step.JobID)
+	for jKey, jValue := range job.Context {
+		executionContext[jKey] = jValue
+	}
+
 	var executionResult = core.ExecutionResult{}
 
 	if step.Action != nil {

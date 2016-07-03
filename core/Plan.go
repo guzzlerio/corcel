@@ -22,6 +22,11 @@ func (instance Plan) CreateJob() Job {
 	}
 }
 
+//GetJob ...
+func (instance Plan) GetJob(id int) Job {
+	return instance.Jobs[id]
+}
+
 //AddJob ...
 func (instance Plan) AddJob(job Job) Plan {
 	jobs := append(instance.Jobs, job)

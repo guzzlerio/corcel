@@ -5,6 +5,7 @@ import "ci.guzzler.io/guzzler/corcel/serialisation/yaml"
 //YamlJobBuilder ...
 type YamlJobBuilder struct {
 	StepBuilders []*YamlStepBuilder
+	Context      map[string]interface{}
 }
 
 //NewYamlJobBuilder ...
@@ -26,6 +27,7 @@ func (instance *YamlJobBuilder) CurrentStepBuilder() *YamlStepBuilder {
 //Build ...
 func (instance *YamlJobBuilder) Build() yaml.ExecutionJob {
 	job := yaml.ExecutionJob{}
+	job.Context = instance.Context
 	for _, stepBuilder := range instance.StepBuilders {
 		step := stepBuilder.Build()
 		job.Steps = append(job.Steps, step)
@@ -59,5 +61,11 @@ func (instance *YamlJobBuilder) WithAssertion(data map[string]interface{}) *Yaml
 func (instance *YamlJobBuilder) WithExtractor(data map[string]interface{}) *YamlJobBuilder {
 	stepBuilder := instance.CurrentStepBuilder()
 	stepBuilder.Extractors = append(stepBuilder.Extractors, data)
+	return instance
+}
+
+//WithContext ...
+func (instance *YamlJobBuilder) WithContext(context map[string]interface{}) *YamlJobBuilder {
+	instance.Context = context
 	return instance
 }

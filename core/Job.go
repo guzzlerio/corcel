@@ -5,6 +5,7 @@ type Job struct {
 	ID         int
 	Name       string
 	Steps      []Step
+	Context    map[string]interface{}
 	nextStepID int
 }
 

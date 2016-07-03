@@ -8,7 +8,7 @@ type DummyAction struct {
 }
 
 //Execute ...
-func (instance DummyAction) Execute(cancellation chan struct{}) core.ExecutionResult {
+func (instance DummyAction) Execute(context core.ExecutionContext, cancellation chan struct{}) core.ExecutionResult {
 	result := core.ExecutionResult{}
 
 	for key, value := range instance.Results {

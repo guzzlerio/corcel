@@ -1,4 +1,4 @@
-package main_test
+package http_test
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	. "ci.guzzler.io/guzzler/corcel"
 	"ci.guzzler.io/guzzler/corcel/test"
 
 	"github.com/guzzlerio/rizo"

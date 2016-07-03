@@ -1,7 +1,6 @@
-package main_test
+package main
 
 import (
-	. "ci.guzzler.io/guzzler/corcel"
 	"ci.guzzler.io/guzzler/corcel/statistics"
 	"ci.guzzler.io/guzzler/corcel/test"
 	"ci.guzzler.io/guzzler/corcel/utils"

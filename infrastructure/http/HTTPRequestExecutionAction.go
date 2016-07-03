@@ -29,7 +29,7 @@ func (instance *HTTPRequestExecutionAction) initialize() {
 }
 
 //Execute ...
-func (instance *HTTPRequestExecutionAction) Execute(cancellation chan struct{}) core.ExecutionResult {
+func (instance *HTTPRequestExecutionAction) Execute(context core.ExecutionContext, cancellation chan struct{}) core.ExecutionResult {
 	if instance.Client == nil {
 		instance.initialize()
 	}
@@ -61,6 +61,12 @@ func (instance *HTTPRequestExecutionAction) Execute(cancellation chan struct{}) 
 	}
 
 	req.Header = instance.Headers
+
+	if context["httpHeaders"] != nil {
+		for hKey, hValue := range context["httpHeaders"].(map[interface{}]interface{}) {
+			req.Header.Set(hKey.(string), hValue.(string))
+		}
+	}
 
 	response, err := instance.Client.Do(req)
 	if err != nil {

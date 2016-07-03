@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"ci.guzzler.io/guzzler/corcel/infrastructure/http"
 	"ci.guzzler.io/guzzler/corcel/serialisation/yaml"
 	"ci.guzzler.io/guzzler/corcel/utils"
 
@@ -107,4 +108,9 @@ func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 		return nil, err
 	}
 	return file, nil
+}
+
+//HTTPRequestAction ...
+func (instance YamlPlanBuilder) HTTPRequestAction() http.HTTPRequestBuilder {
+	return http.NewHTTPRequestBuilder()
 }

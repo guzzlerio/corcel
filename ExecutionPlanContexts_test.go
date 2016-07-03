@@ -12,26 +12,48 @@ import (
 
 var _ = Describe("ExecutionPlanContexts", func() {
 
-	It("Plan Scope", func() {
-		planBuilder := test.NewYamlPlanBuilder()
+	Context("Plan Scope", func() {
+		It("Succeeds", func() {
+			planBuilder := test.NewYamlPlanBuilder()
 
-		planBuilder.
-			WithContext(planBuilder.BuildContext().Set("value:1", "1").Set("value:2", "2").Set("value:3", "3").Build()).
-			CreateJob().
-			CreateStep().
-			ToExecuteAction(planBuilder.DummyAction().Build()).
-			WithAssertion(planBuilder.ExactAssertion("value:1", "1")).
-			WithAssertion(planBuilder.ExactAssertion("value:2", "2")).
-			WithAssertion(planBuilder.ExactAssertion("value:3", "3"))
+			planBuilder.
+				WithContext(planBuilder.BuildContext().Set("value:1", "1").Set("value:2", "2").Set("value:3", "3").Build()).
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Build()).
+				WithAssertion(planBuilder.ExactAssertion("value:1", "1")).
+				WithAssertion(planBuilder.ExactAssertion("value:2", "2")).
+				WithAssertion(planBuilder.ExactAssertion("value:3", "3"))
 
-		err := ExecutePlanBuilder(planBuilder)
-		Expect(err).To(BeNil())
+			err := ExecutePlanBuilder(planBuilder)
+			Expect(err).To(BeNil())
 
-		var executionOutput statistics.AggregatorSnapShot
-		utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-		var summary = statistics.CreateSummary(executionOutput)
+			var executionOutput statistics.AggregatorSnapShot
+			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var summary = statistics.CreateSummary(executionOutput)
 
-		Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+			Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+		})
+		It("Fails", func() {
+			planBuilder := test.NewYamlPlanBuilder()
+
+			planBuilder.
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Build()).
+				WithAssertion(planBuilder.ExactAssertion("value:1", "1")).
+				WithAssertion(planBuilder.ExactAssertion("value:2", "2")).
+				WithAssertion(planBuilder.ExactAssertion("value:3", "3"))
+
+			err := ExecutePlanBuilder(planBuilder)
+			Expect(err).To(BeNil())
+
+			var executionOutput statistics.AggregatorSnapShot
+			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var summary = statistics.CreateSummary(executionOutput)
+
+			Expect(summary.TotalAssertionFailures).To(Equal(int64(3)))
+		})
 	})
 
 	Context("Job Scope", func() {
@@ -82,4 +104,5 @@ var _ = Describe("ExecutionPlanContexts", func() {
 			Expect(summary.TotalAssertionFailures).To(Equal(int64(3)))
 		})
 	})
+
 })

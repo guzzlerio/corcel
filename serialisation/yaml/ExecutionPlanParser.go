@@ -27,6 +27,7 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 	}
 
 	executionPlan.Name = yamlExecutionPlan.Name
+	executionPlan.Context = yamlExecutionPlan.Context
 	executionPlan.WaitTime, err = time.ParseDuration(yamlExecutionPlan.WaitTime)
 	if err != nil {
 		executionPlan.WaitTime = time.Duration(0)
@@ -43,6 +44,7 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 
 	for _, yamlJob := range yamlExecutionPlan.Jobs {
 		job := executionPlan.CreateJob()
+		job.Context = yamlJob.Context
 		job.Name = yamlJob.Name
 
 		for _, yamlStep := range yamlJob.Steps {

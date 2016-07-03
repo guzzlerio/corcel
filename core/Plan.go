@@ -10,6 +10,7 @@ type Plan struct {
 	WaitTime  time.Duration
 	Duration  time.Duration
 	Jobs      []Job
+	Context   map[string]interface{}
 	nextJobID int
 }
 
@@ -19,6 +20,11 @@ func (instance Plan) CreateJob() Job {
 		ID:    instance.nextJobID,
 		Steps: []Step{},
 	}
+}
+
+//GetJob ...
+func (instance Plan) GetJob(id int) Job {
+	return instance.Jobs[id]
 }
 
 //AddJob ...

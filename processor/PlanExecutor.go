@@ -29,6 +29,7 @@ type PlanExecutor struct {
 	Bar          ProgressBar
 	start        time.Time
 	Publisher    telegraph.LinkedPublisher
+	Plan         core.Plan
 	PlanContext  core.ExtractionResult
 	JobContexts  map[int]core.ExtractionResult
 	StepContexts map[int]map[int]core.ExtractionResult
@@ -54,13 +55,28 @@ func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan stru
 		instance.StepContexts[step.JobID][step.ID] = map[string]interface{}{}
 	}
 
-	var executionResult = merge(core.ExecutionResult{}, instance.PlanContext)
-	executionResult = merge(executionResult, instance.JobContexts[step.JobID])
-	executionResult = merge(executionResult, instance.StepContexts[step.JobID][step.ID])
+	var executionContext = core.ExecutionContext{}
+
+	for pKey, pValue := range instance.Plan.Context {
+		executionContext[pKey] = pValue
+	}
+
+	job := instance.Plan.GetJob(step.JobID)
+	for jKey, jValue := range job.Context {
+		executionContext[jKey] = jValue
+	}
+
+	var executionResult = core.ExecutionResult{}
 
 	if step.Action != nil {
 		executionResult = step.Action.Execute(cancellation)
 	}
+
+	executionResult = merge(executionResult, instance.PlanContext)
+	executionResult = merge(executionResult, instance.JobContexts[step.JobID])
+	executionResult = merge(executionResult, instance.StepContexts[step.JobID][step.ID])
+
+	executionResult = merge(executionResult, executionContext)
 
 	for _, extractor := range step.Extractors {
 		extractorResult := extractor.Extract(executionResult)
@@ -161,6 +177,7 @@ func (instance *PlanExecutor) executeJobs(plan core.Plan) {
 // Execute ...
 func (instance *PlanExecutor) Execute(plan core.Plan) error {
 	instance.start = time.Now()
+	instance.Plan = plan
 	instance.executeJobs(plan)
 
 	return nil

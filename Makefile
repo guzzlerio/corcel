@@ -10,7 +10,7 @@ build: clean
 	go build
 
 test: build lint
-	ginkgo -r -noisyPendings=false -slowSpecThreshold=10
+	ginkgo -cover -r -noisyPendings=false -slowSpecThreshold=10
 
 lint:
 	bash scripts/lint.sh

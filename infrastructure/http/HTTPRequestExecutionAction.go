@@ -64,7 +64,11 @@ func (instance *HTTPRequestExecutionAction) Execute(context core.ExecutionContex
 
 	if context["httpHeaders"] != nil {
 		for hKey, hValue := range context["httpHeaders"].(map[interface{}]interface{}) {
-			req.Header.Set(hKey.(string), hValue.(string))
+			headerKey := hKey.(string)
+			headerValue := hValue.(string)
+			if req.Header.Get(headerKey) == "" {
+				req.Header.Set(headerKey, headerValue)
+			}
 		}
 	}
 

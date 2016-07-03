@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
-	"ci.guzzler.io/guzzler/corcel/logger"
 )
 
 //Check ...
@@ -62,5 +60,6 @@ func Log(err interface{}) {
 			os.Exit(errorCode.Code)
 		}
 	}
-	logger.Log.Fatalf("UNKNOWN ERROR: %v", err)
+	panic(err)
+	//logger.Log.Fatalf("UNKNOWN ERROR: %v", err)
 }

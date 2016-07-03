@@ -10,6 +10,7 @@ type Plan struct {
 	WaitTime  time.Duration
 	Duration  time.Duration
 	Jobs      []Job
+	Context   map[string]interface{}
 	nextJobID int
 }
 

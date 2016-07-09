@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
+	"strings"
 
 	"ci.guzzler.io/guzzler/corcel/core"
 	"ci.guzzler.io/guzzler/corcel/logger"
@@ -45,8 +46,45 @@ func (instance *HTTPRequestExecutionAction) Execute(context core.ExecutionContex
 		instance.Body = string(contents)
 	}
 
-	body := bytes.NewBuffer([]byte(instance.Body))
-	req, err := http.NewRequest(instance.Method, instance.URL, body)
+	var requestURL = instance.URL
+	var method = instance.Method
+	var headers = http.Header{}
+	var body = instance.Body
+
+	for k := range instance.Headers {
+		headers.Set(k, instance.Headers.Get(k))
+	}
+	if context["httpHeaders"] != nil {
+		for hKey, hValue := range context["httpHeaders"].(map[interface{}]interface{}) {
+			headerKey := hKey.(string)
+			headerValue := hValue.(string)
+
+			if headers.Get(headerKey) == "" {
+				headers.Set(headerKey, headerValue)
+			}
+		}
+	}
+
+	//TODO:  This is inefficient but working.  We can always make this
+	// better and speed it up later!!
+	//
+	//TODO: Replace with some efficient templating engine.  Mustache
+	// might even work who knows
+	for k, v := range context {
+		token := "$" + k
+		switch value := v.(type) {
+		case string:
+			for hK := range headers {
+				replacement := strings.Replace(headers.Get(hK), token, value, -1)
+				headers.Set(hK, replacement)
+			}
+			requestURL = strings.Replace(requestURL, token, value, -1)
+			body = strings.Replace(body, token, value, -1)
+		}
+	}
+
+	requestBody := bytes.NewBuffer([]byte(body))
+	req, err := http.NewRequest(method, requestURL, requestBody)
 	req.Cancel = cancellation
 	//This should be a configuration item.  It allows the client to work
 	//in a way similar to a server which does not support HTTP KeepAlive
@@ -60,17 +98,7 @@ func (instance *HTTPRequestExecutionAction) Execute(context core.ExecutionContex
 		return result
 	}
 
-	req.Header = instance.Headers
-
-	if context["httpHeaders"] != nil {
-		for hKey, hValue := range context["httpHeaders"].(map[interface{}]interface{}) {
-			headerKey := hKey.(string)
-			headerValue := hValue.(string)
-			if req.Header.Get(headerKey) == "" {
-				req.Header.Set(headerKey, headerValue)
-			}
-		}
-	}
+	req.Header = headers
 
 	response, err := instance.Client.Do(req)
 	if err != nil {

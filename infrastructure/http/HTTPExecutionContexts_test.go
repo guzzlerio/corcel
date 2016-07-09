@@ -10,23 +10,67 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("ExecutionPlanContexts", func() {
+var _ = FDescribe("ExecutionPlanContexts", func() {
 
+	path := "/something"
 	BeforeEach(func() {
 		TestServer.Clear()
 
+		TestServer.Use(func(w http.ResponseWriter) {
+			w.WriteHeader(http.StatusOK)
+		}).For(rizo.RequestWithPath(path))
 	})
 
 	AfterEach(func() {
 		TestServer.Clear()
 	})
 
-	It("Set HTTP Header", func() {
-		path := "/something"
+	Context("Using variables", func() {
 
-		TestServer.Use(func(w http.ResponseWriter) {
-			w.WriteHeader(http.StatusOK)
-		}).For(rizo.RequestWithPath(path))
+		It("inside the http headers", func() {
+
+			expectedHeaderKey := "Content-Type"
+			expectedHeaderValue := "application/json"
+
+			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder.WithContext(planBuilder.BuildContext().Set("commonType", expectedHeaderValue).Build()).
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.HTTPRequestAction().Header(expectedHeaderKey, "$commonType").URL(TestServer.CreateURL(path)).Build())
+
+			err := ExecutePlanBuilder(planBuilder)
+			Expect(err).To(BeNil())
+
+			Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithHeader(expectedHeaderKey, expectedHeaderValue))).To(Equal(true))
+		})
+
+		It("inside the url", func() {
+
+			path := "/$path?a=$a&b=$b&c=$c"
+
+			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder.WithContext(planBuilder.BuildContext().Set("path", "fubar").Set("a", "1").Set("b", "2").Set("c", "3").Build()).
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.HTTPRequestAction().URL(TestServer.CreateURL(path)).Build())
+
+			err := ExecutePlanBuilder(planBuilder)
+			Expect(err).To(BeNil())
+
+			Expect(TestServer.Find(rizo.RequestWithPath("/fubar"), rizo.RequestWithQuerystring("a=1&b=2&c=3"))).To(Equal(true))
+		})
+
+	})
+
+	It("Set the QueryString", func() {
+
+	})
+
+	It("Extend the QueryString", func() {
+		//If a base querystring is set the jobs, steps and actions add/override the previous
+	})
+
+	It("Set HTTP Header", func() {
 
 		planBuilder := test.NewYamlPlanBuilder()
 
@@ -47,12 +91,6 @@ var _ = Describe("ExecutionPlanContexts", func() {
 	})
 
 	It("Context does not override a HTTP Header set in the action it self", func() {
-		path := "/something"
-
-		TestServer.Use(func(w http.ResponseWriter) {
-			w.WriteHeader(http.StatusOK)
-		}).For(rizo.RequestWithPath(path))
-
 		planBuilder := test.NewYamlPlanBuilder()
 
 		contextHeaderKey := "content-boomboom"

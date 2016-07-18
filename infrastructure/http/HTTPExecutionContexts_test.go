@@ -2,6 +2,7 @@ package http_test
 
 import (
 	"net/http"
+	"strings"
 
 	"ci.guzzler.io/guzzler/corcel/test"
 
@@ -10,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("ExecutionPlanContexts", func() {
+var _ = Describe("ExecutionPlanContexts", func() {
 
 	path := "/something"
 	BeforeEach(func() {
@@ -36,7 +37,7 @@ var _ = FDescribe("ExecutionPlanContexts", func() {
 			planBuilder.WithContext(planBuilder.BuildContext().Set("commonType", expectedHeaderValue).Build()).
 				CreateJob().
 				CreateStep().
-				ToExecuteAction(planBuilder.HTTPRequestAction().Header(expectedHeaderKey, "$commonType").URL(TestServer.CreateURL(path)).Build())
+				ToExecuteAction(planBuilder.HTTPAction().Header(expectedHeaderKey, "$commonType").URL(TestServer.CreateURL(path)).Build())
 
 			err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
@@ -52,12 +53,34 @@ var _ = FDescribe("ExecutionPlanContexts", func() {
 			planBuilder.WithContext(planBuilder.BuildContext().Set("path", "fubar").Set("a", "1").Set("b", "2").Set("c", "3").Build()).
 				CreateJob().
 				CreateStep().
-				ToExecuteAction(planBuilder.HTTPRequestAction().URL(TestServer.CreateURL(path)).Build())
+				ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Build())
 
 			err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			Expect(TestServer.Find(rizo.RequestWithPath("/fubar"), rizo.RequestWithQuerystring("a=1&b=2&c=3"))).To(Equal(true))
+		})
+
+		It("inside the body", func() {
+			body := `
+        {
+          "firstname" : "$firstname",
+          "lastname" : "$lastname"
+        }
+      `
+			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder.WithContext(planBuilder.BuildContext().Set("firstname", "john").Set("lastname", "doe").Build()).
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.HTTPAction().Header("Content-type", "application/json").Body(body).URL(TestServer.CreateURL(path)).Build())
+
+			err := ExecutePlanBuilder(planBuilder)
+			Expect(err).To(BeNil())
+
+			expectedBody := strings.Replace(body, "$firstname", "john", -1)
+			expectedBody = strings.Replace(expectedBody, "$lastname", "doe", -1)
+
+			Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithBody(expectedBody))).To(Equal(true))
 		})
 
 	})
@@ -82,7 +105,7 @@ var _ = FDescribe("ExecutionPlanContexts", func() {
 		planBuilder.WithContext(planBuilder.BuildContext().Set("httpHeaders", headers).Build()).
 			CreateJob().
 			CreateStep().
-			ToExecuteAction(planBuilder.HTTPRequestAction().URL(TestServer.CreateURL(path)).Build())
+			ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Build())
 
 		err := ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())
@@ -103,7 +126,7 @@ var _ = FDescribe("ExecutionPlanContexts", func() {
 		planBuilder.WithContext(planBuilder.BuildContext().Set("httpHeaders", headers).Build()).
 			CreateJob().
 			CreateStep().
-			ToExecuteAction(planBuilder.HTTPRequestAction().URL(TestServer.CreateURL(path)).Header(contextHeaderKey, expectedHeaderValue).Build())
+			ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Header(contextHeaderKey, expectedHeaderValue).Build())
 
 		err := ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())

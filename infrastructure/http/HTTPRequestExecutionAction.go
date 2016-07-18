@@ -12,8 +12,8 @@ import (
 	"ci.guzzler.io/guzzler/corcel/logger"
 )
 
-//HTTPRequestExecutionAction ...
-type HTTPRequestExecutionAction struct {
+//Action ...
+type Action struct {
 	Client  *http.Client
 	URL     string
 	Method  string
@@ -21,7 +21,7 @@ type HTTPRequestExecutionAction struct {
 	Headers http.Header
 }
 
-func (instance *HTTPRequestExecutionAction) initialize() {
+func (instance *Action) initialize() {
 	instance.Client = &http.Client{
 		Transport: &http.Transport{
 			MaxIdleConnsPerHost: 50,
@@ -30,7 +30,7 @@ func (instance *HTTPRequestExecutionAction) initialize() {
 }
 
 //Execute ...
-func (instance *HTTPRequestExecutionAction) Execute(context core.ExecutionContext, cancellation chan struct{}) core.ExecutionResult {
+func (instance *Action) Execute(context core.ExecutionContext, cancellation chan struct{}) core.ExecutionResult {
 	if instance.Client == nil {
 		instance.initialize()
 	}

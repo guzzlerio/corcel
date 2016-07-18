@@ -33,7 +33,7 @@ var _ = Describe("ExecutionPlanHttpRequest", func() {
 		planBuilder.
 			CreateJob().
 			CreateStep().
-			ToExecuteAction(planBuilder.HTTPRequestAction().URL(TestServer.CreateURL(path)).Body(body).Build())
+			ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
 		err := ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())
@@ -67,7 +67,7 @@ var _ = Describe("ExecutionPlanHttpRequest", func() {
 		planBuilder.
 			CreateJob().
 			CreateStep().
-			ToExecuteAction(planBuilder.HTTPRequestAction().URL(TestServer.CreateURL(path)).Body(body).Build())
+			ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
 		err = ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())

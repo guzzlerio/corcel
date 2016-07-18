@@ -12,4 +12,4 @@ urls.txt
 output.json
 config/config.coverprofile
 history.yml
-corcel.coverprofile
+*.coverprofile

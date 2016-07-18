@@ -11,7 +11,7 @@ type YamlHTTPRequestParser struct{}
 
 //Parse ...
 func (instance YamlHTTPRequestParser) Parse(input map[string]interface{}) core.Action {
-	action := HTTPRequestExecutionAction{
+	action := Action{
 		URL:     input["url"].(string),
 		Method:  input["method"].(string),
 		Headers: http.Header{},

@@ -124,7 +124,7 @@ func CreatePlanFromURLList(config *config.Configuration) core.Plan {
 				body = string(data)
 			}
 		}
-		action := &http.HTTPRequestExecutionAction{
+		action := &http.Action{
 			//Client:  client,
 			URL:     request.URL.String(),
 			Method:  request.Method,

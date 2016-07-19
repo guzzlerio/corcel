@@ -18,7 +18,7 @@ import (
 	"github.com/oleiade/reflections"
 )
 
-var _ = PDescribe("Configuration", func() {
+var _ = Describe("Configuration", func() {
 	var configuration *Configuration
 	var args []string
 	defaultWaitTime := time.Duration(0)
@@ -26,13 +26,16 @@ var _ = PDescribe("Configuration", func() {
 	filename, _ := filepath.Abs(os.Args[0])
 
 	BeforeEach(func() {
-		args = []string{filename}
+		//args = []string{filename}
+		cfg := *Configuration{
+			FilePath: filename,
+		}
 		logrus.SetOutput(ioutil.Discard)
 		//Log.Out = ioutil.Discard
 		configFileReader = func(path string) ([]byte, error) {
 			return []byte(""), nil
 		}
-		configuration, _ = ParseConfiguration(args)
+		configuration, _ = ParseConfiguration(cfg)
 	})
 
 	Describe("When no config file is found and no command line args are provided", func() {

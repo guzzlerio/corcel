@@ -10,9 +10,11 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/imdario/mergo"
 	"github.com/mitchellh/go-homedir"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
@@ -46,8 +48,37 @@ var verbosity int
 var logLevel = log.FatalLevel
 
 //ParseConfiguration ...
-func ParseConfiguration(args []string) (*Configuration, error) {
-	return &Configuration{}, nil
+func ParseConfiguration(cfg *Configuration) (*Configuration, error) {
+	configuration, err := CmdConfig(cfg)
+	if err != nil {
+		return nil, err
+	}
+	//log.SetLevel(logLevel)
+
+	pwd, err := PwdConfig()
+	if err != nil {
+		return nil, err
+	}
+	usr, err := UserDirConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	defaults := DefaultConfig()
+	eachConfig := []interface{}{configuration, pwd, usr, &defaults}
+	for _, item := range eachConfig {
+		if err := mergo.Merge(configuration, item); err != nil {
+			return nil, err
+		}
+	}
+	SetLogLevel(configuration, eachConfig)
+	//log.WithFields(log.Fields{"config": config}).Info("Configuration")
+
+	if _, err = filepath.Abs(configuration.FilePath); err != nil {
+		return nil, err
+	}
+
+	return configuration, nil
 }
 
 //SetLogLevel ...

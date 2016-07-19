@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 
 	"github.com/dustin/go-humanize"
-	"github.com/imdario/mergo"
 	"gopkg.in/alecthomas/kingpin.v2"
 	yamlv2 "gopkg.in/yaml.v2"
 
@@ -67,35 +66,12 @@ func NewRunCommand(app *kingpin.Application, registry *core.Registry) {
 }
 
 func (instance *RunCommand) run(c *kingpin.ParseContext) error {
-	configuration, err := config.CmdConfig(instance.Config)
+	configuration, err := config.ParseConfiguration(instance.Config)
 	if err != nil {
-		return err
+		errormanager.Log(err)
+		os.Exit(1)
 	}
-	//log.SetLevel(logLevel)
-
-	pwd, err := config.PwdConfig()
-	if err != nil {
-		return err
-	}
-	usr, err := config.UserDirConfig()
-	if err != nil {
-		return err
-	}
-
-	defaults := config.DefaultConfig()
-	eachConfig := []interface{}{configuration, pwd, usr, &defaults}
-	for _, item := range eachConfig {
-		if err := mergo.Merge(configuration, item); err != nil {
-			return err
-		}
-	}
-	config.SetLogLevel(configuration, eachConfig)
-	//log.WithFields(log.Fields{"config": config}).Info("Configuration")
 	logger.ConfigureLogging(configuration)
-
-	if _, err = filepath.Abs(configuration.FilePath); err != nil {
-		return err
-	}
 
 	host := NewConsoleHost(configuration, *instance.registry)
 	id, _ := host.Control.Start(configuration) //will this block?

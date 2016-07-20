@@ -166,14 +166,14 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job) {
 	}
 }
 
-func (instance *PlanExecutor) executeJobs(plan core.Plan) {
+func (instance *PlanExecutor) executeJobs(jobs []core.Job) {
 	var wg sync.WaitGroup
 	wg.Add(instance.Config.Workers)
 	for i := 0; i < instance.Config.Workers; i++ {
-		go func(executionPlan core.Plan) {
-			instance.workerExecuteJobs(executionPlan.Jobs)
+		go func(executionJobs []core.Job) {
+			instance.workerExecuteJobs(executionJobs)
 			wg.Done()
-		}(plan)
+		}(jobs)
 	}
 	wg.Wait()
 }
@@ -182,7 +182,7 @@ func (instance *PlanExecutor) executeJobs(plan core.Plan) {
 func (instance *PlanExecutor) Execute(plan core.Plan) error {
 	instance.start = time.Now()
 	instance.Plan = plan
-	instance.executeJobs(plan)
+	instance.executeJobs(plan.Jobs)
 
 	return nil
 }

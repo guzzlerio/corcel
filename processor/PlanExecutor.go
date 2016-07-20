@@ -33,6 +33,7 @@ type PlanExecutor struct {
 	PlanContext  core.ExtractionResult
 	JobContexts  map[int]core.ExtractionResult
 	StepContexts map[int]map[int]core.ExtractionResult
+	mutex        *sync.Mutex
 }
 
 //CreatePlanExecutor ...
@@ -44,15 +45,18 @@ func CreatePlanExecutor(config *config.Configuration, bar ProgressBar) *PlanExec
 		PlanContext:  core.ExtractionResult{},
 		JobContexts:  map[int]core.ExtractionResult{},
 		StepContexts: map[int]map[int]core.ExtractionResult{},
+		mutex:        &sync.Mutex{},
 	}
 }
 
 func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan struct{}) core.ExecutionResult {
 	start := time.Now()
 	if instance.JobContexts[step.JobID] == nil {
+		instance.mutex.Lock()
 		instance.JobContexts[step.JobID] = map[string]interface{}{}
 		instance.StepContexts[step.JobID] = map[int]core.ExtractionResult{}
 		instance.StepContexts[step.JobID][step.ID] = map[string]interface{}{}
+		instance.mutex.Unlock()
 	}
 
 	var executionContext = core.ExecutionContext{}

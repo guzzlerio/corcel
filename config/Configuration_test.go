@@ -70,7 +70,7 @@ var _ = Describe("Configuration", func() {
 		})
 	})
 
-	FDescribe("When config file is found in pwd", func() {
+	Describe("When config file is found in pwd", func() {
 		var (
 			yaml string
 		)
@@ -233,6 +233,7 @@ var _ = Describe("Configuration", func() {
 
 			Describe("for file", func() {
 				BeforeEach(func() {
+					args = Configuration{FilePath: filename}
 					configuration, _ = ParseConfiguration(&args)
 				})
 				It("applies the override", func() {

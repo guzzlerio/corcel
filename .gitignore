@@ -12,3 +12,4 @@ urls.txt
 output.json
 config/config.coverprofile
 history.yml
+*.coverprofile

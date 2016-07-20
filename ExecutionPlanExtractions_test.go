@@ -1,10 +1,9 @@
-package main_test
+package main
 
 import (
 	"fmt"
 	"net/url"
 
-	. "ci.guzzler.io/guzzler/corcel"
 	"ci.guzzler.io/guzzler/corcel/core"
 	"ci.guzzler.io/guzzler/corcel/statistics"
 	"ci.guzzler.io/guzzler/corcel/test"

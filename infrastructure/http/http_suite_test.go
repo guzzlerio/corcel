@@ -1,18 +1,18 @@
-package main
+package http_test
 
 import (
 	"io/ioutil"
+	"testing"
 
 	"ci.guzzler.io/guzzler/corcel/config"
 	"ci.guzzler.io/guzzler/corcel/global"
 	"ci.guzzler.io/guzzler/corcel/logger"
 	"ci.guzzler.io/guzzler/corcel/test"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/guzzlerio/rizo"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"testing"
 )
 
 var (
@@ -22,11 +22,7 @@ var (
 
 func TestCorcel(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Corcel Suite")
-}
-
-func ExecutePlanBuilder(planBuilder *test.YamlPlanBuilder) error {
-	return test.ExecutePlanBuilder("./corcel", planBuilder)
+	RunSpecs(t, "HTTP Suite")
 }
 
 var _ = BeforeSuite(func() {
@@ -41,3 +37,7 @@ var _ = BeforeSuite(func() {
 var _ = AfterSuite(func() {
 	TestServer.Stop()
 })
+
+func ExecutePlanBuilder(planBuilder *test.YamlPlanBuilder) error {
+	return test.ExecutePlanBuilder("../.././corcel", planBuilder)
+}

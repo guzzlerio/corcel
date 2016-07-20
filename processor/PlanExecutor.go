@@ -73,7 +73,7 @@ func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan stru
 	var executionResult = core.ExecutionResult{}
 
 	if step.Action != nil {
-		executionResult = step.Action.Execute(cancellation)
+		executionResult = step.Action.Execute(executionContext, cancellation)
 	}
 
 	executionResult = merge(executionResult, instance.PlanContext)

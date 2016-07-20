@@ -2,5 +2,5 @@ package core
 
 //Action ...
 type Action interface {
-	Execute(cancellation chan struct{}) ExecutionResult
+	Execute(executionContext ExecutionContext, cancellation chan struct{}) ExecutionResult
 }

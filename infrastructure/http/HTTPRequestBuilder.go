@@ -1,7 +1,7 @@
-package test
+package http
 
-//HTTPRequestAction ...
-func (instance YamlPlanBuilder) HTTPRequestAction() HTTPRequestBuilder {
+//NewHTTPRequestBuilder ...
+func NewHTTPRequestBuilder() HTTPRequestBuilder {
 	return HTTPRequestBuilder{
 		data: map[string]interface{}{
 			"type":        "HttpRequest",

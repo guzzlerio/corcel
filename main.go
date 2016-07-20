@@ -36,7 +36,10 @@ func main() {
 		AddAssertionParser(yaml.LessThanAssertionParser{}).
 		AddAssertionParser(yaml.LessThanOrEqualAssertionParser{}).
 		AddResultProcessor(http.NewHTTPExecutionResultProcessor()).
-		AddResultProcessor(inproc.NewGeneralExecutionResultProcessor())
+		AddResultProcessor(inproc.NewGeneralExecutionResultProcessor()).
+		AddExtractorParser(yaml.RegexExtractorParser{}).
+		AddExtractorParser(yaml.XPathExtractorParser{}).
+		AddExtractorParser(yaml.JSONPathExtractorParser{})
 
 	kingpin.UsageTemplate(kingpin.CompactUsageTemplate).Version(applicationVersion).Author("Andrew Rea").Author("James Allen")
 	kingpin.CommandLine.Help = "An example implementation of curl."

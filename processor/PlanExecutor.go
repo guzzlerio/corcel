@@ -11,6 +11,13 @@ import (
 	"github.com/REAANDREW/telegraph"
 )
 
+func merge(source map[string]interface{}, extra map[string]interface{}) map[string]interface{} {
+	for k, v := range extra {
+		source[k] = v
+	}
+	return source
+}
+
 //ExecutionBranch ...
 type ExecutionBranch interface {
 	Execute(plan core.Plan) error
@@ -18,24 +25,79 @@ type ExecutionBranch interface {
 
 //PlanExecutor ...
 type PlanExecutor struct {
-	Config    *config.Configuration
-	Bar       ProgressBar
-	start     time.Time
-	Publisher telegraph.LinkedPublisher
+	Config       *config.Configuration
+	Bar          ProgressBar
+	start        time.Time
+	Publisher    telegraph.LinkedPublisher
+	Plan         core.Plan
+	PlanContext  core.ExtractionResult
+	JobContexts  map[int]core.ExtractionResult
+	StepContexts map[int]map[int]core.ExtractionResult
 }
 
 //CreatePlanExecutor ...
 func CreatePlanExecutor(config *config.Configuration, bar ProgressBar) *PlanExecutor {
 	return &PlanExecutor{
-		Config:    config,
-		Bar:       bar,
-		Publisher: telegraph.NewLinkedPublisher(),
+		Config:       config,
+		Bar:          bar,
+		Publisher:    telegraph.NewLinkedPublisher(),
+		PlanContext:  core.ExtractionResult{},
+		JobContexts:  map[int]core.ExtractionResult{},
+		StepContexts: map[int]map[int]core.ExtractionResult{},
 	}
 }
 
 func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan struct{}) core.ExecutionResult {
 	start := time.Now()
-	executionResult := step.Action.Execute(cancellation)
+	if instance.JobContexts[step.JobID] == nil {
+		instance.JobContexts[step.JobID] = map[string]interface{}{}
+		instance.StepContexts[step.JobID] = map[int]core.ExtractionResult{}
+		instance.StepContexts[step.JobID][step.ID] = map[string]interface{}{}
+	}
+
+	var executionContext = core.ExecutionContext{}
+
+	for pKey, pValue := range instance.Plan.Context {
+		executionContext[pKey] = pValue
+	}
+
+	job := instance.Plan.GetJob(step.JobID)
+	for jKey, jValue := range job.Context {
+		executionContext[jKey] = jValue
+	}
+
+	var executionResult = core.ExecutionResult{}
+
+	if step.Action != nil {
+		executionResult = step.Action.Execute(cancellation)
+	}
+
+	executionResult = merge(executionResult, instance.PlanContext)
+	executionResult = merge(executionResult, instance.JobContexts[step.JobID])
+	executionResult = merge(executionResult, instance.StepContexts[step.JobID][step.ID])
+
+	executionResult = merge(executionResult, executionContext)
+
+	for _, extractor := range step.Extractors {
+		extractorResult := extractor.Extract(executionResult)
+
+		switch extractorResult.Scope() {
+		case core.PlanScope:
+			instance.PlanContext = merge(instance.PlanContext, extractorResult)
+			fallthrough
+		case core.JobScope:
+			instance.JobContexts[step.JobID] = merge(instance.JobContexts[step.JobID], extractorResult)
+			fallthrough
+		case core.StepScope:
+			instance.StepContexts[step.JobID][step.ID] = merge(instance.StepContexts[step.JobID][step.ID], extractorResult)
+		}
+
+		//instance.JobContexts[step.JobID] = merge(instance.JobContexts[step.JobID], extractorResult)
+		for k, v := range extractorResult {
+			executionResult[k] = v
+		}
+	}
+
 	duration := time.Since(start) / time.Millisecond
 	executionResult["action:duration"] = duration
 	assertionResults := []core.AssertionResult{}
@@ -115,6 +177,7 @@ func (instance *PlanExecutor) executeJobs(plan core.Plan) {
 // Execute ...
 func (instance *PlanExecutor) Execute(plan core.Plan) error {
 	instance.start = time.Now()
+	instance.Plan = plan
 	instance.executeJobs(plan)
 
 	return nil

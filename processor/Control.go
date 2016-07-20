@@ -67,7 +67,7 @@ func GetPlan(config *config.Configuration, registry core.Registry) core.Plan {
 	var plan core.Plan
 	var err error
 	if !config.Plan {
-		plan = CreatePlanFromConfiguration(config)
+		plan = CreatePlanFromURLList(config)
 	} else {
 		parser := yaml.CreateExecutionPlanParser(registry)
 		data, dataErr := ioutil.ReadFile(config.FilePath)
@@ -92,8 +92,8 @@ func GetPlan(config *config.Configuration, registry core.Registry) core.Plan {
 	return plan
 }
 
-//CreatePlanFromConfiguration ...
-func CreatePlanFromConfiguration(config *config.Configuration) core.Plan {
+//CreatePlanFromURLList ...
+func CreatePlanFromURLList(config *config.Configuration) core.Plan {
 	plan := core.Plan{
 		Name:     "Plan from urls in file",
 		Workers:  config.Workers,
@@ -106,16 +106,14 @@ func CreatePlanFromConfiguration(config *config.Configuration) core.Plan {
 	stream := request.NewSequentialRequestStream(reader)
 
 	for stream.HasNext() {
-		job := core.Job{
-			Name:  "Job for the urls in file",
-			Steps: []core.Step{},
-		}
+		job := plan.CreateJob()
+		job.Name = "Job for the urls in file"
 
 		request, err := stream.Next()
 		if err != nil {
 			errormanager.Check(err)
 		}
-		step := core.Step{}
+		step := job.CreateStep()
 
 		var body string
 		if request.Body != nil {
@@ -135,8 +133,10 @@ func CreatePlanFromConfiguration(config *config.Configuration) core.Plan {
 		}
 
 		step.Action = action
-		job.Steps = append(job.Steps, step)
-		plan.Jobs = append(plan.Jobs, job)
+		//job.Steps = append(job.Steps, step)
+		job = job.AddStep(step)
+		//plan.Jobs = append(plan.Jobs, job)
+		plan = plan.AddJob(job)
 	}
 
 	return plan

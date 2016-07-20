@@ -404,7 +404,7 @@ func InvokeCorcel(list []string, args ...string) ([]byte, error) {
 	}()
 	cmd := exec.Command(exePath, append(append([]string{"run", "--progress", "none"}, args...), file.Name())...)
 	output, err := cmd.CombinedOutput()
-	fmt.Println(string(output))
+	//fmt.Println(string(output))
 	if len(output) > 0 {
 		logger.Log.Println(fmt.Sprintf("%s", output))
 	}

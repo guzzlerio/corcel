@@ -215,7 +215,7 @@ func (instance *Configuration) parse(data []byte) error {
 
 var configFileReader = func(path string) ([]byte, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		log.WithFields(log.Fields{"path": path}).Warn("Config file not found")
+		log.WithFields(log.Fields{"path": path}).Debug("Config file not found")
 		return nil, nil
 	}
 	data, err := ioutil.ReadFile(path)

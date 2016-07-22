@@ -51,13 +51,13 @@ func CreatePlanExecutor(config *config.Configuration, bar ProgressBar) *PlanExec
 
 func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan struct{}) core.ExecutionResult {
 	start := time.Now()
+	instance.mutex.Lock()
 	if instance.JobContexts[step.JobID] == nil {
-		instance.mutex.Lock()
 		instance.JobContexts[step.JobID] = map[string]interface{}{}
 		instance.StepContexts[step.JobID] = map[int]core.ExtractionResult{}
 		instance.StepContexts[step.JobID][step.ID] = map[string]interface{}{}
-		instance.mutex.Unlock()
 	}
+	instance.mutex.Unlock()
 
 	var executionContext = core.ExecutionContext{}
 

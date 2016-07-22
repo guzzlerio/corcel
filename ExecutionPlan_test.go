@@ -16,7 +16,7 @@ import (
 	"ci.guzzler.io/guzzler/corcel/utils"
 )
 
-var _ = FDescribe("ExecutionPlan", func() {
+var _ = Describe("ExecutionPlan", func() {
 
 	BeforeEach(func() {
 		TestServer.Clear()
@@ -31,7 +31,7 @@ var _ = FDescribe("ExecutionPlan", func() {
 		TestServer.Clear()
 	})
 
-	FContext("SetIterations", func() {
+	Context("SetIterations", func() {
 		It("Single Job Single Step", func() {
 			planBuilder := test.NewYamlPlanBuilder()
 
@@ -99,6 +99,26 @@ var _ = FDescribe("ExecutionPlan", func() {
 
 			Expect(summary.TotalRequests).To(Equal(float64(8)))
 		})
+
+		It("For a list", func() {
+			list := []string{
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+			}
+
+			SutExecute(list, "--iterations", "5")
+
+			var executionOutput statistics.AggregatorSnapShot
+			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var summary = statistics.CreateSummary(executionOutput)
+
+			Expect(summary.TotalRequests).To(Equal(float64(30)))
+		})
+
 	})
 
 	/*/\/\/\/\/\/\/\//\/\/\/\/\/\/\/\/\/\/\/\\/\/

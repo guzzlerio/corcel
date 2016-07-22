@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("JobIterationStream", func() {
-	FIt("iterates", func() {
+var _ = Describe("JobIterationStream", func() {
+	It("iterates", func() {
 		jobs := []core.Job{
 			core.Job{Name: "1"},
 			core.Job{Name: "2"},

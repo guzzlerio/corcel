@@ -413,7 +413,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 				"$.store.book[:].price":                        "[8.9.5, 12.99, 8.9.9, 22.99]",
 			*/
 		}
-		FContext("Step Scope", func() {
+		Context("Step Scope", func() {
 			for testCase, expectedValue := range testCases {
 				FIt(fmt.Sprintf("Succeeds with %s", url.QueryEscape(testCase)), func() {
 					planBuilder := test.NewYamlPlanBuilder()

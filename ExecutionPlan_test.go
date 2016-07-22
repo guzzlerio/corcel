@@ -16,7 +16,7 @@ import (
 	"ci.guzzler.io/guzzler/corcel/utils"
 )
 
-var _ = Describe("ExecutionPlan", func() {
+var _ = FDescribe("ExecutionPlan", func() {
 
 	BeforeEach(func() {
 		TestServer.Clear()
@@ -29,6 +29,76 @@ var _ = Describe("ExecutionPlan", func() {
 
 	AfterEach(func() {
 		TestServer.Clear()
+	})
+
+	FContext("SetIterations", func() {
+		It("Single Job Single Step", func() {
+			planBuilder := test.NewYamlPlanBuilder()
+
+			planBuilder.
+				SetIterations(2).
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Build())
+
+			err := ExecutePlanBuilder(planBuilder)
+			Expect(err).To(BeNil())
+
+			var executionOutput statistics.AggregatorSnapShot
+			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var summary = statistics.CreateSummary(executionOutput)
+
+			Expect(summary.TotalRequests).To(Equal(float64(2)))
+		})
+		It("Single Job Two Steps", func() {
+			planBuilder := test.NewYamlPlanBuilder()
+
+			planBuilder.
+				SetIterations(2).
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Build()).
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Build())
+
+			err := ExecutePlanBuilder(planBuilder)
+			Expect(err).To(BeNil())
+
+			var executionOutput statistics.AggregatorSnapShot
+			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var summary = statistics.CreateSummary(executionOutput)
+
+			Expect(summary.TotalRequests).To(Equal(float64(4)))
+		})
+		It("Single Job Two Steps", func() {
+			planBuilder := test.NewYamlPlanBuilder()
+
+			planBuilder.
+				SetIterations(2)
+
+			planBuilder.
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Build()).
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Build())
+
+			planBuilder.
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Build()).
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Build())
+
+			err := ExecutePlanBuilder(planBuilder)
+			Expect(err).To(BeNil())
+
+			var executionOutput statistics.AggregatorSnapShot
+			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var summary = statistics.CreateSummary(executionOutput)
+
+			Expect(summary.TotalRequests).To(Equal(float64(8)))
+		})
 	})
 
 	/*/\/\/\/\/\/\/\//\/\/\/\/\/\/\/\/\/\/\/\\/\/

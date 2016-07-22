@@ -144,6 +144,13 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job) {
 	if instance.Config.Random {
 		jobStream = CreateJobRandomStream(jobs)
 	}
+
+	if instance.Config.Iterations > 0 {
+		revolvingStream := CreateJobRevolvingStream(jobStream)
+		iterationStream := CreateJobIterationStream(*revolvingStream, len(jobs), instance.Config.Iterations)
+		jobStream = iterationStream
+	}
+
 	if instance.Config.Duration > time.Duration(0) {
 		jobStream = CreateJobDurationStream(jobStream, instance.Config.Duration)
 		ticker := time.NewTicker(time.Millisecond * 10)

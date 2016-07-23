@@ -415,7 +415,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 		}
 		Context("Step Scope", func() {
 			for testCase, expectedValue := range testCases {
-				FIt(fmt.Sprintf("Succeeds with %s", url.QueryEscape(testCase)), func() {
+				It(fmt.Sprintf("Succeeds with %s", url.QueryEscape(testCase)), func() {
 					planBuilder := test.NewYamlPlanBuilder()
 
 					planBuilder.

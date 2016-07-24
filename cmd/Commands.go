@@ -48,6 +48,7 @@ type RunCommand struct {
 	registry *core.Registry
 }
 
+//NewRunCommand ...
 func NewRunCommand(app *kingpin.Application, registry *core.Registry) {
 	configuration := &config.Configuration{}
 	c := &RunCommand{

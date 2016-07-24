@@ -14,7 +14,8 @@ import (
 )
 
 var (
-	applicationVersion = "v0.1.4-alpha"
+	//Version is the application version - set with the ldflags
+	Version = ""
 )
 
 func main() {
@@ -41,9 +42,9 @@ func main() {
 		AddExtractorParser(yaml.XPathExtractorParser{}).
 		AddExtractorParser(yaml.JSONPathExtractorParser{})
 
-	kingpin.UsageTemplate(kingpin.CompactUsageTemplate).Version(applicationVersion).Author("Andrew Rea").Author("James Allen")
+	//kingpin.UsageTemplate(kingpin.CompactUsageTemplate)
 	kingpin.CommandLine.Help = "An example implementation of curl."
-	app := kingpin.New("corcel", "")
+	app := kingpin.New("corcel", "").Version(Version).Author("Andrew Rea").Author("James Allen")
 	app.HelpFlag.Short('h')
 	app.UsageTemplate(kingpin.LongHelpTemplate)
 

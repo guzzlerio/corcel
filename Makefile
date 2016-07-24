@@ -5,9 +5,8 @@ clean:
 	go clean
 
 build: clean
-	#sed -i "s/applicationVersion = \".*\"/applicationVersion = \"$(version)\"/g" config/Configuration.go
-	#echo $(version)
-	go build
+	#version=`grep -Po "(?<=version=)[0-9.]+" version`
+	go build -ldflags="-X main.Version=${version}"
 
 test: build lint
 	ginkgo -cover -r -noisyPendings=false -slowSpecThreshold=10

@@ -51,13 +51,13 @@ func CreatePlanExecutor(config *config.Configuration, bar ProgressBar) *PlanExec
 
 func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan struct{}) core.ExecutionResult {
 	start := time.Now()
+	instance.mutex.Lock()
 	if instance.JobContexts[step.JobID] == nil {
-		instance.mutex.Lock()
 		instance.JobContexts[step.JobID] = map[string]interface{}{}
 		instance.StepContexts[step.JobID] = map[int]core.ExtractionResult{}
 		instance.StepContexts[step.JobID][step.ID] = map[string]interface{}{}
-		instance.mutex.Unlock()
 	}
+	instance.mutex.Unlock()
 
 	var executionContext = core.ExecutionContext{}
 
@@ -144,6 +144,13 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job) {
 	if instance.Config.Random {
 		jobStream = CreateJobRandomStream(jobs)
 	}
+
+	if instance.Config.Iterations > 0 {
+		revolvingStream := CreateJobRevolvingStream(jobStream)
+		iterationStream := CreateJobIterationStream(*revolvingStream, len(jobs), instance.Config.Iterations)
+		jobStream = iterationStream
+	}
+
 	if instance.Config.Duration > time.Duration(0) {
 		jobStream = CreateJobDurationStream(jobStream, instance.Config.Duration)
 		ticker := time.NewTicker(time.Millisecond * 10)

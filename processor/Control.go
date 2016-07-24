@@ -84,6 +84,10 @@ func GetPlan(config *config.Configuration, registry core.Registry) core.Plan {
 			config.Duration = plan.Duration
 		}
 
+		if config.Iterations == 0 {
+			config.Iterations = plan.Iterations
+		}
+
 		config.Random = plan.Random
 		if err != nil {
 			panic(err)

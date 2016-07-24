@@ -4,14 +4,15 @@ import "time"
 
 //Plan ...
 type Plan struct {
-	Random    bool
-	Workers   int
-	Name      string
-	WaitTime  time.Duration
-	Duration  time.Duration
-	Jobs      []Job
-	Context   map[string]interface{}
-	nextJobID int
+	Iterations int
+	Random     bool
+	Workers    int
+	Name       string
+	WaitTime   time.Duration
+	Duration   time.Duration
+	Jobs       []Job
+	Context    map[string]interface{}
+	nextJobID  int
 }
 
 //CreateJob ...

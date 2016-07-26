@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"ci.guzzler.io/guzzler/corcel/statistics"
 	"ci.guzzler.io/guzzler/corcel/test"
 	"ci.guzzler.io/guzzler/corcel/utils"
@@ -10,6 +12,51 @@ import (
 )
 
 var _ = Describe("ExecutionPlanContexts", func() {
+
+	contextsDebugPath := "/tmp/contexts"
+	Describe("Lists", func() {
+
+		BeforeEach(func() {
+			if err := os.Remove(contextsDebugPath); err != nil {
+
+			}
+		})
+
+		AfterEach(func() {
+			if err := os.Remove(contextsDebugPath); err != nil {
+
+			}
+		})
+
+		Context("Plan Scope", func() {
+
+			It("Succeeds", func() {
+
+				planBuilder := test.NewYamlPlanBuilder()
+
+				planBuilder.
+					SetIterations(3).
+					WithContext(planBuilder.BuildContext().SetList("People", []map[string]interface{}{
+					{"name": "jill", "age": 35},
+					{"name": "bob", "age": 52},
+					{"name": "carol", "age": 24},
+				}).Build()).
+					CreateJob().
+					CreateStep().
+					ToExecuteAction(planBuilder.DummyAction().LogToFile(contextsDebugPath).Build())
+
+				err := ExecutePlanBuilder(planBuilder)
+				Expect(err).To(BeNil())
+
+				contexts := test.GetExecutionContexts(contextsDebugPath)
+				Expect(len(contexts)).To(Equal(3))
+				Expect(contexts[0]["$People.name"]).To(Equal("jill"))
+				Expect(contexts[1]["$People.name"]).To(Equal("bob"))
+				Expect(contexts[2]["$People.name"]).To(Equal("carol"))
+			})
+
+		})
+	})
 
 	Context("Plan Scope", func() {
 		It("Succeeds", func() {

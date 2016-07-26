@@ -1,6 +1,9 @@
 package core
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 //Plan ...
 type Plan struct {
@@ -18,6 +21,7 @@ type Plan struct {
 //CreateJob ...
 func (instance Plan) CreateJob() Job {
 	return Job{
+		Name:  fmt.Sprintf("Job #%v", instance.nextJobID+1),
 		ID:    instance.nextJobID,
 		Steps: []Step{},
 	}

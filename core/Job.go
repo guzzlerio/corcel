@@ -1,5 +1,7 @@
 package core
 
+import "fmt"
+
 //Job ...
 type Job struct {
 	ID         int
@@ -12,6 +14,7 @@ type Job struct {
 //CreateStep ...
 func (instance Job) CreateStep() Step {
 	return Step{
+		Name:       fmt.Sprintf("Step #%v", instance.nextStepID+1),
 		ID:         instance.nextStepID,
 		JobID:      instance.ID,
 		Assertions: []Assertion{},

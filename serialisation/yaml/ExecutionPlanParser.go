@@ -47,11 +47,15 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 	for _, yamlJob := range yamlExecutionPlan.Jobs {
 		job := executionPlan.CreateJob()
 		job.Context = yamlJob.Context
-		job.Name = yamlJob.Name
+		if yamlJob.Name != "" {
+			job.Name = yamlJob.Name
+		}
 
 		for _, yamlStep := range yamlJob.Steps {
 			step := job.CreateStep()
-			step.Name = yamlStep.Name
+			if yamlStep.Name != "" {
+				step.Name = yamlStep.Name
+			}
 
 			if yamlStep.Action["type"] != nil {
 				actionType := yamlStep.Action["type"].(string)

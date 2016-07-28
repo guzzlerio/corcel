@@ -100,6 +100,7 @@ func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan stru
 
 	executionResult = merge(executionResult, executionContext)
 
+	instance.mutex.Lock()
 	for _, extractor := range step.Extractors {
 		extractorResult := extractor.Extract(executionResult)
 
@@ -119,6 +120,7 @@ func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan stru
 			executionResult[k] = v
 		}
 	}
+	instance.mutex.Unlock()
 
 	duration := time.Since(start) / time.Millisecond
 	executionResult["action:duration"] = duration

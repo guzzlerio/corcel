@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"ci.guzzler.io/guzzler/corcel/core"
 )
@@ -19,6 +20,16 @@ type DummyAction struct {
 //Execute ...
 func (instance DummyAction) Execute(context core.ExecutionContext, cancellation chan struct{}) core.ExecutionResult {
 	result := core.ExecutionResult{}
+
+	for k, v := range context {
+		switch value := v.(type) {
+		case string:
+			for key, resultValue := range instance.Results {
+				replacement := strings.Replace(resultValue.(string), k, value, -1)
+				instance.Results[key] = replacement
+			}
+		}
+	}
 
 	for key, value := range instance.Results {
 		result[key] = value

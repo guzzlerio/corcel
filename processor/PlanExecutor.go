@@ -83,7 +83,7 @@ func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan stru
 		if jKey == "vars" {
 			vars := jValue.(map[interface{}]interface{})
 			for varKey, varValue := range vars {
-				executionContext[varKey.(string)] = varValue
+				executionContext["$"+varKey.(string)] = varValue
 			}
 		}
 	}
@@ -236,7 +236,7 @@ func (instance *PlanExecutor) Execute(plan core.Plan) error {
 		stringKeyData := map[string]interface{}{}
 		data := instance.Plan.Context["vars"].(map[interface{}]interface{})
 		for dataKey, dataValue := range data {
-			stringKeyData[dataKey.(string)] = dataValue
+			stringKeyData["$"+dataKey.(string)] = dataValue
 		}
 		instance.Plan.Context["vars"] = stringKeyData
 	}

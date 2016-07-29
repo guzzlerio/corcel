@@ -66,10 +66,11 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				WithContext(planBuilder.BuildContext().Set("value:1", "1").Set("value:2", "2").Set("value:3", "3").Build()).
 				CreateJob().
 				CreateStep().
-				ToExecuteAction(planBuilder.DummyAction().Build()).
-				WithAssertion(planBuilder.ExactAssertion("value:1", "1")).
-				WithAssertion(planBuilder.ExactAssertion("value:2", "2")).
-				WithAssertion(planBuilder.ExactAssertion("value:3", "3"))
+				ToExecuteAction(planBuilder.DummyAction().Set("something", "$value:1").Build()).
+				WithAssertion(planBuilder.ExactAssertion("$value:1", "1")).
+				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
+				WithAssertion(planBuilder.ExactAssertion("$value:3", "3")).
+				WithAssertion(planBuilder.ExactAssertion("something", "1"))
 
 			err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
@@ -87,9 +88,9 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				CreateJob().
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build()).
-				WithAssertion(planBuilder.ExactAssertion("value:1", "1")).
-				WithAssertion(planBuilder.ExactAssertion("value:2", "2")).
-				WithAssertion(planBuilder.ExactAssertion("value:3", "3"))
+				WithAssertion(planBuilder.ExactAssertion("$value:1", "1")).
+				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
+				WithAssertion(planBuilder.ExactAssertion("$value:3", "3"))
 
 			err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
@@ -111,9 +112,9 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				WithContext(planBuilder.BuildContext().Set("value:1", "1").Set("value:2", "2").Set("value:3", "3").Build()).
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build()).
-				WithAssertion(planBuilder.ExactAssertion("value:1", "1")).
-				WithAssertion(planBuilder.ExactAssertion("value:2", "2")).
-				WithAssertion(planBuilder.ExactAssertion("value:3", "3"))
+				WithAssertion(planBuilder.ExactAssertion("$value:1", "1")).
+				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
+				WithAssertion(planBuilder.ExactAssertion("$value:3", "3"))
 
 			err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
@@ -136,9 +137,9 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				CreateJob().
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build()).
-				WithAssertion(planBuilder.ExactAssertion("value:1", "1")).
-				WithAssertion(planBuilder.ExactAssertion("value:2", "2")).
-				WithAssertion(planBuilder.ExactAssertion("value:3", "3"))
+				WithAssertion(planBuilder.ExactAssertion("$value:1", "1")).
+				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
+				WithAssertion(planBuilder.ExactAssertion("$value:3", "3"))
 
 			err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())

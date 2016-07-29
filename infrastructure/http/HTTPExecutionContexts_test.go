@@ -26,6 +26,37 @@ var _ = Describe("ExecutionPlanContexts", func() {
 		TestServer.Clear()
 	})
 
+	Context("Using List Variables", func() {
+		It("inside the http headers", func() {
+
+			expectedHeaderKey := "Content-Type"
+			json := "application/json"
+			xml := "application/json"
+			carf := "application/carf"
+
+			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder.
+				SetIterations(3).
+				WithContext(planBuilder.BuildContext().SetList("Content-type", []map[string]interface{}{
+				{"commonType": json},
+				{"commonType": xml},
+				{"commonType": carf},
+			}).Build()).
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.HTTPAction().Header(expectedHeaderKey, "$Content-type.commonType").URL(TestServer.CreateURL(path)).Build())
+
+			err := ExecutePlanBuilder(planBuilder)
+			Expect(err).To(BeNil())
+
+			Expect(len(TestServer.Requests)).To(Equal(3))
+			Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithHeader(expectedHeaderKey, json))).To(Equal(true))
+			Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithHeader(expectedHeaderKey, xml))).To(Equal(true))
+			Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithHeader(expectedHeaderKey, carf))).To(Equal(true))
+
+		})
+	})
+
 	Context("Using variables", func() {
 
 		It("inside the http headers", func() {

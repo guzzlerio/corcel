@@ -66,13 +66,7 @@ func (instance *Action) Execute(context core.ExecutionContext, cancellation chan
 		}
 	}
 
-	//TODO:  This is inefficient but working.  We can always make this
-	// better and speed it up later!!
-	//
-	//TODO: Replace with some efficient templating engine.  Mustache
-	// might even work who knows
 	for k, v := range context {
-		//token := "$" + k
 		token := k
 		switch value := v.(type) {
 		case string:

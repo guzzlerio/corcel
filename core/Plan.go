@@ -15,14 +15,13 @@ type Plan struct {
 	Duration   time.Duration
 	Jobs       []Job
 	Context    map[string]interface{}
-	nextJobID  int
 }
 
 //CreateJob ...
 func (instance Plan) CreateJob() Job {
 	return Job{
-		Name:  fmt.Sprintf("Job #%v", instance.nextJobID+1),
-		ID:    instance.nextJobID,
+		Name:  fmt.Sprintf("Job #%v", len(instance.Jobs)+1),
+		ID:    len(instance.Jobs),
 		Steps: []Step{},
 	}
 }
@@ -36,6 +35,5 @@ func (instance Plan) GetJob(id int) Job {
 func (instance Plan) AddJob(job Job) Plan {
 	jobs := append(instance.Jobs, job)
 	instance.Jobs = jobs
-	instance.nextJobID = instance.nextJobID + 1
 	return instance
 }

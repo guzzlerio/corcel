@@ -28,6 +28,8 @@ func (instance DummyAction) Execute(context core.ExecutionContext, cancellation 
 				replacement := strings.Replace(resultValue.(string), k, value, -1)
 				instance.Results[key] = replacement
 			}
+		default:
+			break
 		}
 	}
 

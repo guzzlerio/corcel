@@ -29,7 +29,7 @@ type PlanExecutor struct {
 	Bar          ProgressBar
 	start        time.Time
 	Publisher    telegraph.LinkedPublisher
-	Lists        *ListRingIterator
+	Lists        *ListRingRevolver
 	Plan         core.Plan
 	PlanContext  core.ExtractionResult
 	JobContexts  map[int]core.ExtractionResult
@@ -227,9 +227,9 @@ func (instance *PlanExecutor) Execute(plan core.Plan) error {
 			}
 		}
 
-		instance.Lists = NewListRingIterator(lists)
+		instance.Lists = NewListRingRevolver(lists)
 	} else {
-		instance.Lists = NewListRingIterator(map[string][]map[string]interface{}{})
+		instance.Lists = NewListRingRevolver(map[string][]map[string]interface{}{})
 	}
 
 	if instance.Plan.Context["vars"] != nil {

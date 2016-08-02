@@ -17,6 +17,24 @@ type DummyAction struct {
 	contexts    []core.ExecutionContext
 }
 
+func (instance DummyAction) createNewContextsFile() {
+	instance.contexts = []core.ExecutionContext{}
+	jsonData, _ := json.Marshal(instance.contexts)
+	ioutil.WriteFile(instance.LogPath, jsonData, 0644)
+}
+
+func (instance DummyAction) getContexts() []core.ExecutionContext {
+	data, _ := ioutil.ReadFile(instance.LogPath)
+	var contexts []core.ExecutionContext
+	json.Unmarshal(data, &contexts)
+	return contexts
+}
+
+func (instance DummyAction) saveContexts() {
+	jsonData, _ := json.Marshal(instance.contexts)
+	ioutil.WriteFile(instance.LogPath, jsonData, 0644)
+}
+
 //Execute ...
 func (instance DummyAction) Execute(context core.ExecutionContext, cancellation chan struct{}) core.ExecutionResult {
 	result := core.ExecutionResult{}
@@ -39,20 +57,12 @@ func (instance DummyAction) Execute(context core.ExecutionContext, cancellation 
 
 	if instance.LogContexts {
 		if _, err := os.Stat(instance.LogPath); os.IsNotExist(err) {
-			instance.contexts = []core.ExecutionContext{}
-			jsonData, _ := json.Marshal(instance.contexts)
-			ioutil.WriteFile(instance.LogPath, jsonData, 0644)
+			instance.createNewContextsFile()
 		}
-
-		data, _ := ioutil.ReadFile(instance.LogPath)
-		var contexts []core.ExecutionContext
-		json.Unmarshal(data, &contexts)
-		instance.contexts = contexts
-
+		instance.contexts = instance.getContexts()
 		instance.contexts = append(instance.contexts, context)
-		jsonData, _ := json.Marshal(instance.contexts)
 
-		ioutil.WriteFile(instance.LogPath, jsonData, 0644)
+		instance.saveContexts()
 	}
 
 	return result

@@ -43,7 +43,7 @@ var _ = Describe("ListRingIterator", func() {
 		data := map[string][]map[string]interface{}{}
 		data["People"] = getPeopleCollection()
 
-		iterator := NewListRingIterator(data)
+		iterator := NewListRingRevolver(data)
 
 		values1 := iterator.Values()
 		Expect(values1["$People.name"]).To(Equal("bob"))
@@ -63,7 +63,7 @@ var _ = Describe("ListRingIterator", func() {
 		data["People"] = getPeopleCollection()
 		data["Products"] = getProductsCollection()
 
-		iterator := NewListRingIterator(data)
+		iterator := NewListRingRevolver(data)
 
 		values1 := iterator.Values()
 		Expect(values1["$People.name"]).To(Equal("bob"))

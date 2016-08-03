@@ -10,4 +10,5 @@ type ExecutionPlan struct {
 	Name       string                 `yaml:"name"`
 	Context    map[string]interface{} `yaml:"context"`
 	Jobs       []ExecutionJob         `yaml:"jobs"`
+	Before     []Action               `yaml:"before"`
 }

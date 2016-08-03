@@ -21,6 +21,7 @@ type YamlPlanBuilder struct {
 	Duration        string
 	JobBuilders     []*YamlJobBuilder
 	Context         map[string]interface{}
+	Before          []yaml.Action
 }
 
 //NewYamlPlanBuilder ...
@@ -79,6 +80,12 @@ func (instance *YamlPlanBuilder) WithContext(context map[string]interface{}) *Ya
 	return instance
 }
 
+//AddBefore ...
+func (instance *YamlPlanBuilder) AddBefore(before yaml.Action) *YamlPlanBuilder {
+	instance.Before = append(instance.Before, before)
+	return instance
+}
+
 //CreateJob ...
 func (instance *YamlPlanBuilder) CreateJob() *YamlJobBuilder {
 	builder := NewYamlJobBuilder()
@@ -113,6 +120,7 @@ func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 	}
 	file.Write(contents)
 	err = file.Sync()
+
 	if err != nil {
 		return nil, err
 	}

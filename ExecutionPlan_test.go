@@ -31,6 +31,96 @@ var _ = Describe("ExecutionPlan", func() {
 		TestServer.Clear()
 	})
 
+	Context("SetIterations", func() {
+		It("Single Job Single Step", func() {
+			planBuilder := test.NewYamlPlanBuilder()
+
+			planBuilder.
+				SetIterations(2).
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Build())
+
+			err := ExecutePlanBuilder(planBuilder)
+			Expect(err).To(BeNil())
+
+			var executionOutput statistics.AggregatorSnapShot
+			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var summary = statistics.CreateSummary(executionOutput)
+
+			Expect(summary.TotalRequests).To(Equal(float64(2)))
+		})
+		It("Single Job Two Steps", func() {
+			planBuilder := test.NewYamlPlanBuilder()
+
+			planBuilder.
+				SetIterations(2).
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Build()).
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Build())
+
+			err := ExecutePlanBuilder(planBuilder)
+			Expect(err).To(BeNil())
+
+			var executionOutput statistics.AggregatorSnapShot
+			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var summary = statistics.CreateSummary(executionOutput)
+
+			Expect(summary.TotalRequests).To(Equal(float64(4)))
+		})
+		It("Single Job Two Steps", func() {
+			planBuilder := test.NewYamlPlanBuilder()
+
+			planBuilder.
+				SetIterations(2)
+
+			planBuilder.
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Build()).
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Build())
+
+			planBuilder.
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Build()).
+				CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Build())
+
+			err := ExecutePlanBuilder(planBuilder)
+			Expect(err).To(BeNil())
+
+			var executionOutput statistics.AggregatorSnapShot
+			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var summary = statistics.CreateSummary(executionOutput)
+
+			Expect(summary.TotalRequests).To(Equal(float64(8)))
+		})
+
+		It("For a list", func() {
+			list := []string{
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
+				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+			}
+
+			SutExecute(list, "--iterations", "5")
+
+			var executionOutput statistics.AggregatorSnapShot
+			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+			var summary = statistics.CreateSummary(executionOutput)
+
+			Expect(summary.TotalRequests).To(Equal(float64(30)))
+		})
+
+	})
+
 	/*/\/\/\/\/\/\/\//\/\/\/\/\/\/\/\/\/\/\/\\/\/
 	 *
 	 * REFER TO ISSUE #50

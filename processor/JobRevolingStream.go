@@ -7,6 +7,13 @@ type JobRevolvingStream struct {
 	stream JobStream
 }
 
+//CreateJobRevolvingStream ...
+func CreateJobRevolvingStream(stream JobStream) *JobRevolvingStream {
+	return &JobRevolvingStream{
+		stream: stream,
+	}
+}
+
 //HasNext ...
 func (instance JobRevolvingStream) HasNext() bool {
 	return true

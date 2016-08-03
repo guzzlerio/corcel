@@ -22,15 +22,16 @@ import (
 
 //Configuration ...
 type Configuration struct {
-	Random   bool          `yaml:"random"`
-	Summary  bool          `yaml:"summary"`
-	LogLevel log.Level     `yaml:"log-level"`
-	Workers  int           `yaml:"workers"`
-	Duration time.Duration `yaml:"duration"`
-	WaitTime time.Duration `yaml:"wait-time"`
-	Progress string        `yaml:"progress"`
-	Plan     bool          `yaml:"plan"`
-	FilePath string
+	Iterations int           `yaml:"iterations"`
+	Random     bool          `yaml:"random"`
+	Summary    bool          `yaml:"summary"`
+	LogLevel   log.Level     `yaml:"log-level"`
+	Workers    int           `yaml:"workers"`
+	Duration   time.Duration `yaml:"duration"`
+	WaitTime   time.Duration `yaml:"wait-time"`
+	Progress   string        `yaml:"progress"`
+	Plan       bool          `yaml:"plan"`
+	FilePath   string
 }
 
 func (instance *Configuration) validate() error {

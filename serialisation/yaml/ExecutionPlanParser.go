@@ -42,6 +42,8 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 
 	executionPlan.Workers = yamlExecutionPlan.Workers
 
+	executionPlan.Iterations = yamlExecutionPlan.Iterations
+
 	for _, yamlJob := range yamlExecutionPlan.Jobs {
 		job := executionPlan.CreateJob()
 		job.Context = yamlJob.Context

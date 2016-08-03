@@ -3,12 +3,14 @@ package test
 import (
 	"io/ioutil"
 	"os"
+	"path"
 	"time"
 
 	"ci.guzzler.io/guzzler/corcel/infrastructure/http"
 	"ci.guzzler.io/guzzler/corcel/serialisation/yaml"
 	"ci.guzzler.io/guzzler/corcel/utils"
 
+	"github.com/satori/go.uuid"
 	yamlFormat "gopkg.in/yaml.v2"
 )
 
@@ -88,6 +90,10 @@ func (instance *YamlPlanBuilder) CreateJob() *YamlJobBuilder {
 
 //Build ...
 func (instance *YamlPlanBuilder) Build() (*os.File, error) {
+
+	outputBasePath := "/tmp/corcel/plans"
+	os.MkdirAll(outputBasePath, 0777)
+
 	plan := yaml.ExecutionPlan{
 		Iterations: instance.Iterations,
 		Random:     instance.Random,
@@ -112,6 +118,12 @@ func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 		return nil, err
 	}
 	file.Write(contents)
+
+	err = ioutil.WriteFile(path.Join(outputBasePath, uuid.NewV4().String()), contents, 0644)
+	if err != nil {
+		panic(err)
+	}
+
 	err = file.Sync()
 	if err != nil {
 		return nil, err
@@ -119,7 +131,7 @@ func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 	return file, nil
 }
 
-//HTTPRequestAction ...
+//HTTPAction ...
 func (instance YamlPlanBuilder) HTTPAction() http.HTTPRequestBuilder {
 	return http.NewHTTPRequestBuilder()
 }

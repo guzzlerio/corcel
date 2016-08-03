@@ -29,6 +29,7 @@ type PlanExecutor struct {
 	Bar          ProgressBar
 	start        time.Time
 	Publisher    telegraph.LinkedPublisher
+	Lists        *ListRingRevolver
 	Plan         core.Plan
 	PlanContext  core.ExtractionResult
 	JobContexts  map[int]core.ExtractionResult
@@ -61,13 +62,30 @@ func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan stru
 
 	var executionContext = core.ExecutionContext{}
 
-	for pKey, pValue := range instance.Plan.Context {
+	var vars map[string]interface{}
+
+	if instance.Plan.Context["vars"] != nil {
+		vars = instance.Plan.Context["vars"].(map[string]interface{})
+	}
+
+	for pKey, pValue := range vars {
+		executionContext[pKey] = pValue
+	}
+
+	listValues := instance.Lists.Values()
+	for pKey, pValue := range listValues {
 		executionContext[pKey] = pValue
 	}
 
 	job := instance.Plan.GetJob(step.JobID)
 	for jKey, jValue := range job.Context {
 		executionContext[jKey] = jValue
+		if jKey == "vars" {
+			vars := jValue.(map[interface{}]interface{})
+			for varKey, varValue := range vars {
+				executionContext["$"+varKey.(string)] = varValue
+			}
+		}
 	}
 
 	var executionResult = core.ExecutionResult{}
@@ -82,6 +100,7 @@ func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan stru
 
 	executionResult = merge(executionResult, executionContext)
 
+	instance.mutex.Lock()
 	for _, extractor := range step.Extractors {
 		extractorResult := extractor.Extract(executionResult)
 
@@ -101,6 +120,7 @@ func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan stru
 			executionResult[k] = v
 		}
 	}
+	instance.mutex.Unlock()
 
 	duration := time.Since(start) / time.Millisecond
 	executionResult["action:duration"] = duration
@@ -189,6 +209,37 @@ func (instance *PlanExecutor) executeJobs(plan core.Plan) {
 func (instance *PlanExecutor) Execute(plan core.Plan) error {
 	instance.start = time.Now()
 	instance.Plan = plan
+	if instance.Plan.Context["lists"] != nil {
+		var lists = map[string][]map[string]interface{}{}
+
+		listKeys := instance.Plan.Context["lists"].(map[interface{}]interface{})
+		for listKey, listValue := range listKeys {
+			lists[listKey.(string)] = []map[string]interface{}{}
+			listValueItems := listValue.([]interface{})
+			for _, listValueItem := range listValueItems {
+				srcData := listValueItem.(map[interface{}]interface{})
+				stringKeyData := map[string]interface{}{}
+				for srcKey, srcValue := range srcData {
+					stringKeyData[srcKey.(string)] = srcValue
+				}
+
+				lists[listKey.(string)] = append(lists[listKey.(string)], stringKeyData)
+			}
+		}
+
+		instance.Lists = NewListRingRevolver(lists)
+	} else {
+		instance.Lists = NewListRingRevolver(map[string][]map[string]interface{}{})
+	}
+
+	if instance.Plan.Context["vars"] != nil {
+		stringKeyData := map[string]interface{}{}
+		data := instance.Plan.Context["vars"].(map[interface{}]interface{})
+		for dataKey, dataValue := range data {
+			stringKeyData["$"+dataKey.(string)] = dataValue
+		}
+		instance.Plan.Context["vars"] = stringKeyData
+	}
 	instance.executeJobs(plan)
 
 	return nil

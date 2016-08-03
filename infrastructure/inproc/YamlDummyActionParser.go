@@ -11,8 +11,17 @@ func (instance YamlDummyActionParser) Parse(input map[string]interface{}) core.A
 	for key, value := range input["results"].(map[interface{}]interface{}) {
 		results[key.(string)] = value
 	}
+
+	var logpath string
+
+	if input["logpath"] != nil {
+		logpath = input["logpath"].(string)
+	}
+
 	return DummyAction{
-		Results: results,
+		Results:     results,
+		LogContexts: (input["logcontexts"] != nil),
+		LogPath:     logpath,
 	}
 }
 

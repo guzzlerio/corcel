@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"ci.guzzler.io/guzzler/corcel/statistics"
 	"ci.guzzler.io/guzzler/corcel/test"
 	"ci.guzzler.io/guzzler/corcel/utils"
@@ -11,6 +13,51 @@ import (
 
 var _ = Describe("ExecutionPlanContexts", func() {
 
+	contextsDebugPath := "/tmp/contexts"
+	Describe("Lists", func() {
+
+		BeforeEach(func() {
+			if err := os.Remove(contextsDebugPath); err != nil {
+
+			}
+		})
+
+		AfterEach(func() {
+			if err := os.Remove(contextsDebugPath); err != nil {
+
+			}
+		})
+
+		Context("Plan Scope", func() {
+
+			It("Succeeds", func() {
+
+				planBuilder := test.NewYamlPlanBuilder()
+
+				planBuilder.
+					SetIterations(3).
+					WithContext(planBuilder.BuildContext().SetList("People", []map[string]interface{}{
+					{"name": "jill", "age": 35},
+					{"name": "bob", "age": 52},
+					{"name": "carol", "age": 24},
+				}).Build()).
+					CreateJob().
+					CreateStep().
+					ToExecuteAction(planBuilder.DummyAction().LogToFile(contextsDebugPath).Build())
+
+				err := ExecutePlanBuilder(planBuilder)
+				Expect(err).To(BeNil())
+
+				contexts := test.GetExecutionContexts(contextsDebugPath)
+				Expect(len(contexts)).To(Equal(3))
+				Expect(contexts[0]["$People.name"]).To(Equal("jill"))
+				Expect(contexts[1]["$People.name"]).To(Equal("bob"))
+				Expect(contexts[2]["$People.name"]).To(Equal("carol"))
+			})
+
+		})
+	})
+
 	Context("Plan Scope", func() {
 		It("Succeeds", func() {
 			planBuilder := test.NewYamlPlanBuilder()
@@ -19,10 +66,11 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				WithContext(planBuilder.BuildContext().Set("value:1", "1").Set("value:2", "2").Set("value:3", "3").Build()).
 				CreateJob().
 				CreateStep().
-				ToExecuteAction(planBuilder.DummyAction().Build()).
-				WithAssertion(planBuilder.ExactAssertion("value:1", "1")).
-				WithAssertion(planBuilder.ExactAssertion("value:2", "2")).
-				WithAssertion(planBuilder.ExactAssertion("value:3", "3"))
+				ToExecuteAction(planBuilder.DummyAction().Set("something", "$value:1").Build()).
+				WithAssertion(planBuilder.ExactAssertion("$value:1", "1")).
+				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
+				WithAssertion(planBuilder.ExactAssertion("$value:3", "3")).
+				WithAssertion(planBuilder.ExactAssertion("something", "1"))
 
 			err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
@@ -40,9 +88,9 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				CreateJob().
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build()).
-				WithAssertion(planBuilder.ExactAssertion("value:1", "1")).
-				WithAssertion(planBuilder.ExactAssertion("value:2", "2")).
-				WithAssertion(planBuilder.ExactAssertion("value:3", "3"))
+				WithAssertion(planBuilder.ExactAssertion("$value:1", "1")).
+				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
+				WithAssertion(planBuilder.ExactAssertion("$value:3", "3"))
 
 			err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
@@ -64,9 +112,9 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				WithContext(planBuilder.BuildContext().Set("value:1", "1").Set("value:2", "2").Set("value:3", "3").Build()).
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build()).
-				WithAssertion(planBuilder.ExactAssertion("value:1", "1")).
-				WithAssertion(planBuilder.ExactAssertion("value:2", "2")).
-				WithAssertion(planBuilder.ExactAssertion("value:3", "3"))
+				WithAssertion(planBuilder.ExactAssertion("$value:1", "1")).
+				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
+				WithAssertion(planBuilder.ExactAssertion("$value:3", "3"))
 
 			err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
@@ -89,9 +137,9 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				CreateJob().
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build()).
-				WithAssertion(planBuilder.ExactAssertion("value:1", "1")).
-				WithAssertion(planBuilder.ExactAssertion("value:2", "2")).
-				WithAssertion(planBuilder.ExactAssertion("value:3", "3"))
+				WithAssertion(planBuilder.ExactAssertion("$value:1", "1")).
+				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
+				WithAssertion(planBuilder.ExactAssertion("$value:3", "3"))
 
 			err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())

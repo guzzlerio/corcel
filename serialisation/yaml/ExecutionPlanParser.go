@@ -44,6 +44,18 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 
 	executionPlan.Iterations = yamlExecutionPlan.Iterations
 
+	for _, yamlBeforeAction := range yamlExecutionPlan.Before {
+		if yamlBeforeAction["type"] != nil {
+			actionType := yamlBeforeAction["type"].(string)
+
+			if parser := instance.ExecutionActionParsers[actionType]; parser != nil {
+				executionPlan.Before = append(executionPlan.Before, parser.Parse(yamlBeforeAction))
+			} else {
+				panic(fmt.Sprintf("No parser configured for action %s", actionType))
+			}
+		}
+	}
+
 	for _, yamlJob := range yamlExecutionPlan.Jobs {
 		job := executionPlan.CreateJob()
 		job.Context = yamlJob.Context

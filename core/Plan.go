@@ -12,6 +12,7 @@ type Plan struct {
 	Duration   time.Duration
 	Jobs       []Job
 	Context    map[string]interface{}
+	Before     []Action
 	nextJobID  int
 }
 

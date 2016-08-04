@@ -2,6 +2,14 @@
   name : The plan
   workers : 5
   waitTime : 1500
+  before:
+    -
+      type: HttpRequest
+      requestTimeout : 150
+      method : GET
+      url : http://localhost:1337/success
+      httpHeaders :
+          content-Type: application/json
   jobs:
     -
       name : Register a user

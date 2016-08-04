@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -128,7 +129,9 @@ func (instance *PlanExecutor) workerExecuteJob(talula core.Job, cancellation cha
 
 	for stepStream.HasNext() {
 		step := stepStream.Next()
+		//before Step
 		executionResult := instance.executeStep(step, cancellation)
+		//after Step
 
 		instance.Publisher.Publish(executionResult)
 
@@ -169,7 +172,9 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job) {
 	for jobStream.HasNext() {
 		job := jobStream.Next()
 		_ = instance.Bar.Set(jobStream.Progress())
+		//before Job
 		instance.workerExecuteJob(job, cancellation)
+		//after Job
 	}
 }
 
@@ -187,9 +192,22 @@ func (instance *PlanExecutor) executeJobs(jobs []core.Job) {
 
 // Execute ...
 func (instance *PlanExecutor) Execute(plan core.Plan) error {
+	fmt.Println("Start Plan Execution")
+	fmt.Printf("%+v", plan)
 	instance.start = time.Now()
 	instance.Plan = plan
+	//before Plan
+	var executionContext = core.ExecutionContext{}
+
+	for pKey, pValue := range instance.Plan.Context {
+		executionContext[pKey] = pValue
+	}
+	for _, action := range plan.Before {
+		fmt.Println("Executing before action")
+		_ = action.Execute(executionContext, nil)
+	}
 	instance.executeJobs(plan.Jobs)
+	//after Plan
 
 	return nil
 }

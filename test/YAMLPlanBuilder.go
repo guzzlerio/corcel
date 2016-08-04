@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"time"
@@ -102,6 +103,7 @@ func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 		WaitTime:   instance.WaitTime,
 		Duration:   instance.Duration,
 		Context:    instance.Context,
+		Before:     instance.Before,
 	}
 	for _, jobBuilder := range instance.JobBuilders {
 		yamlExecutionJob := jobBuilder.Build()
@@ -115,6 +117,7 @@ func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 		utils.CheckErr(file.Close())
 	}()
 	contents, err := yamlFormat.Marshal(&plan)
+	fmt.Println(string(contents[:]))
 	if err != nil {
 		return nil, err
 	}

@@ -15,6 +15,29 @@ type ExecutionPlanParser struct {
 	ExecutionExtractorParsers map[string]core.ExecutionExtractorParser
 }
 
+func (instance *ExecutionPlanParser) parseYamlAction(yamlAction Action) core.Action {
+	if yamlAction["type"] != nil {
+		actionType := yamlAction["type"].(string)
+
+		var action core.Action
+		if parser := instance.ExecutionActionParsers[actionType]; parser != nil {
+			action = parser.Parse(yamlAction)
+		} else {
+			panic(fmt.Sprintf("No parser configured for action %s", actionType))
+		}
+		return action
+	}
+	return nil
+}
+
+func (instance *ExecutionPlanParser) parseYamlActions(array []Action) []core.Action {
+	var result []core.Action
+	for _, yamlAction := range array {
+		result = append(result, instance.parseYamlAction(yamlAction))
+	}
+	return result
+}
+
 //Parse ...
 func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 	var executionPlan core.Plan
@@ -39,22 +62,10 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 	}
 
 	executionPlan.Random = yamlExecutionPlan.Random
-
 	executionPlan.Workers = yamlExecutionPlan.Workers
-
 	executionPlan.Iterations = yamlExecutionPlan.Iterations
-
-	for _, yamlBeforeAction := range yamlExecutionPlan.Before {
-		if yamlBeforeAction["type"] != nil {
-			actionType := yamlBeforeAction["type"].(string)
-
-			if parser := instance.ExecutionActionParsers[actionType]; parser != nil {
-				executionPlan.Before = append(executionPlan.Before, parser.Parse(yamlBeforeAction))
-			} else {
-				panic(fmt.Sprintf("No parser configured for action %s", actionType))
-			}
-		}
-	}
+	executionPlan.Before = instance.parseYamlActions(yamlExecutionPlan.Before)
+	executionPlan.After = instance.parseYamlActions(yamlExecutionPlan.After)
 
 	for _, yamlJob := range yamlExecutionPlan.Jobs {
 		job := executionPlan.CreateJob()
@@ -64,16 +75,7 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 		for _, yamlStep := range yamlJob.Steps {
 			step := job.CreateStep()
 			step.Name = yamlStep.Name
-
-			if yamlStep.Action["type"] != nil {
-				actionType := yamlStep.Action["type"].(string)
-
-				if parser := instance.ExecutionActionParsers[actionType]; parser != nil {
-					step.Action = parser.Parse(yamlStep.Action)
-				} else {
-					panic(fmt.Sprintf("No parser configured for action %s", actionType))
-				}
-			}
+			step.Action = instance.parseYamlAction(yamlStep.Action)
 
 			for _, yamlAssertion := range yamlStep.Assertions {
 				assertionType := yamlAssertion["type"].(string)

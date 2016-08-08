@@ -13,6 +13,7 @@ type Plan struct {
 	Jobs       []Job
 	Context    map[string]interface{}
 	Before     []Action
+	After      []Action
 	nextJobID  int
 }
 

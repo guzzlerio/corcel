@@ -2,8 +2,9 @@
   name : The plan
   workers : 5
   waitTime : 1500
-  before:
+  after:
     -
+      body: After Plan
       type: HttpRequest
       requestTimeout : 150
       method : GET

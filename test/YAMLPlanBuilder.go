@@ -23,6 +23,7 @@ type YamlPlanBuilder struct {
 	JobBuilders     []*YamlJobBuilder
 	Context         map[string]interface{}
 	Before          []yaml.Action
+	After           []yaml.Action
 }
 
 //NewYamlPlanBuilder ...
@@ -87,6 +88,12 @@ func (instance *YamlPlanBuilder) AddBefore(before yaml.Action) *YamlPlanBuilder 
 	return instance
 }
 
+//AddAfter ...
+func (instance *YamlPlanBuilder) AddAfter(after yaml.Action) *YamlPlanBuilder {
+	instance.After = append(instance.After, after)
+	return instance
+}
+
 //CreateJob ...
 func (instance *YamlPlanBuilder) CreateJob() *YamlJobBuilder {
 	builder := NewYamlJobBuilder()
@@ -104,6 +111,7 @@ func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 		Duration:   instance.Duration,
 		Context:    instance.Context,
 		Before:     instance.Before,
+		After:      instance.After,
 	}
 	for _, jobBuilder := range instance.JobBuilders {
 		yamlExecutionJob := jobBuilder.Build()

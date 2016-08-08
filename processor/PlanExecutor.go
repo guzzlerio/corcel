@@ -192,22 +192,26 @@ func (instance *PlanExecutor) executeJobs(jobs []core.Job) {
 
 // Execute ...
 func (instance *PlanExecutor) Execute(plan core.Plan) error {
-	fmt.Println("Start Plan Execution")
-	fmt.Printf("%+v", plan)
 	instance.start = time.Now()
+	fmt.Printf("Zee Plan: %+v", plan)
 	instance.Plan = plan
 	//before Plan
+	//TODO this is duplicated from executeStep. Extract
 	var executionContext = core.ExecutionContext{}
 
 	for pKey, pValue := range instance.Plan.Context {
 		executionContext[pKey] = pValue
 	}
 	for _, action := range plan.Before {
-		fmt.Println("Executing before action")
+		fmt.Println("Executing Before")
 		_ = action.Execute(executionContext, nil)
 	}
 	instance.executeJobs(plan.Jobs)
 	//after Plan
+	for _, action := range plan.After {
+		fmt.Println("Executing After")
+		_ = action.Execute(executionContext, nil)
+	}
 
 	return nil
 }

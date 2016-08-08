@@ -1,7 +1,6 @@
 package processor
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -193,7 +192,7 @@ func (instance *PlanExecutor) executeJobs(jobs []core.Job) {
 // Execute ...
 func (instance *PlanExecutor) Execute(plan core.Plan) error {
 	instance.start = time.Now()
-	fmt.Printf("Zee Plan: %+v", plan)
+	// fmt.Printf("Zee Plan: %+v", plan)
 	instance.Plan = plan
 	//before Plan
 	//TODO this is duplicated from executeStep. Extract
@@ -203,13 +202,11 @@ func (instance *PlanExecutor) Execute(plan core.Plan) error {
 		executionContext[pKey] = pValue
 	}
 	for _, action := range plan.Before {
-		fmt.Println("Executing Before")
 		_ = action.Execute(executionContext, nil)
 	}
 	instance.executeJobs(plan.Jobs)
 	//after Plan
 	for _, action := range plan.After {
-		fmt.Println("Executing After")
 		_ = action.Execute(executionContext, nil)
 	}
 

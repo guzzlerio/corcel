@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("Before After", func() {
+var _ = Describe("Before After", func() {
 	var (
 		planBuilder *test.YamlPlanBuilder
 		path        string

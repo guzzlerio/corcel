@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -170,10 +171,25 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job) {
 
 	for jobStream.HasNext() {
 		job := jobStream.Next()
+		var executionContext = core.ExecutionContext{}
+
+		for pKey, pValue := range job.Context {
+			executionContext[pKey] = pValue
+		}
 		_ = instance.Bar.Set(jobStream.Progress())
 		//before Job
+		fmt.Println("Before Job")
+		for _, action := range job.Before {
+			fmt.Println("Executing Before")
+			_ = action.Execute(executionContext, nil)
+		}
 		instance.workerExecuteJob(job, cancellation)
 		//after Job
+		fmt.Println("After Job")
+		for _, action := range job.After {
+			fmt.Println("Executing After")
+			_ = action.Execute(executionContext, nil)
+		}
 	}
 }
 
@@ -192,7 +208,7 @@ func (instance *PlanExecutor) executeJobs(jobs []core.Job) {
 // Execute ...
 func (instance *PlanExecutor) Execute(plan core.Plan) error {
 	instance.start = time.Now()
-	// fmt.Printf("Zee Plan: %+v", plan)
+	fmt.Printf("Zee Plan: %+v", plan)
 	instance.Plan = plan
 	//before Plan
 	//TODO this is duplicated from executeStep. Extract

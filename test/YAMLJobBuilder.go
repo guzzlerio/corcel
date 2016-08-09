@@ -6,6 +6,8 @@ import "ci.guzzler.io/guzzler/corcel/serialisation/yaml"
 type YamlJobBuilder struct {
 	StepBuilders []*YamlStepBuilder
 	Context      map[string]interface{}
+	Before       []yaml.Action
+	After        []yaml.Action
 }
 
 //NewYamlJobBuilder ...
@@ -26,8 +28,11 @@ func (instance *YamlJobBuilder) CurrentStepBuilder() *YamlStepBuilder {
 
 //Build ...
 func (instance *YamlJobBuilder) Build() yaml.ExecutionJob {
-	job := yaml.ExecutionJob{}
-	job.Context = instance.Context
+	job := yaml.ExecutionJob{
+		Context: instance.Context,
+		Before:  instance.Before,
+		After:   instance.After,
+	}
 	for _, stepBuilder := range instance.StepBuilders {
 		step := stepBuilder.Build()
 		job.Steps = append(job.Steps, step)
@@ -47,6 +52,18 @@ func (instance *YamlJobBuilder) CreateStep() *YamlJobBuilder {
 func (instance *YamlJobBuilder) ToExecuteAction(data map[string]interface{}) *YamlJobBuilder {
 	stepBuilder := instance.CurrentStepBuilder()
 	stepBuilder.Action = data
+	return instance
+}
+
+//AddBefore ...
+func (instance *YamlJobBuilder) AddBefore(before yaml.Action) *YamlJobBuilder {
+	instance.Before = append(instance.Before, before)
+	return instance
+}
+
+//AddAfter ...
+func (instance *YamlJobBuilder) AddAfter(after yaml.Action) *YamlJobBuilder {
+	instance.After = append(instance.After, after)
 	return instance
 }
 

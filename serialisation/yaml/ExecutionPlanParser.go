@@ -68,8 +68,11 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 	executionPlan.After = instance.parseYamlActions(yamlExecutionPlan.After)
 
 	for _, yamlJob := range yamlExecutionPlan.Jobs {
+		fmt.Printf("yamlJob: %+v\n", yamlJob)
 		job := executionPlan.CreateJob()
 		job.Context = yamlJob.Context
+		job.Before = instance.parseYamlActions(yamlJob.Before)
+		job.After = instance.parseYamlActions(yamlJob.After)
 		job.Name = yamlJob.Name
 
 		for _, yamlStep := range yamlJob.Steps {

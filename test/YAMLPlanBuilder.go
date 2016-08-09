@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"time"
@@ -124,7 +125,7 @@ func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 		utils.CheckErr(file.Close())
 	}()
 	contents, err := yamlFormat.Marshal(&plan)
-	// fmt.Println(string(contents[:]))
+	fmt.Println(string(contents[:]))
 	if err != nil {
 		return nil, err
 	}

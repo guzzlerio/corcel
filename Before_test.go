@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Before After", func() {
+var _ = FDescribe("Before After", func() {
 	var (
 		planBuilder *test.YamlPlanBuilder
 		path        string
@@ -23,6 +23,9 @@ var _ = Describe("Before After", func() {
 		})
 
 		TestServer.Use(factory).For(rizo.RequestWithPath("/people"))
+		planBuilder = test.NewYamlPlanBuilder()
+		path = "/people"
+		body = "Zee Body"
 	})
 
 	getBody := func(requests []rizo.RecordedRequest) []string {
@@ -34,12 +37,6 @@ var _ = Describe("Before After", func() {
 	}
 
 	Context("Plan", func() {
-		BeforeEach(func() {
-			planBuilder = test.NewYamlPlanBuilder()
-			path = "/people"
-			body = "Zee Body"
-		})
-
 		Context("Before hook", func() {
 			It("is invoked before plan execution", func() {
 				planBuilder.
@@ -100,6 +97,39 @@ var _ = Describe("Before After", func() {
 				"Zee Body",
 				"After Plan",
 			})))
+		})
+	})
+
+	Context("Job", func() {
+		Context("Before hook", func() {
+			It("is invoked before job execution", func() {
+				planBuilder.
+					CreateJob().
+					AddBefore(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("Before Job").Build()).
+					CreateStep().
+					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
+
+				_ = test.ExecutePlanBuilder("./corcel", planBuilder)
+				Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
+					"Before Job",
+					"Zee Body",
+				})))
+			})
+		})
+		PContext("After hook", func() {
+			It("is invoked after job execution", func() {
+				planBuilder.
+					CreateJob().
+					AddAfter(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("After Job").Build()).
+					CreateStep().
+					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
+
+				_ = test.ExecutePlanBuilder("./corcel", planBuilder)
+				Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
+					"Zee Body",
+					"After Job",
+				})))
+			})
 		})
 	})
 })

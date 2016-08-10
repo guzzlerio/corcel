@@ -72,11 +72,15 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 		job.Context = yamlJob.Context
 		job.Before = instance.parseYamlActions(yamlJob.Before)
 		job.After = instance.parseYamlActions(yamlJob.After)
-		job.Name = yamlJob.Name
+		if yamlJob.Name != "" {
+			job.Name = yamlJob.Name
+		}
 
 		for _, yamlStep := range yamlJob.Steps {
 			step := job.CreateStep()
-			step.Name = yamlStep.Name
+			if yamlStep.Name != "" {
+				step.Name = yamlStep.Name
+			}
 			step.Action = instance.parseYamlAction(yamlStep.Action)
 
 			for _, yamlAssertion := range yamlStep.Assertions {

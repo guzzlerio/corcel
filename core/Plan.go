@@ -34,6 +34,6 @@ func (instance Plan) GetJob(id int) Job {
 func (instance Plan) AddJob(job Job) Plan {
 	jobs := append(instance.Jobs, job)
 	instance.Jobs = jobs
-	instance.nextJobID = instance.nextJobID + 1
+	instance.nextJobID++
 	return instance
 }

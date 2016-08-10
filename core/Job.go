@@ -25,6 +25,6 @@ func (instance Job) CreateStep() Step {
 func (instance Job) AddStep(step Step) Job {
 	steps := append(instance.Steps, step)
 	instance.Steps = steps
-	instance.nextStepID = instance.nextStepID + 1
+	instance.nextStepID++
 	return instance
 }

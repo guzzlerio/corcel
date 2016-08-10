@@ -29,6 +29,7 @@ func (instance *YamlJobBuilder) CurrentStepBuilder() *YamlStepBuilder {
 //Build ...
 func (instance *YamlJobBuilder) Build() yaml.ExecutionJob {
 	job := yaml.ExecutionJob{
+		Name:    "test",
 		Context: instance.Context,
 		Before:  instance.Before,
 		After:   instance.After,

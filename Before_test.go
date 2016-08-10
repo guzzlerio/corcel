@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("Before After", func() {
+var _ = Describe("Before After", func() {
 	var (
 		planBuilder *test.YamlPlanBuilder
 		path        string
@@ -116,7 +116,8 @@ var _ = FDescribe("Before After", func() {
 				})))
 			})
 		})
-		PContext("After hook", func() {
+
+		Context("After hook", func() {
 			It("is invoked after job execution", func() {
 				planBuilder.
 					CreateJob().

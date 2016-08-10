@@ -178,16 +178,14 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job) {
 		}
 		_ = instance.Bar.Set(jobStream.Progress())
 		//before Job
-		fmt.Println("Before Job")
 		for _, action := range job.Before {
-			fmt.Println("Executing Before")
+			fmt.Println("Executing Before Job")
 			_ = action.Execute(executionContext, nil)
 		}
 		instance.workerExecuteJob(job, cancellation)
 		//after Job
-		fmt.Println("After Job")
 		for _, action := range job.After {
-			fmt.Println("Executing After")
+			fmt.Println("Executing After Job")
 			_ = action.Execute(executionContext, nil)
 		}
 	}
@@ -208,7 +206,7 @@ func (instance *PlanExecutor) executeJobs(jobs []core.Job) {
 // Execute ...
 func (instance *PlanExecutor) Execute(plan core.Plan) error {
 	instance.start = time.Now()
-	fmt.Printf("Zee Plan: %+v", plan)
+	// fmt.Printf("Zee Plan: %+v", plan)
 	instance.Plan = plan
 	//before Plan
 	//TODO this is duplicated from executeStep. Extract

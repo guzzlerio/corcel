@@ -1,7 +1,6 @@
 package test
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"time"
@@ -125,10 +124,11 @@ func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 		utils.CheckErr(file.Close())
 	}()
 	contents, err := yamlFormat.Marshal(&plan)
-	fmt.Println(string(contents[:]))
+	// fmt.Println(string(contents[:]))
 	if err != nil {
 		return nil, err
 	}
+	//TODO Write returns an error which is ignored...
 	file.Write(contents)
 	err = file.Sync()
 

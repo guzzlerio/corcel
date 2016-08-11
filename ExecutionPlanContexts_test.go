@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"ci.guzzler.io/guzzler/corcel/statistics"
@@ -11,7 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("ExecutionPlanContexts", func() {
+var _ = Describe("ExecutionPlanContexts", func() {
 
 	contextsDebugPath := "/tmp/contexts"
 	Describe("Lists", func() {
@@ -30,7 +31,7 @@ var _ = FDescribe("ExecutionPlanContexts", func() {
 
 		Context("Plan Scope", func() {
 
-			It("Succeeds", func() {
+			FIt("Succeeds", func() {
 
 				planBuilder := test.NewYamlPlanBuilder()
 
@@ -49,6 +50,7 @@ var _ = FDescribe("ExecutionPlanContexts", func() {
 				Expect(err).To(BeNil())
 
 				contexts := test.GetExecutionContexts(contextsDebugPath)
+				fmt.Printf("Execution Contexts: %+v\n", contexts)
 				Expect(len(contexts)).To(Equal(3))
 				Expect(contexts[0]["$People.name"]).To(Equal("jill"))
 				Expect(contexts[1]["$People.name"]).To(Equal("bob"))

@@ -191,13 +191,14 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job) {
 
 	for jobStream.HasNext() {
 		job := jobStream.Next()
+		var executionContext = core.ExecutionContext{}
+
 		var vars map[string]interface{}
 
 		if instance.Plan.Context["vars"] != nil {
-			vars = job.Context["vars"].(map[string]interface{})
+			vars = instance.Plan.Context["vars"].(map[string]interface{})
 		}
 
-		var executionContext core.ExecutionContext
 		for pKey, pValue := range vars {
 			executionContext[pKey] = pValue
 		}
@@ -205,6 +206,16 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job) {
 		listValues := instance.Lists.Values()
 		for pKey, pValue := range listValues {
 			executionContext[pKey] = pValue
+		}
+
+		for jKey, jValue := range job.Context {
+			executionContext[jKey] = jValue
+			if jKey == "vars" {
+				vars := jValue.(map[interface{}]interface{})
+				for varKey, varValue := range vars {
+					executionContext["$"+varKey.(string)] = varValue
+				}
+			}
 		}
 		_ = instance.Bar.Set(jobStream.Progress())
 		//before Job
@@ -270,9 +281,22 @@ func (instance *PlanExecutor) Execute(plan core.Plan) error {
 	//before Plan
 	//TODO this is duplicated from executeStep. Extract
 	var executionContext = core.ExecutionContext{}
-	for pKey, pValue := range instance.Plan.Context {
+
+	var vars map[string]interface{}
+
+	if instance.Plan.Context["vars"] != nil {
+		vars = instance.Plan.Context["vars"].(map[string]interface{})
+	}
+
+	for pKey, pValue := range vars {
 		executionContext[pKey] = pValue
 	}
+
+	listValues := instance.Lists.Values()
+	for pKey, pValue := range listValues {
+		executionContext[pKey] = pValue
+	}
+
 	for _, action := range plan.Before {
 		_ = action.Execute(executionContext, nil)
 	}

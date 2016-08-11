@@ -4,6 +4,7 @@ import "ci.guzzler.io/guzzler/corcel/serialisation/yaml"
 
 //YamlJobBuilder ...
 type YamlJobBuilder struct {
+	Name         string
 	StepBuilders []*YamlStepBuilder
 	Context      map[string]interface{}
 	Before       []yaml.Action
@@ -11,8 +12,9 @@ type YamlJobBuilder struct {
 }
 
 //NewYamlJobBuilder ...
-func NewYamlJobBuilder() *YamlJobBuilder {
+func NewYamlJobBuilder(name string) *YamlJobBuilder {
 	return &YamlJobBuilder{
+		Name:         name,
 		StepBuilders: []*YamlStepBuilder{},
 	}
 }
@@ -29,7 +31,7 @@ func (instance *YamlJobBuilder) CurrentStepBuilder() *YamlStepBuilder {
 //Build ...
 func (instance *YamlJobBuilder) Build() yaml.ExecutionJob {
 	job := yaml.ExecutionJob{
-		Name:    "test",
+		Name:    instance.Name,
 		Context: instance.Context,
 		Before:  instance.Before,
 		After:   instance.After,

@@ -8,4 +8,6 @@ type Step struct {
 	Action     Action
 	Assertions []Assertion
 	Extractors []Extractor
+	Before     []Action
+	After      []Action
 }

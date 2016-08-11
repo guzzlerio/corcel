@@ -167,43 +167,95 @@ var _ = Describe("Before After", func() {
 				_ = test.ExecutePlanBuilder("./corcel", planBuilder)
 				Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
 					"Zee Body",
+					"Before Step",
 					"Zee Body",
 				})))
 			})
 		})
 
-		PContext("After hook", func() {
+		Context("After hook", func() {
 			It("is invoked after job execution", func() {
-				planBuilder.
-					CreateJob().
-					AddAfter(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("After Job").Build()).
-					CreateStep().
+				jobBuilder := planBuilder.CreateJob()
+
+				jobBuilder.CreateStep().
+					AddAfter(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("After Step 1").Build()).
+					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
+
+				jobBuilder.CreateStep().
+					AddAfter(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("After Step 2").Build()).
 					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
 				_ = test.ExecutePlanBuilder("./corcel", planBuilder)
 				Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
 					"Zee Body",
-					"After Job",
+					"After Step 1",
+					"Zee Body",
+					"After Step 2",
 				})))
 			})
 		})
 
-		PContext("Before and After hook", func() {
+		Context("Before and After hook", func() {
 			It("is invoked before and after job execution", func() {
-				planBuilder.
-					CreateJob().
-					AddBefore(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("Before Job").Build()).
-					AddAfter(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("After Job").Build()).
-					CreateStep().
+				jobBuilder := planBuilder.CreateJob()
+
+				jobBuilder.CreateStep().
+					AddAfter(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("After Step 1").Build()).
+					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
+
+				jobBuilder.CreateStep().
+					AddBefore(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("Before Step 2").Build()).
+					AddAfter(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("After Step 2").Build()).
 					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
 				_ = test.ExecutePlanBuilder("./corcel", planBuilder)
 				Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
-					"Before Job",
 					"Zee Body",
-					"After Job",
+					"After Step 1",
+					"Before Step 2",
+					"Zee Body",
+					"After Step 2",
 				})))
 			})
+		})
+	})
+
+	Context("Combined", func() {
+		It("handles a mix", func() {
+			planBuilder.
+				AddBefore(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("Before Plan").Build())
+
+			jobBuilder := planBuilder.CreateJob("Job 1").
+				AddBefore(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("Before Job 1").Build())
+
+			jobBuilder.CreateStep().
+				AddAfter(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("After Job 1, Step 1").Build()).
+				ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
+
+			jobBuilder.CreateStep().
+				AddBefore(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("Before Job 1, Step 2").Build()).
+				AddAfter(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("After Job 1, Step 2").Build()).
+				ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
+
+			jobBuilder = planBuilder.CreateJob("Job 2").
+				AddBefore(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("Before Job 2").Build())
+
+			jobBuilder.CreateStep().
+				AddAfter(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("After Job 2, Step 1").Build()).
+				ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
+			_ = test.ExecutePlanBuilder("./corcel", planBuilder)
+			Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
+				"Before Plan",
+				"Before Job 1",
+				"Zee Body",
+				"After Job 1, Step 1",
+				"Before Job 1, Step 2",
+				"Zee Body",
+				"After Job 1, Step 2",
+				"Before Job 2",
+				"Zee Body",
+				"After Job 2, Step 1",
+			})))
 		})
 	})
 })

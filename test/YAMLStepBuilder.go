@@ -4,20 +4,20 @@ import "ci.guzzler.io/guzzler/corcel/serialisation/yaml"
 
 //YamlStepBuilder ...
 type YamlStepBuilder struct {
+	Before     []yaml.Action
 	Action     map[string]interface{}
 	Assertions []map[string]interface{}
 	Extractors []map[string]interface{}
-	Before     []yaml.Action
 	After      []yaml.Action
 }
 
 //Build ...
 func (instance *YamlStepBuilder) Build() yaml.ExecutionStep {
 	return yaml.ExecutionStep{
+		Before:     instance.Before,
 		Action:     instance.Action,
 		Assertions: instance.Assertions,
 		Extractors: instance.Extractors,
-		Before:     instance.Before,
 		After:      instance.After,
 	}
 }
@@ -25,9 +25,9 @@ func (instance *YamlStepBuilder) Build() yaml.ExecutionStep {
 //CreateStepBuilder ...
 func CreateStepBuilder() *YamlStepBuilder {
 	return &YamlStepBuilder{
+		Before:     []yaml.Action{},
 		Action:     map[string]interface{}{},
 		Assertions: []map[string]interface{}{},
-		Before:     []yaml.Action{},
 		After:      []yaml.Action{},
 	}
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"ci.guzzler.io/guzzler/corcel/statistics"
@@ -50,7 +49,6 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				Expect(err).To(BeNil())
 
 				contexts := test.GetExecutionContexts(contextsDebugPath)
-				fmt.Printf("Execution Contexts: %+v\n", contexts)
 				Expect(len(contexts)).To(Equal(3))
 				Expect(contexts[0]["$People.name"]).To(Equal("jill"))
 				Expect(contexts[1]["$People.name"]).To(Equal("bob"))

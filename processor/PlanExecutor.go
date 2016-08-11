@@ -150,8 +150,16 @@ func (instance *PlanExecutor) workerExecuteJob(talula core.Job, cancellation cha
 	for stepStream.HasNext() {
 		step := stepStream.Next()
 		//before Step
+		for _, action := range step.Before {
+			fmt.Println("Executing Before Step")
+			_ = action.Execute(nil, nil)
+		}
 		executionResult := instance.executeStep(step, cancellation)
 		//after Step
+		for _, action := range step.After {
+			fmt.Println("Executing After Step")
+			_ = action.Execute(nil, nil)
+		}
 
 		instance.Publisher.Publish(executionResult)
 
@@ -221,7 +229,7 @@ func (instance *PlanExecutor) executeJobs(jobs []core.Job) {
 // Execute ...
 func (instance *PlanExecutor) Execute(plan core.Plan) error {
 	instance.start = time.Now()
-	// fmt.Printf("Zee Plan: %+v", plan)
+	fmt.Printf("Zee Plan: %+v", plan)
 	instance.Plan = plan
 	if instance.Plan.Context["lists"] != nil {
 		var lists = map[string][]map[string]interface{}{}

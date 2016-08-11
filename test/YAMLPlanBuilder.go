@@ -96,8 +96,14 @@ func (instance *YamlPlanBuilder) AddAfter(after yaml.Action) *YamlPlanBuilder {
 }
 
 //CreateJob ...
-func (instance *YamlPlanBuilder) CreateJob() *YamlJobBuilder {
-	builder := NewYamlJobBuilder()
+func (instance *YamlPlanBuilder) CreateJob(arg ...string) *YamlJobBuilder {
+	var name string
+	if len(arg) == 0 {
+		name = ""
+	} else {
+		name = arg[0]
+	}
+	builder := NewYamlJobBuilder(name)
 	instance.JobBuilders = append(instance.JobBuilders, builder)
 	return builder
 }
@@ -106,6 +112,7 @@ func (instance *YamlPlanBuilder) CreateJob() *YamlJobBuilder {
 func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 
 	outputBasePath := "/tmp/corcel/plans"
+	//FIX ignored error output from MkdirAll
 	os.MkdirAll(outputBasePath, 0777)
 
 	plan := yaml.ExecutionPlan{

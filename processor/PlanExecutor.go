@@ -85,7 +85,7 @@ func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan stru
 			vars := jValue.(map[interface{}]interface{})
 			for varKey, varValue := range vars {
 				executionContext["$"+varKey.(string)] = varValue
-	}
+			}
 		}
 	}
 
@@ -197,6 +197,7 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job) {
 			vars = job.Context["vars"].(map[string]interface{})
 		}
 
+		var executionContext core.ExecutionContext
 		for pKey, pValue := range vars {
 			executionContext[pKey] = pValue
 		}
@@ -216,7 +217,7 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job) {
 		for _, action := range job.After {
 			fmt.Println("Executing After Job")
 			_ = action.Execute(executionContext, nil)
-	}
+		}
 	}
 }
 

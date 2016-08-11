@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("ExecutionPlanContexts", func() {
+var _ = FDescribe("ExecutionPlanContexts", func() {
 
 	contextsDebugPath := "/tmp/contexts"
 	Describe("Lists", func() {

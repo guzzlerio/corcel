@@ -6,4 +6,6 @@ type ExecutionStep struct {
 	Action     Action                   `yaml:"action"`
 	Extractors []map[string]interface{} `yaml:"extractors"`
 	Assertions []map[string]interface{} `yaml:"assertions"`
+	Before     []Action                 `yaml:"before"`
+	After      []Action                 `yaml:"after"`
 }

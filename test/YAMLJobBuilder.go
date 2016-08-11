@@ -43,17 +43,10 @@ func (instance *YamlJobBuilder) Build() yaml.ExecutionJob {
 }
 
 //CreateStep ...
-func (instance *YamlJobBuilder) CreateStep() *YamlJobBuilder {
+func (instance *YamlJobBuilder) CreateStep() *YamlStepBuilder {
 	builder := CreateStepBuilder()
 	instance.StepBuilders = append(instance.StepBuilders, builder)
-	return instance
-}
-
-//ToExecuteAction ...
-func (instance *YamlJobBuilder) ToExecuteAction(data map[string]interface{}) *YamlJobBuilder {
-	stepBuilder := instance.CurrentStepBuilder()
-	stepBuilder.Action = data
-	return instance
+	return builder
 }
 
 //AddBefore ...
@@ -65,20 +58,6 @@ func (instance *YamlJobBuilder) AddBefore(before yaml.Action) *YamlJobBuilder {
 //AddAfter ...
 func (instance *YamlJobBuilder) AddAfter(after yaml.Action) *YamlJobBuilder {
 	instance.After = append(instance.After, after)
-	return instance
-}
-
-//WithAssertion ...
-func (instance *YamlJobBuilder) WithAssertion(data map[string]interface{}) *YamlJobBuilder {
-	stepBuilder := instance.CurrentStepBuilder()
-	stepBuilder.Assertions = append(stepBuilder.Assertions, data)
-	return instance
-}
-
-//WithExtractor ...
-func (instance *YamlJobBuilder) WithExtractor(data map[string]interface{}) *YamlJobBuilder {
-	stepBuilder := instance.CurrentStepBuilder()
-	stepBuilder.Extractors = append(stepBuilder.Extractors, data)
 	return instance
 }
 

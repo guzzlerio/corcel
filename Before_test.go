@@ -132,5 +132,78 @@ var _ = Describe("Before After", func() {
 				})))
 			})
 		})
+
+		Context("Before and After hook", func() {
+			It("is invoked before and after job execution", func() {
+				planBuilder.
+					CreateJob().
+					AddBefore(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("Before Job").Build()).
+					AddAfter(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("After Job").Build()).
+					CreateStep().
+					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
+
+				_ = test.ExecutePlanBuilder("./corcel", planBuilder)
+				Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
+					"Before Job",
+					"Zee Body",
+					"After Job",
+				})))
+			})
+		})
+	})
+
+	Context("Step", func() {
+		Context("Before hook", func() {
+			It("is invoked before step execution", func() {
+				jobBuilder := planBuilder.CreateJob()
+
+				jobBuilder.CreateStep().
+					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
+
+				jobBuilder.CreateStep().
+					AddBefore(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("Before Step").Build()).
+					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
+
+				_ = test.ExecutePlanBuilder("./corcel", planBuilder)
+				Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
+					"Zee Body",
+					"Zee Body",
+				})))
+			})
+		})
+
+		PContext("After hook", func() {
+			It("is invoked after job execution", func() {
+				planBuilder.
+					CreateJob().
+					AddAfter(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("After Job").Build()).
+					CreateStep().
+					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
+
+				_ = test.ExecutePlanBuilder("./corcel", planBuilder)
+				Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
+					"Zee Body",
+					"After Job",
+				})))
+			})
+		})
+
+		PContext("Before and After hook", func() {
+			It("is invoked before and after job execution", func() {
+				planBuilder.
+					CreateJob().
+					AddBefore(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("Before Job").Build()).
+					AddAfter(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("After Job").Build()).
+					CreateStep().
+					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
+
+				_ = test.ExecutePlanBuilder("./corcel", planBuilder)
+				Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
+					"Before Job",
+					"Zee Body",
+					"After Job",
+				})))
+			})
+		})
 	})
 })

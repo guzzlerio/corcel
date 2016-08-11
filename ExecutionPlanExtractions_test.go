@@ -68,14 +68,16 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 				It("Matches simple pattern", func() {
 					planBuilder := test.NewYamlPlanBuilder()
 
-					planBuilder.
-						CreateJob().
+					jobBuilder := planBuilder.
+						CreateJob()
+					jobBuilder.
 						CreateStep().
 						ToExecuteAction(planBuilder.DummyAction().Set("value:1", "talula 123 bang bang").Build()).
 						WithExtractor(planBuilder.RegexExtractor().
 						Name("regex:match:1").
 						Key("value:1").Match("\\d+").
-						Scope(core.JobScope).Build()).
+						Scope(core.JobScope).Build())
+					jobBuilder.
 						CreateStep().
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
@@ -93,13 +95,15 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 				It("Matches simple pattern but scope not set to Job and so defaults to Step", func() {
 					planBuilder := test.NewYamlPlanBuilder()
 
-					planBuilder.
-						CreateJob().
+					jobBuilder := planBuilder.
+						CreateJob()
+					jobBuilder.
 						CreateStep().
 						ToExecuteAction(planBuilder.DummyAction().Set("value:1", "talula 123 bang bang").Build()).
 						WithExtractor(planBuilder.RegexExtractor().
 						Name("regex:match:1").
-						Key("value:1").Match("\\d+").Build()).
+						Key("value:1").Match("\\d+").Build())
+					jobBuilder.
 						CreateStep().
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
@@ -259,11 +263,13 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 					It(fmt.Sprintf("Succeeds with %s", url.QueryEscape(testCase)), func() {
 						planBuilder := test.NewYamlPlanBuilder()
 
-						planBuilder.
-							CreateJob().
+						jobBuilder := planBuilder.
+							CreateJob()
+						jobBuilder.
 							CreateStep().
 							ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
-							WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath(testCase).Scope(core.JobScope).Build()).
+							WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath(testCase).Scope(core.JobScope).Build())
+						jobBuilder.
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
@@ -283,11 +289,13 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 					It(fmt.Sprintf("Fails with %s", url.QueryEscape(testCase)), func() {
 						planBuilder := test.NewYamlPlanBuilder()
 
-						planBuilder.
-							CreateJob().
+						jobBuilder := planBuilder.
+							CreateJob()
+						jobBuilder.
 							CreateStep().
 							ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
-							WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath(testCase).Build()).
+							WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath(testCase).Build())
+						jobBuilder.
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
@@ -461,11 +469,13 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 					It(fmt.Sprintf("Succeeds with %s", url.QueryEscape(testCase)), func() {
 						planBuilder := test.NewYamlPlanBuilder()
 
-						planBuilder.
-							CreateJob().
+						jobBuilder := planBuilder.
+							CreateJob()
+						jobBuilder.
 							CreateStep().
 							ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
-							WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath(testCase).Scope(core.JobScope).Build()).
+							WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath(testCase).Scope(core.JobScope).Build())
+						jobBuilder.
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
 
@@ -485,11 +495,13 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 					It(fmt.Sprintf("Fails with %s", url.QueryEscape(testCase)), func() {
 						planBuilder := test.NewYamlPlanBuilder()
 
-						planBuilder.
-							CreateJob().
+						jobBuilder := planBuilder.
+							CreateJob()
+						jobBuilder.
 							CreateStep().
 							ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
-							WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath(testCase).Build()).
+							WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath(testCase).Build())
+						jobBuilder.
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
 

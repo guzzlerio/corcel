@@ -31,7 +31,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 
 		Context("Plan Scope", func() {
 
-			FIt("Succeeds", func() {
+			It("Succeeds", func() {
 
 				planBuilder := test.NewYamlPlanBuilder()
 

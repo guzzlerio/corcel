@@ -191,43 +191,17 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job) {
 
 	for jobStream.HasNext() {
 		job := jobStream.Next()
-		var executionContext = core.ExecutionContext{}
-
-		var vars map[string]interface{}
-
-		if instance.Plan.Context["vars"] != nil {
-			vars = instance.Plan.Context["vars"].(map[string]interface{})
-		}
-
-		for pKey, pValue := range vars {
-			executionContext[pKey] = pValue
-		}
-
-		listValues := instance.Lists.Values()
-		for pKey, pValue := range listValues {
-			executionContext[pKey] = pValue
-		}
-
-		for jKey, jValue := range job.Context {
-			executionContext[jKey] = jValue
-			if jKey == "vars" {
-				vars := jValue.(map[interface{}]interface{})
-				for varKey, varValue := range vars {
-					executionContext["$"+varKey.(string)] = varValue
-				}
-			}
-		}
 		_ = instance.Bar.Set(jobStream.Progress())
 		//before Job
 		for _, action := range job.Before {
 			fmt.Println("Executing Before Job")
-			_ = action.Execute(executionContext, nil)
+			_ = action.Execute(nil, nil)
 		}
 		instance.workerExecuteJob(job, cancellation)
 		//after Job
 		for _, action := range job.After {
 			fmt.Println("Executing After Job")
-			_ = action.Execute(executionContext, nil)
+			_ = action.Execute(nil, nil)
 		}
 	}
 }
@@ -279,31 +253,13 @@ func (instance *PlanExecutor) Execute(plan core.Plan) error {
 		instance.Plan.Context["vars"] = stringKeyData
 	}
 	//before Plan
-	//TODO this is duplicated from executeStep. Extract
-	var executionContext = core.ExecutionContext{}
-
-	var vars map[string]interface{}
-
-	if instance.Plan.Context["vars"] != nil {
-		vars = instance.Plan.Context["vars"].(map[string]interface{})
-	}
-
-	for pKey, pValue := range vars {
-		executionContext[pKey] = pValue
-	}
-
-	listValues := instance.Lists.Values()
-	for pKey, pValue := range listValues {
-		executionContext[pKey] = pValue
-	}
-
 	for _, action := range plan.Before {
-		_ = action.Execute(executionContext, nil)
+		_ = action.Execute(nil, nil)
 	}
 	instance.executeJobs(plan.Jobs)
 	//after Plan
 	for _, action := range plan.After {
-		_ = action.Execute(executionContext, nil)
+		_ = action.Execute(nil, nil)
 	}
 
 	return nil

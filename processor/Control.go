@@ -97,6 +97,7 @@ func getPlan(config *config.Configuration, registry core.Registry) core.Plan {
 
 //CreatePlanFromURLList ...
 func CreatePlanFromURLList(config *config.Configuration) core.Plan {
+	//FIXME Exposed for use in tests
 	plan := core.Plan{
 		Name:     "Plan from urls in file",
 		Workers:  config.Workers,
@@ -170,6 +171,7 @@ func (instance *Controller) Events() <-chan string {
 
 // NewControl ...
 func NewControl(bar ProgressBar, registry core.Registry) Control {
+	//FIXME Possible no tests over the ExecutionBranch
 	executions := make(map[*ExecutionID]ExecutionBranch)
 	control := Controller{
 		executions: executions,

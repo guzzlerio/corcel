@@ -112,7 +112,7 @@ func (instance *YamlPlanBuilder) CreateJob(arg ...string) *YamlJobBuilder {
 func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 
 	outputBasePath := "/tmp/corcel/plans"
-	//FIX ignored error output from MkdirAll
+	//FIXME ignored error output from MkdirAll
 	os.MkdirAll(outputBasePath, 0777)
 
 	plan := yaml.ExecutionPlan{
@@ -141,7 +141,7 @@ func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 	if err != nil {
 		return nil, err
 	}
-	//TODO Write returns an error which is ignored...
+	//FIXME Write returns an error which is ignored...
 	file.Write(contents)
 
 	err = ioutil.WriteFile(path.Join(outputBasePath, uuid.NewV4().String()), contents, 0644)

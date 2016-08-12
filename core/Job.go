@@ -4,10 +4,12 @@ import "fmt"
 
 //Job ...
 type Job struct {
-	ID      int
-	Name    string
-	Steps   []Step
-	Context map[string]interface{}
+	ID         int
+	Name       string
+	Steps      []Step
+	Context    map[string]interface{}
+	Before     []Action
+	After      []Action
 }
 
 //CreateStep ...

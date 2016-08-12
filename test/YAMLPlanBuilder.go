@@ -23,6 +23,8 @@ type YamlPlanBuilder struct {
 	Duration        string
 	JobBuilders     []*YamlJobBuilder
 	Context         map[string]interface{}
+	Before          []yaml.Action
+	After           []yaml.Action
 }
 
 //NewYamlPlanBuilder ...
@@ -81,9 +83,27 @@ func (instance *YamlPlanBuilder) WithContext(context map[string]interface{}) *Ya
 	return instance
 }
 
+//AddBefore ...
+func (instance *YamlPlanBuilder) AddBefore(before yaml.Action) *YamlPlanBuilder {
+	instance.Before = append(instance.Before, before)
+	return instance
+}
+
+//AddAfter ...
+func (instance *YamlPlanBuilder) AddAfter(after yaml.Action) *YamlPlanBuilder {
+	instance.After = append(instance.After, after)
+	return instance
+}
+
 //CreateJob ...
-func (instance *YamlPlanBuilder) CreateJob() *YamlJobBuilder {
-	builder := NewYamlJobBuilder()
+func (instance *YamlPlanBuilder) CreateJob(arg ...string) *YamlJobBuilder {
+	var name string
+	if len(arg) == 0 {
+		name = ""
+	} else {
+		name = arg[0]
+	}
+	builder := NewYamlJobBuilder(name)
 	instance.JobBuilders = append(instance.JobBuilders, builder)
 	return builder
 }
@@ -92,6 +112,7 @@ func (instance *YamlPlanBuilder) CreateJob() *YamlJobBuilder {
 func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 
 	outputBasePath := "/tmp/corcel/plans"
+	//FIXME ignored error output from MkdirAll
 	os.MkdirAll(outputBasePath, 0777)
 
 	plan := yaml.ExecutionPlan{
@@ -101,6 +122,8 @@ func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 		WaitTime:   instance.WaitTime,
 		Duration:   instance.Duration,
 		Context:    instance.Context,
+		Before:     instance.Before,
+		After:      instance.After,
 	}
 	for _, jobBuilder := range instance.JobBuilders {
 		yamlExecutionJob := jobBuilder.Build()
@@ -114,9 +137,11 @@ func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 		utils.CheckErr(file.Close())
 	}()
 	contents, err := yamlFormat.Marshal(&plan)
+	// fmt.Println(string(contents[:]))
 	if err != nil {
 		return nil, err
 	}
+	//FIXME Write returns an error which is ignored...
 	file.Write(contents)
 
 	err = ioutil.WriteFile(path.Join(outputBasePath, uuid.NewV4().String()), contents, 0644)
@@ -125,6 +150,7 @@ func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 	}
 
 	err = file.Sync()
+
 	if err != nil {
 		return nil, err
 	}

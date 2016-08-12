@@ -54,7 +54,7 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 		wg.Done()
 	}()
 	instance.executions[&id] = executor
-	plan := GetPlan(config, instance.registry)
+	plan := getPlan(config, instance.registry)
 	instance.aggregator.Start()
 	err := executor.Execute(plan)
 	subscription.RemoveFrom(executor.Publisher)
@@ -62,8 +62,7 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 	return &id, err
 }
 
-//GetPlan ...
-func GetPlan(config *config.Configuration, registry core.Registry) core.Plan {
+func getPlan(config *config.Configuration, registry core.Registry) core.Plan {
 	var plan core.Plan
 	var err error
 	if !config.Plan {
@@ -98,6 +97,7 @@ func GetPlan(config *config.Configuration, registry core.Registry) core.Plan {
 
 //CreatePlanFromURLList ...
 func CreatePlanFromURLList(config *config.Configuration) core.Plan {
+	//FIXME Exposed for use in tests
 	plan := core.Plan{
 		Name:     "Plan from urls in file",
 		Workers:  config.Workers,
@@ -171,6 +171,7 @@ func (instance *Controller) Events() <-chan string {
 
 // NewControl ...
 func NewControl(bar ProgressBar, registry core.Registry) Control {
+	//FIXME Possible no tests over the ExecutionBranch
 	executions := make(map[*ExecutionID]ExecutionBranch)
 	control := Controller{
 		executions: executions,

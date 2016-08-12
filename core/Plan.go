@@ -15,6 +15,8 @@ type Plan struct {
 	Duration   time.Duration
 	Jobs       []Job
 	Context    map[string]interface{}
+	Before     []Action
+	After      []Action
 }
 
 //CreateJob ...

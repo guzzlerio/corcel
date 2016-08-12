@@ -9,5 +9,7 @@ type ExecutionPlan struct {
 	Duration   string                 `yaml:"duration"`
 	Name       string                 `yaml:"name"`
 	Context    map[string]interface{} `yaml:"context"`
+	Before     []Action               `yaml:"before"`
 	Jobs       []ExecutionJob         `yaml:"jobs"`
+	After      []Action               `yaml:"after"`
 }

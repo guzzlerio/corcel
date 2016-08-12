@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -148,7 +149,17 @@ func (instance *PlanExecutor) workerExecuteJob(talula core.Job, cancellation cha
 
 	for stepStream.HasNext() {
 		step := stepStream.Next()
+		//before Step
+		for _, action := range step.Before {
+			fmt.Println("Executing Before Step")
+			_ = action.Execute(nil, nil)
+		}
 		executionResult := instance.executeStep(step, cancellation)
+		//after Step
+		for _, action := range step.After {
+			fmt.Println("Executing After Step")
+			_ = action.Execute(nil, nil)
+		}
 
 		instance.Publisher.Publish(executionResult)
 
@@ -189,18 +200,28 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job) {
 	for jobStream.HasNext() {
 		job := jobStream.Next()
 		_ = instance.Bar.Set(jobStream.Progress())
+		//before Job
+		for _, action := range job.Before {
+			fmt.Println("Executing Before Job")
+			_ = action.Execute(nil, nil)
+		}
 		instance.workerExecuteJob(job, cancellation)
+		//after Job
+		for _, action := range job.After {
+			fmt.Println("Executing After Job")
+			_ = action.Execute(nil, nil)
+		}
 	}
 }
 
-func (instance *PlanExecutor) executeJobs(plan core.Plan) {
+func (instance *PlanExecutor) executeJobs(jobs []core.Job) {
 	var wg sync.WaitGroup
 	wg.Add(instance.Config.Workers)
 	for i := 0; i < instance.Config.Workers; i++ {
-		go func(executionPlan core.Plan) {
-			instance.workerExecuteJobs(executionPlan.Jobs)
+		go func(executionJobs []core.Job) {
+			instance.workerExecuteJobs(executionJobs)
 			wg.Done()
-		}(plan)
+		}(jobs)
 	}
 	wg.Wait()
 }
@@ -208,6 +229,7 @@ func (instance *PlanExecutor) executeJobs(plan core.Plan) {
 // Execute ...
 func (instance *PlanExecutor) Execute(plan core.Plan) error {
 	instance.start = time.Now()
+	fmt.Printf("Zee Plan: %+v", plan)
 	instance.Plan = plan
 	if instance.Plan.Context["lists"] != nil {
 		var lists = map[string][]map[string]interface{}{}
@@ -222,7 +244,6 @@ func (instance *PlanExecutor) Execute(plan core.Plan) error {
 				for srcKey, srcValue := range srcData {
 					stringKeyData[srcKey.(string)] = srcValue
 				}
-
 				lists[listKey.(string)] = append(lists[listKey.(string)], stringKeyData)
 			}
 		}
@@ -231,7 +252,6 @@ func (instance *PlanExecutor) Execute(plan core.Plan) error {
 	} else {
 		instance.Lists = NewListRingRevolver(map[string][]map[string]interface{}{})
 	}
-
 	if instance.Plan.Context["vars"] != nil {
 		stringKeyData := map[string]interface{}{}
 		data := instance.Plan.Context["vars"].(map[interface{}]interface{})
@@ -240,7 +260,15 @@ func (instance *PlanExecutor) Execute(plan core.Plan) error {
 		}
 		instance.Plan.Context["vars"] = stringKeyData
 	}
-	instance.executeJobs(plan)
+	//before Plan
+	for _, action := range plan.Before {
+		_ = action.Execute(nil, nil)
+	}
+	instance.executeJobs(plan.Jobs)
+	//after Plan
+	for _, action := range plan.After {
+		_ = action.Execute(nil, nil)
+	}
 
 	return nil
 }

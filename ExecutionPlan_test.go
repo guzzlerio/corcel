@@ -53,11 +53,13 @@ var _ = Describe("ExecutionPlan", func() {
 		It("Single Job Two Steps", func() {
 			planBuilder := test.NewYamlPlanBuilder()
 
-			planBuilder.
+			jobBuilder := planBuilder.
 				SetIterations(2).
-				CreateJob().
+				CreateJob()
+			jobBuilder.
 				CreateStep().
-				ToExecuteAction(planBuilder.DummyAction().Build()).
+				ToExecuteAction(planBuilder.DummyAction().Build())
+			jobBuilder.
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build())
 
@@ -73,20 +75,23 @@ var _ = Describe("ExecutionPlan", func() {
 		It("Single Job Two Steps", func() {
 			planBuilder := test.NewYamlPlanBuilder()
 
-			planBuilder.
-				SetIterations(2)
+			jobBuilder := planBuilder.
+				SetIterations(2).
+				CreateJob()
 
-			planBuilder.
-				CreateJob().
+			jobBuilder.
 				CreateStep().
-				ToExecuteAction(planBuilder.DummyAction().Build()).
+				ToExecuteAction(planBuilder.DummyAction().Build())
+			jobBuilder.
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build())
 
-			planBuilder.
-				CreateJob().
+			jobBuilder = planBuilder.
+				CreateJob()
+			jobBuilder.
 				CreateStep().
-				ToExecuteAction(planBuilder.DummyAction().Build()).
+				ToExecuteAction(planBuilder.DummyAction().Build())
+			jobBuilder.
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build())
 

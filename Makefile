@@ -6,6 +6,7 @@ clean:
 
 build: clean
 	#version=`grep -Po "(?<=version=)[0-9.]+" version`
+	(cd report && go-bindata -pkg report data/...)
 	go build -ldflags="-X main.Version=${version}"
 
 test: build lint

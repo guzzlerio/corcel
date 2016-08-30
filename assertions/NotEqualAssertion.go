@@ -27,10 +27,10 @@ func (instance *NotEqualAssertion) Assert(executionResult core.ExecutionResult) 
 	}
 
 	if actual != instance.Value {
-		result["result"] = true
+		result[core.AssertionResultUrn.String()] = true
 	} else {
-		result["result"] = false
-		result["message"] = fmt.Sprintf("FAIL: %v does match %v", actual, instance.Value)
+		result[core.AssertionResultUrn.String()] = false
+		result[core.AssertionMessageUrn.String()] = fmt.Sprintf("FAIL: %v does match %v", actual, instance.Value)
 	}
 	return result
 }

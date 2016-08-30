@@ -29,17 +29,17 @@ func (instance *NotEmptyAssertion) Assert(executionResult core.ExecutionResult) 
 	case string:
 		value := strings.TrimSpace(actualValue)
 		if value != "" {
-			result["result"] = true
+			result[core.AssertionResultUrn.String()] = true
 		}
 	default:
 		if actual != nil {
-			result["result"] = true
+			result[core.AssertionResultUrn.String()] = true
 		}
 	}
 
-	if result["result"] != true {
-		result["result"] = false
-		result["message"] = fmt.Sprintf("FAIL: value is empty")
+	if result[core.AssertionResultUrn.String()] != true {
+		result[core.AssertionResultUrn.String()] = false
+		result[core.AssertionMessageUrn.String()] = fmt.Sprintf("FAIL: value is empty")
 	}
 	return result
 }

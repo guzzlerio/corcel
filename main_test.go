@@ -114,7 +114,7 @@ var _ = Describe("Main", func() {
 
 	for _, waitTime := range global.WaitTimeTests {
 		It(fmt.Sprintf("Support wait time of %v between each execution in the list", waitTime), func() {
-			waitTimeTolerance := 0.75
+			waitTimeTolerance := 1.0
 
 			list := []string{
 				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),

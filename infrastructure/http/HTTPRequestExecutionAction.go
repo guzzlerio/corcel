@@ -41,7 +41,7 @@ func (instance *Action) Execute(context core.ExecutionContext, cancellation chan
 	if instance.Body != "" && instance.Body[0] == '@' {
 		contents, err := ioutil.ReadFile(instance.Body[1:])
 		if err != nil {
-			result["action:error"] = err
+			result[core.ErrorUrn.String()] = err
 			return result
 		}
 		instance.Body = string(contents)
@@ -90,7 +90,7 @@ func (instance *Action) Execute(context core.ExecutionContext, cancellation chan
 	//req.Close = true
 
 	if err != nil {
-		result["action:error"] = err
+		result[core.ErrorUrn.String()] = err
 		return result
 	}
 
@@ -98,7 +98,7 @@ func (instance *Action) Execute(context core.ExecutionContext, cancellation chan
 
 	response, err := instance.Client.Do(req)
 	if err != nil {
-		result["action:error"] = err
+		result[core.ErrorUrn.String()] = err
 		return result
 	}
 	defer func() {
@@ -112,15 +112,19 @@ func (instance *Action) Execute(context core.ExecutionContext, cancellation chan
 	responseBytes, _ := httputil.DumpResponse(response, true)
 
 	if response.StatusCode >= 500 {
-		result["action:error"] = fmt.Sprintf("Server Error %d", response.StatusCode)
+		result[core.ErrorUrn.String()] = fmt.Sprintf("Server Error %d", response.StatusCode)
 	}
 
-	result["http:request:url"] = req.URL.String()
-	result["action:bytes:sent"] = len(requestBytes)
-	result["action:bytes:received"] = len(responseBytes)
-	result["http:request:headers"] = req.Header
-	result["http:response:status"] = response.StatusCode
-	result["http:response:body"] = string(responseBytes)
+	result[RequestURLUrn.String()] = req.URL.String()
+	result[core.BytesSentCountUrn.String()] = len(requestBytes)
+	result[core.BytesReceivedCountUrn.String()] = len(responseBytes)
+	result[RequestHeadersUrn.String()] = req.Header
+
+	//TODO: We need a Response Headers key too
+	result[ResponseStatusUrn.String()] = response.StatusCode
+
+	result[core.BytesSentUrn.String()] = string(requestBytes)
+	result[core.BytesReceivedUrn.String()] = string(responseBytes)
 
 	return result
 }

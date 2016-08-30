@@ -15,6 +15,7 @@ import (
 	"ci.guzzler.io/guzzler/corcel/core"
 	"ci.guzzler.io/guzzler/corcel/errormanager"
 	"ci.guzzler.io/guzzler/corcel/logger"
+	"ci.guzzler.io/guzzler/corcel/report"
 	"ci.guzzler.io/guzzler/corcel/statistics"
 )
 
@@ -84,6 +85,9 @@ func (instance *RunCommand) run(c *kingpin.ParseContext) error {
 	generateExecutionOutput("./output.yml", output)
 
 	addExecutionToHistory("./history.yml", output)
+
+	reporter := report.CreateHTMLReporter()
+	reporter.Generate(output)
 
 	if configuration.Summary {
 		outputSummary(output)

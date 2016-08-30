@@ -1,7 +1,6 @@
 package processor
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -124,13 +123,13 @@ func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan stru
 	instance.mutex.Unlock()
 
 	duration := time.Since(start) / time.Millisecond
-	executionResult["action:duration"] = duration
+	executionResult[core.DurationUrn.String()] = duration
 	assertionResults := []core.AssertionResult{}
 	for _, assertion := range step.Assertions {
 		assertionResult := assertion.Assert(executionResult)
 		assertionResults = append(assertionResults, assertionResult)
 	}
-	executionResult["assertions"] = assertionResults
+	executionResult[core.AssertionsUrn.String()] = assertionResults
 
 	return executionResult
 }
@@ -151,13 +150,11 @@ func (instance *PlanExecutor) workerExecuteJob(talula core.Job, cancellation cha
 		step := stepStream.Next()
 		//before Step
 		for _, action := range step.Before {
-			fmt.Println("Executing Before Step")
 			_ = action.Execute(nil, nil)
 		}
 		executionResult := instance.executeStep(step, cancellation)
 		//after Step
 		for _, action := range step.After {
-			fmt.Println("Executing After Step")
 			_ = action.Execute(nil, nil)
 		}
 
@@ -202,13 +199,11 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job) {
 		_ = instance.Bar.Set(jobStream.Progress())
 		//before Job
 		for _, action := range job.Before {
-			fmt.Println("Executing Before Job")
 			_ = action.Execute(nil, nil)
 		}
 		instance.workerExecuteJob(job, cancellation)
 		//after Job
 		for _, action := range job.After {
-			fmt.Println("Executing After Job")
 			_ = action.Execute(nil, nil)
 		}
 	}
@@ -229,7 +224,6 @@ func (instance *PlanExecutor) executeJobs(jobs []core.Job) {
 // Execute ...
 func (instance *PlanExecutor) Execute(plan core.Plan) error {
 	instance.start = time.Now()
-	fmt.Printf("Zee Plan: %+v", plan)
 	instance.Plan = plan
 	if instance.Plan.Context["lists"] != nil {
 		var lists = map[string][]map[string]interface{}{}

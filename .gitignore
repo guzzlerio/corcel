@@ -13,3 +13,4 @@ output.json
 config/config.coverprofile
 history.yml
 *.coverprofile
+*.html

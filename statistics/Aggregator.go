@@ -1,9 +1,10 @@
 package statistics
 
 import (
-	"strings"
 	"sync"
 	"time"
+
+	"ci.guzzler.io/guzzler/corcel/core"
 
 	"github.com/rcrowley/go-metrics"
 )
@@ -169,6 +170,12 @@ type ExecutionSummary struct {
 	TotalAssertionFailures int64
 }
 
+//IncrementCounter ...
+func IncrementCounter(registry metrics.Registry, key string, value int64) {
+	counter := metrics.GetOrRegisterCounter(key, registry)
+	counter.Inc(value)
+}
+
 //CreateSummary ...
 func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
 
@@ -176,13 +183,13 @@ func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
 	firstTime := time.Unix(0, snapshot.Times[0])
 	duration := lastTime.Sub(firstTime)
 
-	counts := snapshot.Meters["action:throughput"]["count"]
+	counts := snapshot.Meters[core.ThroughputUrn.Meter().String()]["count"]
 	count := counts[len(counts)-1]
 
-	errors := snapshot.Meters["action:error"]["count"]
+	errors := snapshot.Meters[core.ErrorUrn.Meter().String()]["count"]
 	errorCount := errors[len(errors)-1]
 
-	rates := snapshot.Meters["action:throughput"]["rateMean"]
+	rates := snapshot.Meters[core.ThroughputUrn.Meter().String()]["rateMean"]
 	rate := rates[len(rates)-1]
 
 	var availability float64
@@ -197,34 +204,34 @@ func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
 	var totalAssertionsCount = int64(0)
 	var totalAssertionFailuresCount = int64(0)
 
-	bytesSent := snapshot.Counters["action:bytes:sent"]
+	bytesSent := snapshot.Counters[core.BytesSentCountUrn.Counter().String()]
 
 	if bytesSent != nil {
 		bytesSentCount = bytesSent[len(bytesSent)-1]
 	}
 
-	bytesReceived := snapshot.Counters["action:bytes:received"]
+	bytesReceived := snapshot.Counters[core.BytesReceivedCountUrn.Counter().String()]
 	if bytesReceived != nil {
 		bytesReceivedCount = bytesReceived[len(bytesReceived)-1]
 	}
 
-	totalAssertions := snapshot.Counters["assertions:total"]
+	totalAssertions := snapshot.Counters[core.AssertionsTotalUrn.Counter().String()]
 	if totalAssertions != nil {
 		totalAssertionsCount = totalAssertions[len(totalAssertions)-1]
 	}
 
-	totalAssertionsFailed := snapshot.Counters["assertions:failed"]
+	totalAssertionsFailed := snapshot.Counters[core.AssertionsFailedUrn.Counter().String()]
 	if totalAssertionsFailed != nil {
 		totalAssertionFailuresCount = totalAssertionsFailed[len(totalAssertionsFailed)-1]
 	}
 
-	responseMeanTimes := snapshot.Timers["action:duration"]["mean"]
+	responseMeanTimes := snapshot.Timers[core.DurationUrn.Timer().String()]["mean"]
 	responseMeanTime := responseMeanTimes[len(responseMeanTimes)-1]
 
-	responseMinTimes := snapshot.Timers["action:duration"]["min"]
+	responseMinTimes := snapshot.Timers[core.DurationUrn.Timer().String()]["min"]
 	responseMinTime := responseMinTimes[len(responseMinTimes)-1]
 
-	responseMaxTimes := snapshot.Timers["action:duration"]["max"]
+	responseMaxTimes := snapshot.Timers[core.DurationUrn.Timer().String()]["max"]
 	responseMaxTime := responseMaxTimes[len(responseMaxTimes)-1]
 
 	return ExecutionSummary{
@@ -285,7 +292,7 @@ func (instance *Aggregator) Snapshot() AggregatorSnapShot {
 }
 
 func (instance *Aggregator) logCounter(name string, value int64) {
-	name = strings.Replace(name, "counter:", "", -1)
+	//name = strings.Replace(name, "counter:", "", -1)
 	if _, ok := instance.counters[name]; !ok {
 		instance.counters[name] = make([]int64, len(instance.times)-1)
 		for i := 0; i < len(instance.times)-1; i++ {
@@ -306,7 +313,7 @@ func (instance *Aggregator) logGuage(name string, value float64) {
 }
 
 func (instance *Aggregator) logHistogram(name string, value metrics.Histogram) {
-	name = strings.Replace(name, "histogram:", "", -1)
+	//name = strings.Replace(name, "histogram:", "", -1)
 	ps := value.Percentiles([]float64{0.5, 0.75, 0.95, 0.99, 0.999})
 	if _, ok := instance.histograms[name]; !ok {
 		instance.histograms[name] = map[string][]float64{}
@@ -433,6 +440,7 @@ func (instance *Aggregator) createSnapshot() {
 		case metrics.Counter:
 			counter := metric.Snapshot()
 			instance.logCounter(name, counter.Count())
+			metric.Clear()
 		case metrics.Gauge:
 			instance.logGuage(name, float64(metric.Snapshot().Value()))
 		case metrics.GaugeFloat64:

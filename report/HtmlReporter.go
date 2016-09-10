@@ -60,28 +60,36 @@ type Node struct {
 
 //Generate ...
 func (instance HTMLReporter) Generate(output statistics.AggregatorSnapShot) {
-	keys := []string{}
-	for key := range output.Counters {
-		keys = append(keys, key)
+
+	aggregate := createNode("urn", nil)
+
+	for key, value := range output.Counters {
+		aggregate.AddValue(key, value)
+	}
+	fmt.Println("Added Counters")
+
+	for key, value := range output.Gauges {
+		aggregate.AddValue(key, value)
 	}
 
-	for key := range output.Gauges {
-		keys = append(keys, key)
+	fmt.Println("Added Gauges")
+	for key, value := range output.Histograms {
+		aggregate.AddValue(key, value)
 	}
+	fmt.Println("Added Histograms")
 
-	for key := range output.Histograms {
-		keys = append(keys, key)
+	for key, value := range output.Meters {
+		aggregate.AddValue(key, value)
 	}
+	fmt.Println("Added Meters")
 
-	for key := range output.Meters {
-		keys = append(keys, key)
+	for key, value := range output.Timers {
+		aggregate.AddValue(key, value)
 	}
+	fmt.Println("Added Timers")
 
-	for key := range output.Timers {
-		keys = append(keys, key)
-	}
-
-	//jsonData, _ := json.MarshalIndent(keys, "", "  ")
+	jsonData, _ := json.MarshalIndent(aggregate, "", "  ")
+	ioutil.WriteFile("corcel-report.json", jsonData, 0644)
 
 	//categories := []string{"category 1", "category 2", "category 3", "category 4"}
 

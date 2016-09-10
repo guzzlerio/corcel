@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strconv"
-	"strings"
-
-	"ci.guzzler.io/guzzler/corcel/statistics"
 
 	"github.com/hoisie/mustache"
+
+	"ci.guzzler.io/guzzler/corcel/statistics"
 )
 
 //GraphData ...
@@ -52,7 +51,64 @@ func createGraphData(name string, times []int64, data []float64) GraphData {
 	return returnValue
 }
 
+//Node ...
+type Node struct {
+	Name     string
+	Children []*Node
+	Value    []interface{}
+}
+
 //Generate ...
+func (instance HTMLReporter) Generate(output statistics.AggregatorSnapShot) {
+	keys := []string{}
+	for key := range output.Counters {
+		keys = append(keys, key)
+	}
+
+	for key := range output.Gauges {
+		keys = append(keys, key)
+	}
+
+	for key := range output.Histograms {
+		keys = append(keys, key)
+	}
+
+	for key := range output.Meters {
+		keys = append(keys, key)
+	}
+
+	for key := range output.Timers {
+		keys = append(keys, key)
+	}
+
+	//jsonData, _ := json.MarshalIndent(keys, "", "  ")
+
+	//categories := []string{"category 1", "category 2", "category 3", "category 4"}
+
+	layout := ""
+
+	masterLayout, _ := Asset("data/corcel.layout.mustache.html")
+	counterLayout, _ := Asset("data/counter.mustache")
+	categoryLayout, _ := Asset("data/category.mustache")
+
+	//data := mustache.RenderInLayout(string(graphsLayout), string(layout), model)
+
+	fmt.Println(fmt.Sprintf("Counter Layout %s", string(counterLayout)))
+
+	for i := 0; i < 7; i++ {
+		level := strconv.Itoa(i + 1)
+		layout = layout + mustache.Render(string(counterLayout), map[string]string{"level": level, "name": "category " + level})
+	}
+
+	fmt.Println(layout)
+
+	layout = mustache.RenderInLayout(layout, string(categoryLayout), map[string]string{"name": "category 1"})
+	layout = mustache.RenderInLayout(layout, string(masterLayout), nil)
+
+	ioutil.WriteFile("corcel-report.html", []byte(layout), 0644)
+}
+
+/*
 func (instance HTMLReporter) Generate(output statistics.AggregatorSnapShot) {
 
 	titlesReplace := []string{
@@ -130,3 +186,4 @@ func (instance HTMLReporter) Generate(output statistics.AggregatorSnapShot) {
 
 	ioutil.WriteFile("corcel-report.html", []byte(data), 0644)
 }
+*/

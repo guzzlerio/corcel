@@ -28,4 +28,7 @@ ui: install
 	(cd ui && npm install -d && gulp)
 	go-bindata -o ui.generated.go ui/public/...
 
+run: build
+	go build && ./corcel run --plan .resources/sample-plan.yml
+
 .PHONY: clean build lint test install ui

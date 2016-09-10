@@ -13,6 +13,38 @@ type UrnComposite struct {
 	Value    interface{} `json:"value"`
 }
 
+func (instance UrnComposite) walkUpTreeToDepth(depth int, errorMessage string) (*UrnComposite, error) {
+	if instance.Depth() < depth {
+		return nil, fmt.Errorf(errorMessage)
+	}
+
+	root := instance.parent
+
+	for root.Depth() != depth {
+		root = root.parent
+	}
+
+	return root, nil
+}
+
+//MetricType will only return the Metric Type for a node with a Depth >= 2
+func (instance UrnComposite) MetricType() (string, error) {
+	node, err := instance.walkUpTreeToDepth(2, "Possible multiple metric types")
+	if err != nil {
+		return "", err
+	}
+	return node.Name, nil
+}
+
+//Connector ...
+func (instance UrnComposite) Connector() (string, error) {
+	node, err := instance.walkUpTreeToDepth(1, "Possible multiple connector types")
+	if err != nil {
+		return "", err
+	}
+	return node.Name, nil
+}
+
 //Depth ...
 func (instance UrnComposite) Depth() int {
 	depth := 0

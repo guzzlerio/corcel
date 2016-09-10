@@ -75,4 +75,36 @@ var _ = Describe("UrnComposite", func() {
 		Expect(composite.Child(0).Child(0).Depth()).To(Equal(2))
 	})
 
+	It("Can report its metric type", func() {
+		urn1 := "urn:action:counter:a"
+		urn2 := "urn:action:meter:b"
+		composite, _ := createUrnComposite(urn1, urn2)
+		Expect(composite.Child(0).Child(0).Child(0).MetricType()).To(Equal("counter"))
+		Expect(composite.Child(0).Child(1).Child(0).MetricType()).To(Equal("meter"))
+	})
+
+	It("Cannot report its metric type if Depth < 2 and multiple metric types exist", func() {
+		urn1 := "urn:action:counter:a"
+		urn2 := "urn:action:meter:b"
+		composite, _ := createUrnComposite(urn1, urn2)
+		_, err := composite.MetricType()
+		Expect(err).To(MatchError("Possible multiple metric types"))
+	})
+
+	It("Can report its connector", func() {
+		urn1 := "urn:http:counter:a"
+		urn2 := "urn:http:meter:b"
+		composite, _ := createUrnComposite(urn1, urn2)
+		Expect(composite.Child(0).Child(0).Child(0).Connector()).To(Equal("http"))
+		Expect(composite.Child(0).Child(1).Child(0).Connector()).To(Equal("http"))
+	})
+
+	It("Cannot report its connector", func() {
+		urn1 := "urn:action:counter:a"
+		urn2 := "urn:action:meter:b"
+		composite, _ := createUrnComposite(urn1, urn2)
+		_, err := composite.Connector()
+		Expect(err).To(MatchError("Possible multiple connector types"))
+	})
+
 })

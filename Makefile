@@ -29,6 +29,6 @@ ui: install
 	go-bindata -o ui.generated.go ui/public/...
 
 run: build
-	go build && ./corcel run --plan .resources/sample-plan.yml
+	go build && ./corcel run --summary --progress bar --workers 1 --duration 5s --plan .resources/sample-plan.yml
 
 .PHONY: clean build lint test install ui

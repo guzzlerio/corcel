@@ -1,7 +1,7 @@
 ---
   name : The plan
   workers : 5
-  waitTime : 1500
+  waitTime : 0
   jobs:
     -
       name : Register a user

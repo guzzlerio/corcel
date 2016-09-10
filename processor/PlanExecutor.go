@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -190,6 +191,7 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job) {
 		time.AfterFunc(instance.Config.Duration, func() {
 			ticker.Stop()
 			_ = instance.Bar.Set(100)
+			fmt.Println("Cancelling the channel")
 			close(cancellation)
 		})
 	}

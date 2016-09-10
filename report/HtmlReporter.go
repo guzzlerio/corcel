@@ -2,9 +2,7 @@ package report
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
-	"strconv"
 
 	"github.com/hoisie/mustache"
 
@@ -33,85 +31,38 @@ func CreateHTMLReporter() HTMLReporter {
 	return HTMLReporter{}
 }
 
-func createGraphData(name string, times []int64, data []float64) GraphData {
-
-	total := data[len(data)-1]
-	returnData := [][]float64{}
-
-	for i := 0; i < len(data); i++ {
-		returnData = append(returnData, []float64{float64(times[i] / 1000 / 1000 / 1000), float64(data[i])})
-	}
-
-	returnValue := GraphData{
-		Data:  returnData,
-		Name:  name,
-		Value: float64(total),
-	}
-
-	return returnValue
-}
-
-//Node ...
-type Node struct {
-	Name     string
-	Children []*Node
-	Value    []interface{}
-}
-
 //Generate ...
 func (instance HTMLReporter) Generate(output statistics.AggregatorSnapShot) {
 
-	aggregate := createNode("urn", nil)
+	composite := createNode("urn", nil)
 
 	for key, value := range output.Counters {
-		aggregate.AddValue(key, value)
+		composite.AddValue(key, value)
 	}
-	fmt.Println("Added Counters")
 
 	for key, value := range output.Gauges {
-		aggregate.AddValue(key, value)
+		composite.AddValue(key, value)
 	}
 
-	fmt.Println("Added Gauges")
 	for key, value := range output.Histograms {
-		aggregate.AddValue(key, value)
+		composite.AddValue(key, value)
 	}
-	fmt.Println("Added Histograms")
 
 	for key, value := range output.Meters {
-		aggregate.AddValue(key, value)
+		composite.AddValue(key, value)
 	}
-	fmt.Println("Added Meters")
 
 	for key, value := range output.Timers {
-		aggregate.AddValue(key, value)
+		composite.AddValue(key, value)
 	}
-	fmt.Println("Added Timers")
 
-	jsonData, _ := json.MarshalIndent(aggregate, "", "  ")
-	ioutil.WriteFile("corcel-report.json", jsonData, 0644)
-
-	//categories := []string{"category 1", "category 2", "category 3", "category 4"}
-
+	registry := NewRendererRegistry()
+	registry.Add("counter", RenderCounter)
 	layout := ""
 
 	masterLayout, _ := Asset("data/corcel.layout.mustache.html")
-	counterLayout, _ := Asset("data/counter.mustache")
-	categoryLayout, _ := Asset("data/category.mustache")
 
-	//data := mustache.RenderInLayout(string(graphsLayout), string(layout), model)
-
-	fmt.Println(fmt.Sprintf("Counter Layout %s", string(counterLayout)))
-
-	for i := 0; i < 7; i++ {
-		level := strconv.Itoa(i + 1)
-		layout = layout + mustache.Render(string(counterLayout), map[string]string{"level": level, "name": "category " + level})
-	}
-
-	fmt.Println(layout)
-
-	layout = mustache.RenderInLayout(layout, string(categoryLayout), map[string]string{"name": "category 1"})
-	layout = mustache.RenderInLayout(layout, string(masterLayout), nil)
+	layout = mustache.RenderInLayout(composite.Render(registry), string(masterLayout), nil)
 
 	ioutil.WriteFile("corcel-report.html", []byte(layout), 0644)
 }

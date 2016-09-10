@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 )
 
@@ -62,7 +63,8 @@ func (instance Urn) String() string {
 		urn = fmt.Sprintf("%s%s:", urn, instance.Metric)
 	}
 	for _, name := range instance.Names {
-		urn = fmt.Sprintf("%s%v:", urn, name)
+		safeName := url.QueryEscape(fmt.Sprintf("%v", name))
+		urn = fmt.Sprintf("%s%v:", urn, safeName)
 	}
 	return urn[:len(urn)-1]
 }

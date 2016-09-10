@@ -1,6 +1,8 @@
 package report
 
 import (
+	"fmt"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -105,6 +107,28 @@ var _ = Describe("UrnComposite", func() {
 		composite, _ := createUrnComposite(urn1, urn2)
 		_, err := composite.Connector()
 		Expect(err).To(MatchError("Possible multiple connector types"))
+	})
+
+	FIt("Can render", func() {
+		urn1 := "urn"
+		urn2 := "urn:http:counter:d"
+		urn3 := "urn:http:counter:e"
+		urn4 := "urn:http:meter:e"
+		urn5 := "urn:http:counter:d:a"
+		value := []int64{1, 2, 3, 4, 5, 6}
+
+		composite, _ := createUrnComposite(urn1)
+		composite.AddValue(urn2, value)
+		composite.AddValue(urn3, value)
+		composite.AddValue(urn4, value)
+		composite.AddValue(urn5, value)
+
+		registry := NewRendererRegistry()
+		registry.Add("counter", RenderCounter)
+
+		result := composite.Render(registry)
+
+		fmt.Println(result)
 	})
 
 })

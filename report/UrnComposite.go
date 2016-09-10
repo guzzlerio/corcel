@@ -3,6 +3,8 @@ package report
 import (
 	"fmt"
 	"strings"
+
+	"github.com/hoisie/mustache"
 )
 
 //UrnComposite ...
@@ -25,6 +27,34 @@ func (instance UrnComposite) walkUpTreeToDepth(depth int, errorMessage string) (
 	}
 
 	return root, nil
+}
+
+//Render ...
+func (instance UrnComposite) Render(registry RendererRegistry) string {
+
+	data := ""
+	if instance.Value != nil {
+		//We have values to render so look up a Renderer
+		metricType, _ := instance.MetricType()
+		renderer := registry.Get(RendererType(metricType))
+		if renderer != nil {
+			data = renderer(instance)
+		}
+	}
+
+	categoryLayout, _ := Asset("data/category.mustache")
+	data = mustache.RenderInLayout(data, string(categoryLayout), map[string]interface{}{
+		"depth": instance.Depth() + 1,
+		"name":  instance.Name,
+	})
+
+	if len(instance.Children) > 0 {
+		for _, node := range instance.Children {
+			data = data + node.Render(registry)
+		}
+	}
+
+	return data
 }
 
 //MetricType will only return the Metric Type for a node with a Depth >= 2

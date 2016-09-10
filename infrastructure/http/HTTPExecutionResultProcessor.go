@@ -48,12 +48,12 @@ func (instance ExecutionResultProcessor) Process(result core.ExecutionResult, re
 
 		case ResponseStatusUrn.String():
 			statusCode := value.(int)
-			statistics.IncrementCounter(registry, ResponseStatusUrn.Name("overall", statusCode).Counter().String(), 1)
+			statistics.IncrementCounter(registry, ResponseStatusUrn.Name(statusCode).Counter().String(), 1)
 
 			statistics.IncrementCounter(registry, ResponseStatusUrn.Name("urls", url, statusCode).Counter().String(), 1)
 
 			obj := result[core.DurationUrn.String()]
-			timer := metrics.GetOrRegisterTimer(ResponseStatusUrn.Name("overall", statusCode).Timer().String(), registry)
+			timer := metrics.GetOrRegisterTimer(ResponseStatusUrn.Name(statusCode).Timer().String(), registry)
 			timer.Update(obj.(time.Duration))
 
 			byURLTimer := metrics.GetOrRegisterTimer(ResponseStatusUrn.Name("urls", url, statusCode).Timer().String(), registry)

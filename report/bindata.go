@@ -3,6 +3,7 @@
 // data/category.mustache
 // data/corcel.layout.mustache.html
 // data/counter.mustache
+// data/counter.mustache.old
 // data/graph.mustache
 // data/graphs.mustache
 // data/helloworld.mustache
@@ -73,7 +74,7 @@ func (fi bindataFileInfo) Sys() interface{} {
 	return nil
 }
 
-var _dataCategoryMustache = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\xaa\xae\xce\x4b\xcc\x4d\xad\xad\xe5\xe2\xb2\xc9\x30\xb2\x73\xf2\xf7\xf7\xb5\xd1\x07\x32\xb8\xb8\xaa\xab\xab\x93\xf3\xf3\x4a\x52\xf3\x4a\x6a\x81\xb2\x80\x00\x00\x00\xff\xff\x3a\x67\xab\x4b\x27\x00\x00\x00")
+var _dataCategoryMustache = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\xb2\xc9\xa8\xae\x4e\x49\x2d\x28\xc9\xa8\xad\xb5\xab\xae\xce\x4b\xcc\x4d\xad\xad\xb5\xd1\x47\x12\xe4\xaa\xae\xae\x4e\xce\xcf\x2b\x49\xcd\x2b\xa9\xad\xad\xe5\x02\x04\x00\x00\xff\xff\xa9\x49\x3b\x55\x30\x00\x00\x00")
 
 func dataCategoryMustacheBytes() ([]byte, error) {
 	return bindataRead(
@@ -88,7 +89,7 @@ func dataCategoryMustache() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "data/category.mustache", size: 39, mode: os.FileMode(436), modTime: time.Unix(1473505339, 0)}
+	info := bindataFileInfo{name: "data/category.mustache", size: 48, mode: os.FileMode(436), modTime: time.Unix(1473520055, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -113,7 +114,7 @@ func dataCorcelLayoutMustacheHtml() (*asset, error) {
 	return a, nil
 }
 
-var _dataCounterMustache = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\xb2\xc9\xa8\xae\xce\x49\x2d\x4b\xcd\xa9\xad\xb5\xab\xae\xce\x4b\xcc\x4d\xad\xad\xb5\xd1\x47\x12\xe4\x02\x04\x00\x00\xff\xff\xf6\x7d\x64\xf6\x22\x00\x00\x00")
+var _dataCounterMustache = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\xb2\x49\xc9\x2c\x53\x48\xce\x49\x2c\x2e\xb6\x55\x4a\x2f\x4a\x2c\xc8\xd0\x4d\xce\xcf\x2b\x49\xcc\xcc\x4b\x2d\x52\x52\x48\x49\x2c\x49\xd4\x2d\x2e\x29\xca\xcc\x4b\xb7\x55\xaa\xae\x06\x71\x6b\x6b\xa1\xc2\xa5\x79\x99\x25\xb6\x4a\xb9\xc5\x4a\x76\x36\xfa\x40\x33\xec\xb8\x00\x01\x00\x00\xff\xff\x7b\x86\xbf\x3a\x4a\x00\x00\x00")
 
 func dataCounterMustacheBytes() ([]byte, error) {
 	return bindataRead(
@@ -128,7 +129,27 @@ func dataCounterMustache() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "data/counter.mustache", size: 34, mode: os.FileMode(436), modTime: time.Unix(1473505652, 0)}
+	info := bindataFileInfo{name: "data/counter.mustache", size: 74, mode: os.FileMode(436), modTime: time.Unix(1473545411, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _dataCounterMustacheOld = []byte("\x1f\x8b\x08\x00\x00\x09\x6e\x88\x00\xff\xb2\xc9\xa8\xae\xce\x49\x2d\x4b\xcd\xa9\xad\xb5\xab\xae\xce\x4b\xcc\x4d\xad\xad\xb5\xd1\x47\x12\xe4\x02\x04\x00\x00\xff\xff\xf6\x7d\x64\xf6\x22\x00\x00\x00")
+
+func dataCounterMustacheOldBytes() ([]byte, error) {
+	return bindataRead(
+		_dataCounterMustacheOld,
+		"data/counter.mustache.old",
+	)
+}
+
+func dataCounterMustacheOld() (*asset, error) {
+	bytes, err := dataCounterMustacheOldBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "data/counter.mustache.old", size: 34, mode: os.FileMode(436), modTime: time.Unix(1473505652, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -248,6 +269,7 @@ var _bindata = map[string]func() (*asset, error){
 	"data/category.mustache": dataCategoryMustache,
 	"data/corcel.layout.mustache.html": dataCorcelLayoutMustacheHtml,
 	"data/counter.mustache": dataCounterMustache,
+	"data/counter.mustache.old": dataCounterMustacheOld,
 	"data/graph.mustache": dataGraphMustache,
 	"data/graphs.mustache": dataGraphsMustache,
 	"data/helloworld.mustache": dataHelloworldMustache,
@@ -297,6 +319,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"category.mustache": &bintree{dataCategoryMustache, map[string]*bintree{}},
 		"corcel.layout.mustache.html": &bintree{dataCorcelLayoutMustacheHtml, map[string]*bintree{}},
 		"counter.mustache": &bintree{dataCounterMustache, map[string]*bintree{}},
+		"counter.mustache.old": &bintree{dataCounterMustacheOld, map[string]*bintree{}},
 		"graph.mustache": &bintree{dataGraphMustache, map[string]*bintree{}},
 		"graphs.mustache": &bintree{dataGraphsMustache, map[string]*bintree{}},
 		"helloworld.mustache": &bintree{dataHelloworldMustache, map[string]*bintree{}},

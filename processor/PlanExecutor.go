@@ -1,7 +1,6 @@
 package processor
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -151,12 +150,12 @@ func (instance *PlanExecutor) workerExecuteJob(talula core.Job, cancellation cha
 		step := stepStream.Next()
 		//before Step
 		for _, action := range step.Before {
-			_ = action.Execute(nil, nil)
+			_ = action.Execute(nil, cancellation)
 		}
 		executionResult := instance.executeStep(step, cancellation)
 		//after Step
 		for _, action := range step.After {
-			_ = action.Execute(nil, nil)
+			_ = action.Execute(nil, cancellation)
 		}
 
 		instance.Publisher.Publish(executionResult)
@@ -164,11 +163,9 @@ func (instance *PlanExecutor) workerExecuteJob(talula core.Job, cancellation cha
 	}
 }
 
-func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job) {
+func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job, cancellation chan struct{}) {
 	var jobStream JobStream
 	jobStream = CreateJobSequentialStream(jobs)
-
-	var cancellation = make(chan struct{})
 
 	if instance.Config.Random {
 		jobStream = CreateJobRandomStream(jobs)
@@ -191,8 +188,6 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job) {
 		time.AfterFunc(instance.Config.Duration, func() {
 			ticker.Stop()
 			_ = instance.Bar.Set(100)
-			fmt.Println("Cancelling the channel")
-			close(cancellation)
 		})
 	}
 
@@ -201,22 +196,22 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job) {
 		_ = instance.Bar.Set(jobStream.Progress())
 		//before Job
 		for _, action := range job.Before {
-			_ = action.Execute(nil, nil)
+			_ = action.Execute(nil, cancellation)
 		}
 		instance.workerExecuteJob(job, cancellation)
 		//after Job
 		for _, action := range job.After {
-			_ = action.Execute(nil, nil)
+			_ = action.Execute(nil, cancellation)
 		}
 	}
 }
 
-func (instance *PlanExecutor) executeJobs(jobs []core.Job) {
+func (instance *PlanExecutor) executeJobs(jobs []core.Job, cancellation chan struct{}) {
 	var wg sync.WaitGroup
 	wg.Add(instance.Config.Workers)
 	for i := 0; i < instance.Config.Workers; i++ {
 		go func(executionJobs []core.Job) {
-			instance.workerExecuteJobs(executionJobs)
+			instance.workerExecuteJobs(executionJobs, cancellation)
 			wg.Done()
 		}(jobs)
 	}
@@ -225,6 +220,7 @@ func (instance *PlanExecutor) executeJobs(jobs []core.Job) {
 
 // Execute ...
 func (instance *PlanExecutor) Execute(plan core.Plan) error {
+	var cancellation = make(chan struct{})
 	instance.start = time.Now()
 	instance.Plan = plan
 	if instance.Plan.Context["lists"] != nil {
@@ -256,14 +252,21 @@ func (instance *PlanExecutor) Execute(plan core.Plan) error {
 		}
 		instance.Plan.Context["vars"] = stringKeyData
 	}
+
+	if instance.Config.Duration > time.Duration(0) {
+		time.AfterFunc(instance.Config.Duration, func() {
+			close(cancellation)
+		})
+	}
+
 	//before Plan
 	for _, action := range plan.Before {
-		_ = action.Execute(nil, nil)
+		_ = action.Execute(nil, cancellation)
 	}
-	instance.executeJobs(plan.Jobs)
+	instance.executeJobs(plan.Jobs, cancellation)
 	//after Plan
 	for _, action := range plan.After {
-		_ = action.Execute(nil, nil)
+		_ = action.Execute(nil, cancellation)
 	}
 
 	return nil

@@ -7,13 +7,24 @@ import (
 )
 
 //RenderCounter ...
-func RenderCounter(node UrnComposite) string {
+func RenderCounter(node UrnComposite, times []int64) string {
 	counterLayout, _ := Asset("data/counter.mustache")
-	values := [][]int64{node.Value.([]int64)}
-	jsonValues, _ := json.Marshal(values)
+	values := node.Value.([]int64)
+
+	data := [][]int64{}
+
+	keys := []string{"x", "value"}
+
+	for i := 0; i < len(times); i++ {
+		data = append(data, []int64{times[i] / 1000 / 1000 / 1000, values[i]})
+	}
+
+	jsonValues, _ := json.Marshal(data)
+	jsonKeys, _ := json.Marshal(keys)
 
 	return mustache.Render(string(counterLayout), map[string]interface{}{
-		"data": string(jsonValues),
+		"data":   string(jsonValues),
+		"labels": string(jsonKeys),
 	})
 
 }

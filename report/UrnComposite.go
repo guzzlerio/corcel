@@ -2,6 +2,7 @@ package report
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/hoisie/mustache"
@@ -29,8 +30,17 @@ func (instance UrnComposite) walkUpTreeToDepth(depth int, errorMessage string) (
 	return root, nil
 }
 
+//Connectors ...
+func (instance UrnComposite) Connectors() []string {
+	values := []string{}
+	for _, child := range instance.Children {
+		values = append(values, child.Name)
+	}
+	return values
+}
+
 //Render ...
-func (instance UrnComposite) Render(registry RendererRegistry) string {
+func (instance UrnComposite) Render(registry RendererRegistry, times []int64) string {
 
 	data := ""
 	if instance.Value != nil {
@@ -38,20 +48,35 @@ func (instance UrnComposite) Render(registry RendererRegistry) string {
 		metricType, _ := instance.MetricType()
 		renderer := registry.Get(RendererType(metricType))
 		if renderer != nil {
-			data = renderer(instance)
+			data = renderer(instance, times)
 		}
 	}
 
-	categoryLayout, _ := Asset("data/category.mustache")
-	data = mustache.RenderInLayout(data, string(categoryLayout), map[string]interface{}{
-		"depth": instance.Depth() + 1,
-		"name":  instance.Name,
-	})
+	if instance.Depth() > 2 {
+		categoryLayout, _ := Asset("data/category.mustache")
+		name, _ := url.QueryUnescape(instance.Name)
+		data = mustache.RenderInLayout(data, string(categoryLayout), map[string]interface{}{
+			"depth": instance.Depth() - 2,
+			"name":  name,
+		})
+	}
 
 	if len(instance.Children) > 0 {
 		for _, node := range instance.Children {
-			data = data + node.Render(registry)
+			data = data + node.Render(registry, times)
 		}
+	}
+
+	if instance.Depth() == 0 {
+		tabContentLayout, _ := Asset("data/tabcontent.mustache")
+		data = mustache.RenderInLayout(data, string(tabContentLayout), nil)
+	}
+
+	if instance.Depth() == 1 {
+		tabPaneLayout, _ := Asset("data/tabpane.mustache")
+		data = mustache.RenderInLayout(data, string(tabPaneLayout), map[string]string{
+			"name": instance.Name,
+		})
 	}
 
 	return data

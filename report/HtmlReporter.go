@@ -58,91 +58,29 @@ func (instance HTMLReporter) Generate(output statistics.AggregatorSnapShot) {
 
 	registry := NewRendererRegistry()
 	registry.Add("counter", RenderCounter)
+	registry.Add("histogram", RenderHistogram)
 	layout := ""
 
 	masterLayout, _ := Asset("data/corcel.layout.mustache.html")
+	renderedComposite := composite.Render(registry, output.Times)
+	connectors := composite.Connectors()
 
-	layout = mustache.RenderInLayout(composite.Render(registry), string(masterLayout), nil)
-
-	ioutil.WriteFile("corcel-report.html", []byte(layout), 0644)
-}
-
-/*
-func (instance HTMLReporter) Generate(output statistics.AggregatorSnapShot) {
-
-	titlesReplace := []string{
-		"throughput",
-		"error",
-		"bytes received",
-		"bytes sent",
-	}
-
-	descriptionReplace := map[string]string{
-		"rate1":    "1 min",
-		"rate5":    "5 min",
-		"rate15":   "15 min",
-		"rateMean": "Avg",
-		"count":    "Total",
-	}
-
-	processName := func(input string) string {
-		newName := input
-		for key, value := range descriptionReplace {
-			if strings.Contains(strings.ToLower(input), strings.ToLower(key)) {
-				newName = value
-			}
-		}
-
-		for _, value := range titlesReplace {
-			if strings.Contains(strings.ToLower(input), strings.ToLower(value)) {
-				newName = fmt.Sprintf("%s %s", newName, value)
-			}
-		}
-
-		return strings.ToTitle(newName)
-	}
-
-	//graphLayout, _ := Asset("data/graph.mustache")
-	graphsLayout, _ := Asset("data/graphs.mustache")
-	layout, _ := Asset("data/corcel.layout.mustache.html")
-
-	//errorData := createErrorData(output)
-
-	allGraphData := []map[string]string{}
-
-	for name, meterValues := range output.Meters {
-		for statKey, statValue := range meterValues {
-			graphData := createGraphData(statKey, output.Times, statValue)
-
-			allGraphData = append(allGraphData, map[string]string{
-				"name":  processName(name + ":" + graphData.Name),
-				"value": strconv.FormatFloat(graphData.Value, 'f', 0, 64),
-				"data":  graphData.DataAsJSON(),
+	subModel := []map[string]string{}
+	for index, connector := range connectors {
+		if index == 0 {
+			subModel = append(subModel, map[string]string{
+				"class": "active",
+				"name":  connector,
+			})
+		} else {
+			subModel = append(subModel, map[string]string{
+				"name": connector,
 			})
 		}
 	}
+	model := map[string]interface{}{"tabs": subModel}
 
-	for statKey, statValue := range output.Counters {
-		floatValues := []float64{}
-		for _, val := range statValue {
-			floatValues = append(floatValues, float64(val))
-		}
+	layout = mustache.RenderInLayout(renderedComposite, string(masterLayout), model)
 
-		graphData := createGraphData(statKey, output.Times, floatValues)
-
-		allGraphData = append(allGraphData, map[string]string{
-			"name":  processName(graphData.Name + "Sample"),
-			"value": strconv.FormatFloat(graphData.Value, 'f', 0, 64),
-			"data":  graphData.DataAsJSON(),
-		})
-	}
-
-	model := map[string]interface{}{
-		"meters": allGraphData,
-	}
-
-	data := mustache.RenderInLayout(string(graphsLayout), string(layout), model)
-
-	ioutil.WriteFile("corcel-report.html", []byte(data), 0644)
+	ioutil.WriteFile("corcel-report.html", []byte(layout), 0644)
 }
-*/

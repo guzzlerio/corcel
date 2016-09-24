@@ -11,13 +11,13 @@ var (
 	ThroughputUrn = NewActionUrn().Name("throughput")
 
 	//BytesSentCountUrn ...
-	BytesSentCountUrn = NewActionUrn().Name("bytes", "sent", "count")
+	BytesSentCountUrn = NewActionUrn().Name("bytes", "sent")
 
 	//BytesSentUrn ...
 	BytesSentUrn = NewActionUrn().Name("bytes", "sent", "content")
 
 	//BytesReceivedCountUrn ...
-	BytesReceivedCountUrn = NewActionUrn().Name("bytes", "received", "count")
+	BytesReceivedCountUrn = NewActionUrn().Name("bytes", "received")
 
 	//BytesReceivedUrn ...
 	BytesReceivedUrn = NewActionUrn().Name("bytes", "received", "content")

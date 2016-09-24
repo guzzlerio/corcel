@@ -109,7 +109,7 @@ var _ = Describe("UrnComposite", func() {
 		Expect(err).To(MatchError("Possible multiple connector types"))
 	})
 
-	FIt("Can render", func() {
+	It("Can render", func() {
 		urn1 := "urn"
 		urn2 := "urn:http:counter:d"
 		urn3 := "urn:http:counter:e"
@@ -126,9 +126,18 @@ var _ = Describe("UrnComposite", func() {
 		registry := NewRendererRegistry()
 		registry.Add("counter", RenderCounter)
 
-		result := composite.Render(registry)
+		result := composite.Render(registry, []int64{1, 2, 3, 4, 5, 6})
 
 		fmt.Println(result)
+	})
+
+	FIt("Can report all connectors", func() {
+		urn1 := "urn:http:counter:d"
+		urn2 := "urn:action:counter:e"
+
+		composite, _ := createUrnComposite(urn1, urn2)
+
+		Expect(composite.Connectors()).To(Equal([]string{"http", "action"}))
 	})
 
 })

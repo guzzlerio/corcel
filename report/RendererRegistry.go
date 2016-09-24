@@ -1,7 +1,7 @@
 package report
 
 //Renderer ...
-type Renderer func(node UrnComposite) string
+type Renderer func(node UrnComposite, times []int64) string
 
 //RendererType ...
 type RendererType string

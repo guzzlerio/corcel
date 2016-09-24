@@ -65,14 +65,8 @@ function selectResponder() {
 var responder = selectResponder();
 
 http.createServer((req, res) => {
-    //var responder = selectResponder();
-    //responder(req, res);
-    setTimeout(() => {
-        res.writeHead(200, {
-            'Content-Type': 'text/plain'
-        });
-        res.end();
-    }, 8000);
+    var responder = selectResponder();
+    responder(req, res);
 }).listen(port, hostname, () => {
     console.log(`Server running at http://${hostname}:${port}/`);
 });

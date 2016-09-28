@@ -3,6 +3,7 @@ package request
 import (
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	. "ci.guzzler.io/guzzler/corcel/utils"
@@ -63,11 +64,14 @@ var _ = Describe("RequestStream", func() {
 
 	Describe("Timebased RequestStream", func() {
 		var duration time.Duration
+		var lock = &sync.Mutex{}
 
 		BeforeEach(func() {
+			lock.Lock()
 			iterator = NewSequentialRequestStream(reader)
 			duration = time.Duration(1 * time.Second)
 			iterator = NewTimeBasedRequestStream(iterator, duration)
+			lock.Unlock()
 		})
 
 		It("executes for the duration", func() {
@@ -83,9 +87,11 @@ var _ = Describe("RequestStream", func() {
 
 		It("calculates Progress", func() {
 			go func() {
+				lock.Lock()
 				for iterator.HasNext() {
 					_, _ = iterator.Next()
 				}
+				lock.Unlock()
 			}()
 			time.Sleep((100 * time.Millisecond))
 			Expect(iterator.Progress()).To(Equal(11))

@@ -4,6 +4,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -120,6 +121,7 @@ type TimeBasedRequestStream struct {
 	stream   RequestStream
 	duration time.Duration
 	start    time.Time
+	lock     sync.Mutex
 }
 
 //NewTimeBasedRequestStream ...
@@ -132,6 +134,8 @@ func NewTimeBasedRequestStream(stream RequestStream, duration time.Duration) Req
 
 //HasNext ...
 func (instance *TimeBasedRequestStream) HasNext() bool {
+	instance.lock.Lock()
+	defer instance.lock.Unlock()
 	if instance.start.IsZero() {
 		instance.start = time.Now()
 	}
@@ -140,6 +144,8 @@ func (instance *TimeBasedRequestStream) HasNext() bool {
 
 //Next ...
 func (instance *TimeBasedRequestStream) Next() (*http.Request, error) {
+	instance.lock.Lock()
+	defer instance.lock.Unlock()
 	if !instance.stream.HasNext() {
 		instance.stream.Reset()
 	}
@@ -148,16 +154,22 @@ func (instance *TimeBasedRequestStream) Next() (*http.Request, error) {
 
 //Reset ...
 func (instance *TimeBasedRequestStream) Reset() {
+	instance.lock.Lock()
+	defer instance.lock.Unlock()
 	instance.start = time.Time{}
 }
 
 //Progress ...
 func (instance *TimeBasedRequestStream) Progress() int {
-	current := (float64(time.Since(instance.start).Nanoseconds()) / float64(instance.Size()))
+	instance.lock.Lock()
+	defer instance.lock.Unlock()
+	current := (float64(time.Since(instance.start).Nanoseconds()) / float64(instance.duration.Nanoseconds()))
 	return int(math.Ceil(current * 100))
 }
 
 //Size ...
 func (instance *TimeBasedRequestStream) Size() int {
+	instance.lock.Lock()
+	defer instance.lock.Unlock()
 	return int(instance.duration.Nanoseconds())
 }

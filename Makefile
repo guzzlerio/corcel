@@ -32,4 +32,7 @@ ui: install
 	(cd ui && npm install -d && gulp)
 	go-bindata -o ui.generated.go ui/public/...
 
-.PHONY: clean build lint test install ui dist dist_linux
+demo: build
+	corcel run --progress bar --summary --duration 10s --plan .resources/sample-plan.yml
+
+.PHONY: clean build lint test install ui dist dist_linux demo

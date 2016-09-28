@@ -94,7 +94,8 @@ var _ = Describe("RequestStream", func() {
 				lock.Unlock()
 			}()
 			time.Sleep((100 * time.Millisecond))
-			Expect(iterator.Progress()).To(Equal(11))
+			Expect(iterator.Progress()).To(BeNumerically(">=", 10))
+			Expect(iterator.Progress()).To(BeNumerically("<", 20))
 		})
 
 		It("calculates Size", func() {

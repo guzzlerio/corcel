@@ -43,6 +43,7 @@ run_30: build
 	go build && ./corcel run --summary --progress bar --workers 1 --duration 30s --plan .resources/sample-plan.yml
 
 demo: build
-	corcel run --progress bar --summary --duration 10s --plan .resources/sample-plan.yml
+	bash ./scripts/demo.sh
+
 
 .PHONY: clean build lint test install ui dist dist_linux demo

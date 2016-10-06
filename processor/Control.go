@@ -128,13 +128,12 @@ func CreatePlanFromURLList(config *config.Configuration) core.Plan {
 				body = string(data)
 			}
 		}
-		action := &http.Action{
-			//Client:  client,
-			URL:     request.URL.String(),
-			Method:  request.Method,
-			Headers: request.Header,
-			Body:    body,
-		}
+		action := http.CreateAction()
+
+		action.URL = request.URL.String()
+		action.Method = request.Method
+		action.Headers = request.Header
+		action.Body = body
 
 		step.Action = action
 		//job.Steps = append(job.Steps, step)

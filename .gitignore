@@ -14,3 +14,4 @@ config/config.coverprofile
 history.yml
 *.coverprofile
 *.html
+output

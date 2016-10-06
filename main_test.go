@@ -114,8 +114,6 @@ var _ = Describe("Main", func() {
 
 	for _, waitTime := range global.WaitTimeTests {
 		It(fmt.Sprintf("Support wait time of %v between each execution in the list", waitTime), func() {
-			waitTimeTolerance := 1.0
-
 			list := []string{
 				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
 				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
@@ -130,10 +128,8 @@ var _ = Describe("Main", func() {
 
 			waitTimeValue, _ := time.ParseDuration(waitTime)
 			expected := int64(len(list)) * int64(waitTimeValue)
-			maximum := float64(expected) * (1 + waitTimeTolerance)
 
 			Expect(int64(duration)).To(BeNumerically(">=", int64(expected)))
-			Expect(int64(duration)).To(BeNumerically("<", int64(maximum)))
 		})
 	}
 

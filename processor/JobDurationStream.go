@@ -36,13 +36,14 @@ func (instance *JobDurationStream) HasNext() bool {
 //Next ...
 func (instance *JobDurationStream) Next() core.Job {
 	instance.mutex.Lock()
+	defer instance.mutex.Unlock()
+
 	if instance.start.IsZero() {
 		instance.start = time.Now()
 	}
 	if !instance.stream.HasNext() {
 		instance.stream.Reset()
 	}
-	instance.mutex.Unlock()
 	return instance.stream.Next()
 }
 
@@ -54,8 +55,8 @@ func (instance *JobDurationStream) Reset() {
 //Progress ...
 func (instance *JobDurationStream) Progress() int {
 	instance.mutex.Lock()
+	defer instance.mutex.Unlock()
 	current := (float64(time.Since(instance.start).Nanoseconds()) / float64(instance.Size()))
-	instance.mutex.Unlock()
 	return int(math.Ceil(current * 100))
 }
 

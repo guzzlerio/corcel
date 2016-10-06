@@ -52,7 +52,10 @@ func CreatePlanExecutor(config *config.Configuration, bar ProgressBar) *PlanExec
 
 func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan struct{}) core.ExecutionResult {
 	start := time.Now()
+
 	instance.mutex.Lock()
+	defer instance.mutex.Unlock()
+
 	if instance.JobContexts[step.JobID] == nil {
 		instance.JobContexts[step.JobID] = map[string]interface{}{}
 		instance.StepContexts[step.JobID] = map[int]core.ExtractionResult{}
@@ -127,8 +130,6 @@ func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan stru
 		assertionResults = append(assertionResults, assertionResult)
 	}
 	executionResult["assertions"] = assertionResults
-
-	instance.mutex.Unlock()
 
 	return executionResult
 }

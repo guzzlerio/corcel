@@ -131,7 +131,7 @@ var _ = Describe("UrnComposite", func() {
 		fmt.Println(result)
 	})
 
-	FIt("Can report all connectors", func() {
+	It("Can report all connectors", func() {
 		urn1 := "urn:http:counter:d"
 		urn2 := "urn:action:counter:e"
 

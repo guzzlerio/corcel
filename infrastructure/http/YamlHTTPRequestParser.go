@@ -11,11 +11,10 @@ type YamlHTTPRequestParser struct{}
 
 //Parse ...
 func (instance YamlHTTPRequestParser) Parse(input map[string]interface{}) core.Action {
-	action := Action{
-		URL:     input["url"].(string),
-		Method:  input["method"].(string),
-		Headers: http.Header{},
-	}
+	action := CreateAction()
+	action.URL = input["url"].(string)
+	action.Method = input["method"].(string)
+	action.Headers = http.Header{}
 	for key, value := range input["httpHeaders"].(map[interface{}]interface{}) {
 		action.Headers.Set(key.(string), value.(string))
 	}
@@ -24,7 +23,7 @@ func (instance YamlHTTPRequestParser) Parse(input map[string]interface{}) core.A
 		action.Body = input["body"].(string)
 	}
 
-	return &action
+	return action
 }
 
 //Key ...

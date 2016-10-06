@@ -13,27 +13,30 @@ import (
 )
 
 //Action ...
-type Action struct {
-	Client  *http.Client
+type HTTPAction struct {
+	client  *http.Client
 	URL     string
 	Method  string
 	Body    string
 	Headers http.Header
 }
 
-func (instance *Action) initialize() {
-	instance.Client = &http.Client{
-		Transport: &http.Transport{
-			MaxIdleConnsPerHost: 50,
+func CreateAction() HTTPAction {
+	var instance = HTTPAction{
+		client: &http.Client{
+			Transport: &http.Transport{
+				MaxIdleConnsPerHost: 50,
+			},
 		},
 	}
+	return instance
 }
 
 //Execute ...
-func (instance *Action) Execute(context core.ExecutionContext, cancellation chan struct{}) core.ExecutionResult {
+func (instance HTTPAction) Execute(context core.ExecutionContext, cancellation chan struct{}) core.ExecutionResult {
 
-	if instance.Client == nil {
-		instance.initialize()
+	if instance.client == nil {
+		panic("Dang nabbit!")
 	}
 
 	result := core.ExecutionResult{}
@@ -96,7 +99,7 @@ func (instance *Action) Execute(context core.ExecutionContext, cancellation chan
 
 	req.Header = headers
 
-	response, err := instance.Client.Do(req)
+	response, err := instance.client.Do(req)
 	if err != nil {
 		result["action:error"] = err
 		return result

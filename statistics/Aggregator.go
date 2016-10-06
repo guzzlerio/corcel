@@ -427,6 +427,8 @@ func (instance *Aggregator) createSnapshot() {
 	}
 
 	instance.mutex.Lock()
+	defer instance.mutex.Unlock()
+
 	instance.times = append(instance.times, timeToLog)
 	instance.registry.Each(func(name string, i interface{}) {
 		switch metric := i.(type) {
@@ -448,7 +450,7 @@ func (instance *Aggregator) createSnapshot() {
 			instance.logTimer(name, t)
 		}
 	})
-	instance.mutex.Unlock()
+
 }
 
 //Start ...

@@ -1,7 +1,6 @@
 package processor
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -53,13 +52,15 @@ func CreatePlanExecutor(config *config.Configuration, bar ProgressBar) *PlanExec
 
 func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan struct{}) core.ExecutionResult {
 	start := time.Now()
+
 	instance.mutex.Lock()
+	defer instance.mutex.Unlock()
+
 	if instance.JobContexts[step.JobID] == nil {
 		instance.JobContexts[step.JobID] = map[string]interface{}{}
 		instance.StepContexts[step.JobID] = map[int]core.ExtractionResult{}
 		instance.StepContexts[step.JobID][step.ID] = map[string]interface{}{}
 	}
-	instance.mutex.Unlock()
 
 	var executionContext = core.ExecutionContext{}
 
@@ -101,7 +102,6 @@ func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan stru
 
 	executionResult = merge(executionResult, executionContext)
 
-	instance.mutex.Lock()
 	for _, extractor := range step.Extractors {
 		extractorResult := extractor.Extract(executionResult)
 
@@ -121,7 +121,6 @@ func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan stru
 			executionResult[k] = v
 		}
 	}
-	instance.mutex.Unlock()
 
 	duration := time.Since(start) / time.Millisecond
 	executionResult["action:duration"] = duration
@@ -151,13 +150,11 @@ func (instance *PlanExecutor) workerExecuteJob(talula core.Job, cancellation cha
 		step := stepStream.Next()
 		//before Step
 		for _, action := range step.Before {
-			fmt.Println("Executing Before Step")
 			_ = action.Execute(nil, nil)
 		}
 		executionResult := instance.executeStep(step, cancellation)
 		//after Step
 		for _, action := range step.After {
-			fmt.Println("Executing After Step")
 			_ = action.Execute(nil, nil)
 		}
 
@@ -202,13 +199,11 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job) {
 		_ = instance.Bar.Set(jobStream.Progress())
 		//before Job
 		for _, action := range job.Before {
-			fmt.Println("Executing Before Job")
 			_ = action.Execute(nil, nil)
 		}
 		instance.workerExecuteJob(job, cancellation)
 		//after Job
 		for _, action := range job.After {
-			fmt.Println("Executing After Job")
 			_ = action.Execute(nil, nil)
 		}
 	}
@@ -229,7 +224,6 @@ func (instance *PlanExecutor) executeJobs(jobs []core.Job) {
 // Execute ...
 func (instance *PlanExecutor) Execute(plan core.Plan) error {
 	instance.start = time.Now()
-	fmt.Printf("Zee Plan: %+v", plan)
 	instance.Plan = plan
 	if instance.Plan.Context["lists"] != nil {
 		var lists = map[string][]map[string]interface{}{}

@@ -48,6 +48,8 @@ var responders = {
     }
 };
 
+responders = {"ok" : responders["ok"]};
+
 function randomInt(low, high) {
     return Math.floor(Math.random() * (high - low) + low);
 }

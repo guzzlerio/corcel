@@ -236,10 +236,22 @@ func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
 
 	bytes := ByteSummary{}
 
-	bytesHistogram := snapshot.Histograms[core.BytesReceivedCountUrn.Histogram().String()]
-	if bytesHistogram != nil {
-		maxBytes := bytesHistogram["max"]
+	bytesReceivedHistogram := snapshot.Histograms[core.BytesReceivedCountUrn.Histogram().String()]
+	if bytesReceivedHistogram != nil {
+		maxBytes := bytesReceivedHistogram["max"]
 		bytes.MaxReceived = maxBytes[len(maxBytes)-1]
+
+		minBytes := bytesReceivedHistogram["min"]
+		bytes.MinReceived = minBytes[len(minBytes)-1]
+	}
+
+	bytesSentHistogram := snapshot.Histograms[core.BytesSentCountUrn.Histogram().String()]
+	if bytesSentHistogram != nil {
+		maxBytes := bytesSentHistogram["max"]
+		bytes.MaxSent = maxBytes[len(maxBytes)-1]
+
+		minBytes := bytesSentHistogram["min"]
+		bytes.MinSent = minBytes[len(minBytes)-1]
 	}
 
 	totalAssertions := snapshot.Counters[core.AssertionsTotalUrn.Counter().String()]
@@ -274,6 +286,7 @@ func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
 		MaxResponseTime:        responseMaxTime,
 		TotalAssertions:        totalAssertionsCount,
 		TotalAssertionFailures: totalAssertionFailuresCount,
+		Bytes: bytes,
 	}
 }
 

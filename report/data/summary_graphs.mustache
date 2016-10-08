@@ -10,6 +10,16 @@
 </div>
 <div class="row">
     <div class="col-md-6 col-xs-12">
+        <h2>Bytes Sent</h2>
+        <div class="graph" data_items="max_bytes_sent,min_bytes_sent" max_bytes_sent="{{max_bytes_sent}}" min_bytes_sent="{{min_bytes_sent}}"></div>
+    </div>
+    <div class="col-md-6 col-xs-12">
+        <h2>Bytes Received</h2>
+        <div class="graph" data_items="max_bytes_received,min_bytes_received" max_bytes_received="{{max_bytes_received}}" min_bytes_received="{{min_bytes_received}}"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6 col-xs-12">
         <h2>Total Requests</h2>
         <div class="graph" data_items="total_requests" total_requests="{{total_requests}}"></div>
     </div>

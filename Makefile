@@ -4,7 +4,16 @@ all: clean build lint test
 clean:
 	go clean
 
-build: clean
+gen:
+	if [ -d "corcel-reports-workbench" ]; then \
+		(cd corcel-reports-workbench && git pull) \
+	else \
+		git clone git@ci.guzzler.io:guzzler/corcel-reports-workbench.git; \
+	fi
+	cd corcel-reports-workbench && npm install -d && npm install gulp && npm install -g gulp-cli && gulp && cp out/index.html ../report/data/corcel.layout.mustache.html
+
+
+build: clean 
 	#version=`grep -Po "(?<=version=)[0-9.]+" version`
 	(cd report && go-bindata -pkg report data/...)
 	go build -ldflags="-X main.Version=${version}"

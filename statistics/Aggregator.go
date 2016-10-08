@@ -14,7 +14,7 @@ type Aggregator struct {
 	times      []int64
 	counters   map[string][]int64
 	gauges     map[string][]float64
-	histograms map[string]map[string][]float64
+	histograms map[string]map[string][]int64
 	meters     map[string]map[string][]float64
 	timers     map[string]map[string][]float64
 	logger     AggregateLogger
@@ -28,7 +28,7 @@ type AggregatorSnapShot struct {
 	Times      []int64
 	Counters   map[string][]int64
 	Gauges     map[string][]float64
-	Histograms map[string]map[string][]float64
+	Histograms map[string]map[string][]int64
 	Meters     map[string]map[string][]float64
 	Timers     map[string]map[string][]float64
 }
@@ -39,7 +39,7 @@ func NewAggregatorSnapShot() *AggregatorSnapShot {
 		Times:      []int64{},
 		Counters:   map[string][]int64{},
 		Gauges:     map[string][]float64{},
-		Histograms: map[string]map[string][]float64{},
+		Histograms: map[string]map[string][]int64{},
 		Meters:     map[string]map[string][]float64{},
 		Timers:     map[string]map[string][]float64{},
 	}
@@ -77,14 +77,14 @@ func (instance *AggregatorSnapShot) updateGauges(output AggregatorSnapShot) {
 	}
 }
 
-func (instance *AggregatorSnapShot) updateHistogram(key string, subKey string, value float64) {
+func (instance *AggregatorSnapShot) updateHistogram(key string, subKey string, value int64) {
 	if _, ok := instance.Histograms[key]; !ok {
-		instance.Histograms[key] = map[string][]float64{}
+		instance.Histograms[key] = map[string][]int64{}
 	}
 	if _, ok := instance.Histograms[key][subKey]; !ok {
-		instance.Histograms[key][subKey] = make([]float64, len(instance.Times))
+		instance.Histograms[key][subKey] = make([]int64, len(instance.Times))
 		for i := 0; i < len(instance.Times)-1; i++ {
-			instance.Histograms[key][subKey][i] = float64(0)
+			instance.Histograms[key][subKey][i] = int64(0)
 		}
 	}
 	instance.Histograms[key][subKey] = append(instance.Histograms[key][subKey], value)
@@ -154,6 +154,17 @@ func (instance *AggregatorSnapShot) Update(output AggregatorSnapShot) {
 	instance.updateTime(output.Times[len(output.Times)-1])
 }
 
+type ByteSummary struct {
+	MinReceived   int64
+	MaxReceived   int64
+	MeanReceived  int64
+	MinSent       int64
+	MaxSent       int64
+	MeanSent      int64
+	TotalSent     int64
+	TotalReceived int64
+}
+
 //ExecutionSummary ...
 type ExecutionSummary struct {
 	TotalRequests          float64
@@ -168,6 +179,7 @@ type ExecutionSummary struct {
 	MaxResponseTime        float64
 	TotalAssertions        int64
 	TotalAssertionFailures int64
+	Bytes                  ByteSummary
 }
 
 //IncrementCounter ...
@@ -207,12 +219,27 @@ func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
 	bytesSent := snapshot.Counters[core.BytesSentCountUrn.Counter().String()]
 
 	if bytesSent != nil {
-		bytesSentCount = bytesSent[len(bytesSent)-1]
+		//bytesSentCount = bytesSent[len(bytesSent)-1]
+
+		for _, value := range bytesSent {
+			bytesSentCount += value
+		}
 	}
 
 	bytesReceived := snapshot.Counters[core.BytesReceivedCountUrn.Counter().String()]
 	if bytesReceived != nil {
-		bytesReceivedCount = bytesReceived[len(bytesReceived)-1]
+		//bytesReceivedCount = bytesReceived[len(bytesReceived)-1]
+		for _, value := range bytesReceived {
+			bytesReceivedCount += value
+		}
+	}
+
+	bytes := ByteSummary{}
+
+	bytesHistogram := snapshot.Histograms[core.BytesReceivedCountUrn.Histogram().String()]
+	if bytesHistogram != nil {
+		maxBytes := bytesHistogram["max"]
+		bytes.MaxReceived = maxBytes[len(maxBytes)-1]
 	}
 
 	totalAssertions := snapshot.Counters[core.AssertionsTotalUrn.Counter().String()]
@@ -256,7 +283,7 @@ func NewAggregator(registry metrics.Registry) *Aggregator {
 		times:      []int64{},
 		counters:   map[string][]int64{},
 		gauges:     map[string][]float64{},
-		histograms: map[string]map[string][]float64{},
+		histograms: map[string]map[string][]int64{},
 		meters:     map[string]map[string][]float64{},
 		timers:     map[string]map[string][]float64{},
 		ticker:     time.NewTicker(time.Second * 2),
@@ -316,38 +343,38 @@ func (instance *Aggregator) logHistogram(name string, value metrics.Histogram) {
 	//name = strings.Replace(name, "histogram:", "", -1)
 	ps := value.Percentiles([]float64{0.5, 0.75, 0.95, 0.99, 0.999})
 	if _, ok := instance.histograms[name]; !ok {
-		instance.histograms[name] = map[string][]float64{}
-		instance.histograms[name]["count"] = make([]float64, len(instance.times)-1)
-		instance.histograms[name]["min"] = make([]float64, len(instance.times)-1)
-		instance.histograms[name]["max"] = make([]float64, len(instance.times)-1)
-		instance.histograms[name]["mean"] = make([]float64, len(instance.times)-1)
-		instance.histograms[name]["stddev"] = make([]float64, len(instance.times)-1)
-		instance.histograms[name]["median"] = make([]float64, len(instance.times)-1)
-		instance.histograms[name]["75p"] = make([]float64, len(instance.times)-1)
-		instance.histograms[name]["95p"] = make([]float64, len(instance.times)-1)
-		instance.histograms[name]["99p"] = make([]float64, len(instance.times)-1)
+		instance.histograms[name] = map[string][]int64{}
+		instance.histograms[name]["count"] = make([]int64, len(instance.times)-1)
+		instance.histograms[name]["min"] = make([]int64, len(instance.times)-1)
+		instance.histograms[name]["max"] = make([]int64, len(instance.times)-1)
+		instance.histograms[name]["mean"] = make([]int64, len(instance.times)-1)
+		instance.histograms[name]["stddev"] = make([]int64, len(instance.times)-1)
+		instance.histograms[name]["median"] = make([]int64, len(instance.times)-1)
+		instance.histograms[name]["75p"] = make([]int64, len(instance.times)-1)
+		instance.histograms[name]["95p"] = make([]int64, len(instance.times)-1)
+		instance.histograms[name]["99p"] = make([]int64, len(instance.times)-1)
 
 		for i := 0; i < len(instance.times)-1; i++ {
-			instance.histograms[name]["count"][i] = float64(0)
-			instance.histograms[name]["min"][i] = float64(0)
-			instance.histograms[name]["max"][i] = float64(0)
-			instance.histograms[name]["mean"][i] = float64(0)
-			instance.histograms[name]["stddev"][i] = float64(0)
-			instance.histograms[name]["median"][i] = float64(0)
-			instance.histograms[name]["75p"][i] = float64(0)
-			instance.histograms[name]["95p"][i] = float64(0)
-			instance.histograms[name]["99p"][i] = float64(0)
+			instance.histograms[name]["count"][i] = int64(0)
+			instance.histograms[name]["min"][i] = int64(0)
+			instance.histograms[name]["max"][i] = int64(0)
+			instance.histograms[name]["mean"][i] = int64(0)
+			instance.histograms[name]["stddev"][i] = int64(0)
+			instance.histograms[name]["median"][i] = int64(0)
+			instance.histograms[name]["75p"][i] = int64(0)
+			instance.histograms[name]["95p"][i] = int64(0)
+			instance.histograms[name]["99p"][i] = int64(0)
 		}
 	}
-	instance.histograms[name]["count"] = append(instance.histograms[name]["count"], float64(value.Count()))
-	instance.histograms[name]["min"] = append(instance.histograms[name]["min"], float64(value.Min()))
-	instance.histograms[name]["max"] = append(instance.histograms[name]["max"], float64(value.Max()))
-	instance.histograms[name]["mean"] = append(instance.histograms[name]["mean"], value.Mean())
-	instance.histograms[name]["stddev"] = append(instance.histograms[name]["stddev"], value.StdDev())
-	instance.histograms[name]["median"] = append(instance.histograms[name]["median"], ps[0])
-	instance.histograms[name]["75p"] = append(instance.histograms[name]["75p"], ps[1])
-	instance.histograms[name]["95p"] = append(instance.histograms[name]["95p"], ps[2])
-	instance.histograms[name]["99p"] = append(instance.histograms[name]["99p"], ps[3])
+	instance.histograms[name]["count"] = append(instance.histograms[name]["count"], int64(value.Count()))
+	instance.histograms[name]["min"] = append(instance.histograms[name]["min"], int64(value.Min()))
+	instance.histograms[name]["max"] = append(instance.histograms[name]["max"], int64(value.Max()))
+	instance.histograms[name]["mean"] = append(instance.histograms[name]["mean"], int64(value.Mean()))
+	instance.histograms[name]["stddev"] = append(instance.histograms[name]["stddev"], int64(value.StdDev()))
+	instance.histograms[name]["median"] = append(instance.histograms[name]["median"], int64(ps[0]))
+	instance.histograms[name]["75p"] = append(instance.histograms[name]["75p"], int64(ps[1]))
+	instance.histograms[name]["95p"] = append(instance.histograms[name]["95p"], int64(ps[2]))
+	instance.histograms[name]["99p"] = append(instance.histograms[name]["99p"], int64(ps[3]))
 }
 
 func (instance *Aggregator) logMeter(name string, value metrics.Meter) {

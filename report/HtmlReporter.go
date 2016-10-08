@@ -2,8 +2,11 @@ package report
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"strings"
 
+	"github.com/dustin/go-humanize"
 	"github.com/hoisie/mustache"
 
 	"ci.guzzler.io/guzzler/corcel/statistics"
@@ -24,6 +27,50 @@ func (instance GraphData) DataAsJSON() string {
 
 //HTMLReporter ...
 type HTMLReporter struct {
+}
+
+func float64ArrayToStringArray(values []float64) []string {
+	stringValues := []string{}
+	for _, value := range values {
+		stringValues = append(stringValues, fmt.Sprintf("%.0f", value))
+	}
+
+	return stringValues
+}
+
+func float64RunningSum(values []float64) []float64 {
+	result := []float64{}
+	for _, value := range values {
+		if len(result) == 0 {
+			result = append(result, value)
+		} else {
+			result = append(result, value+result[len(result)-1])
+		}
+	}
+
+	return result
+}
+
+func int64ArrayToStringArray(values []int64) []string {
+	stringValues := []string{}
+	for _, value := range values {
+		stringValues = append(stringValues, fmt.Sprintf("%d", value))
+	}
+
+	return stringValues
+}
+
+func int64RunningSum(values []int64) []int64 {
+	result := []int64{}
+	for _, value := range values {
+		if len(result) == 0 {
+			result = append(result, value)
+		} else {
+			result = append(result, value+result[len(result)-1])
+		}
+	}
+
+	return result
 }
 
 //CreateHTMLReporter ...
@@ -56,31 +103,51 @@ func (instance HTMLReporter) Generate(output statistics.AggregatorSnapShot) {
 		composite.AddValue(key, value)
 	}
 
-	registry := NewRendererRegistry()
-	registry.Add("counter", RenderCounter)
-	registry.Add("histogram", RenderHistogram)
-	layout := ""
+	executionSummary := statistics.CreateSummary(output)
 
 	masterLayout, _ := Asset("data/corcel.layout.mustache.html")
-	renderedComposite := composite.Render(registry, output.Times)
-	connectors := composite.Connectors()
+	summaryLayout, _ := Asset("data/summary.mustache")
+	summaryGraphs, _ := Asset("data/summary_graphs.mustache")
+	jsRenderLayout, _ := Asset("data/render.mustache")
 
-	subModel := []map[string]string{}
-	for index, connector := range connectors {
-		if index == 0 {
-			subModel = append(subModel, map[string]string{
-				"class": "active",
-				"name":  connector,
-			})
-		} else {
-			subModel = append(subModel, map[string]string{
-				"name": connector,
-			})
-		}
-	}
-	model := map[string]interface{}{"tabs": subModel}
+	layout := mustache.Render(string(summaryLayout), map[string]interface{}{
+		"throughput":       fmt.Sprintf("%.0f req/s", executionSummary.Throughput),
+		"total_requests":   fmt.Sprintf("%.0f", executionSummary.TotalRequests),
+		"number_of_errors": fmt.Sprintf("%.0f", executionSummary.TotalErrors),
+		"availability":     fmt.Sprintf("%.4f %%", executionSummary.Availability),
+		"bytes_sent":       humanize.Bytes(uint64(executionSummary.TotalBytesSent)),
+		"bytes_received":   humanize.Bytes(uint64(executionSummary.TotalBytesReceived)),
+		"min_latency":      fmt.Sprintf("%.0f ms", executionSummary.MinResponseTime),
+		"mean_latency":     fmt.Sprintf("%.0f ms", executionSummary.MeanResponseTime),
+		"max_latency":      fmt.Sprintf("%.0f ms", executionSummary.MaxResponseTime),
+	})
 
-	layout = mustache.RenderInLayout(renderedComposite, string(masterLayout), model)
+	throughputValues := float64ArrayToStringArray(output.Meters["urn:action:meter:throughput"]["rateMean"])
+	sentValues := int64ArrayToStringArray(int64RunningSum(output.Counters["urn:action:counter:bytes:sent"]))
+	receivedValues := int64ArrayToStringArray(int64RunningSum(output.Counters["urn:action:counter:bytes:received"]))
+	requestsValues := float64ArrayToStringArray(output.Meters["urn:action:meter:throughput"]["count"])
+	errorValues := int64ArrayToStringArray(output.Counters["urn:action:counter:error"])
+
+	minLatency := float64ArrayToStringArray(output.Timers["urn:action:timer:duration"]["min"])
+	maxLatency := float64ArrayToStringArray(output.Timers["urn:action:timer:duration"]["max"])
+	meanLatency := float64ArrayToStringArray(output.Timers["urn:action:timer:duration"]["mean"])
+	stdDevLatency := float64ArrayToStringArray(output.Timers["urn:action:timer:duration"]["stddev"])
+
+	layout += mustache.Render(string(summaryGraphs), map[string]interface{}{
+		"throughput":     strings.Join(throughputValues, ","),
+		"bytes_sent":     strings.Join(sentValues, ","),
+		"bytes_received": strings.Join(receivedValues, ","),
+		"total_requests": strings.Join(requestsValues, ","),
+		"errors":         strings.Join(errorValues, ","),
+		"min_latency":    strings.Join(minLatency, ","),
+		"max_latency":    strings.Join(maxLatency, ","),
+		"mean_latency":   strings.Join(meanLatency, ","),
+		"stddev_latency": strings.Join(stdDevLatency, ","),
+	})
+
+	layout += mustache.Render(string(jsRenderLayout), nil)
+
+	layout = mustache.RenderInLayout(layout, string(masterLayout), nil)
 
 	ioutil.WriteFile("corcel-report.html", []byte(layout), 0644)
 }

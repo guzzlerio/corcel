@@ -1,0 +1,59 @@
+---
+  name : The plan
+  workers : 5
+  waitTime : 0
+  jobs:
+    -
+      name : Register a user
+      after:
+        -
+          body: After Job
+          type: HttpRequest
+          requestTimeout : 150
+          method : GET
+          url : http://localhost:1337/success
+          httpHeaders :
+              content-Type: application/json
+      steps:
+        -
+          name: Step number 1
+          action:
+            type : HttpRequest
+            requestTimeout : 150
+            method : GET
+            url : http://localhost:1337/success
+            httpHeaders :
+                content-Type: application/json
+          assertions:
+            -
+              type: ExactAssertion
+              key : http:response:status
+              expected : 200
+        -
+          name: Step number 2
+          action:
+            type : HttpRequest
+            requestTimeout : 150
+            method : GET
+            url : http://localhost:1337/success
+            httpHeaders :
+                content-Type: application/json
+          assertions:
+            -
+              type: ExactAssertion
+              key : http:response:status
+              expected : 200
+        -
+          name: Step number 2
+          action:
+            type : HttpRequest
+            requestTimeout : 150
+            method : GET
+            url : http://localhost:1337/success
+            httpHeaders :
+                content-Type: application/json
+          assertions:
+            -
+              type: ExactAssertion
+              key : http:response:status
+              expected : 200

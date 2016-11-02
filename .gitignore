@@ -16,3 +16,4 @@ history.yml
 *.html
 output
 corcel-reports-workbench
+report/bindata.go

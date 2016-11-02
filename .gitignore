@@ -1,39 +1,19 @@
-# Compiled Object files, Static and Dynamic libs (Shared Objects)
-*.o
-*.a
-*.so
-
-# Folders
-_obj
-_test
-
-# Architecture specific extensions/prefixes
-*.[568vq]
-[568vq].out
-
-*.cgo1.go
-*.cgo2.c
-_cgo_defun.c
-_cgo_gotypes.go
-_cgo_export.*
-
-_testmain.go
-
-*.exe
-*.test
-*.prof
-code-named-something
-corcel
-travis.log
-# Ignore any .corcelrc files created during testing so behaviour is as expected on fresh clone
-.corcelrc
-
 *.swp
-
-# Test files including generated ones
-*.json
-*.yml
-*.gz
-
-output/
-linting-results.txt
+dist/
+node_modules/
+npm-debug.log
+public/index.html
+data/db.json
+corcel
+output.yml
+ui/public
+ui.generated.go
+urls.txt
+output.json
+config/config.coverprofile
+history.yml
+*.coverprofile
+*.html
+output
+corcel-reports-workbench
+report/bindata.go

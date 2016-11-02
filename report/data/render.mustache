@@ -1,0 +1,23 @@
+<script>
+    $( ".graph" ).each(function( index ) {
+
+        data = [];
+
+        element=$( this )
+        keys=$( this ).attr("data_items").split(',');
+        
+        $.each(keys, function(index, value){
+            values = element.attr(value.trim());
+            valuesSplit = values.split(',');
+            valuesSplit.unshift(value);
+            data.push(valuesSplit);
+        })
+
+        c3.generate({
+            bindto: $(this)[0],
+            data: {
+              columns: data 
+            }
+        });
+    });
+</script>

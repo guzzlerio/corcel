@@ -2,11 +2,20 @@ package main
 
 import (
 	"fmt"
+	"math"
+	"net/http"
 	"os"
 	"strconv"
+	"time"
 
+	"github.com/guzzlerio/rizo"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"ci.guzzler.io/guzzler/corcel/errormanager"
+	"ci.guzzler.io/guzzler/corcel/logger"
+	"ci.guzzler.io/guzzler/corcel/statistics"
+	. "ci.guzzler.io/guzzler/corcel/utils"
 )
 
 var _ = Describe("Bugs replication", func() {
@@ -14,7 +23,7 @@ var _ = Describe("Bugs replication", func() {
 	BeforeEach(func() {
 		err := os.Remove("./output.yml")
 		if err != nil {
-			Log.Printf("Error removing file %v", err)
+			logger.Log.Printf("Error removing file %v", err)
 		}
 	})
 
@@ -33,10 +42,11 @@ var _ = Describe("Bugs replication", func() {
 
 		SutExecute(list[:1], "--random", "--summary", "--workers", strconv.Itoa(numberOfWorkers))
 
-		var executionOutput ExecutionOutput
+		var executionOutput statistics.AggregatorSnapShot
 		UnmarshalYamlFromFile("./output.yml", &executionOutput)
+		var summary = statistics.CreateSummary(executionOutput)
 
-		Expect(executionOutput.Summary.Requests.Total).To(Equal(int64(2)))
+		Expect(summary.TotalRequests).To(Equal(float64(2)))
 	})
 
 	PIt("Error when too many workers specified causing too many open files #23", func() {
@@ -57,8 +67,28 @@ var _ = Describe("Bugs replication", func() {
 		}
 
 		output, err := InvokeCorcel(list)
-
 		Expect(err).ToNot(BeNil())
-		Expect(string(output)).To(ContainSubstring("Your urls in the test specification must be valid urls"))
+		Expect(string(output)).To(ContainSubstring(errormanager.LogMessageVaidURLs))
+	})
+
+	It("Issue #49 - Corcel not cancelling on-going requests once the test is due to finish", func() {
+		TestServer.Clear()
+		factory := rizo.HTTPResponseFactory(func(w http.ResponseWriter) {
+			time.Sleep(2 * time.Second)
+			w.WriteHeader(http.StatusOK)
+		})
+		TestServer.Use(factory)
+		list := []string{
+			fmt.Sprintf(`%s -X POST `, URLForTestServer("/something")),
+		}
+
+		SutExecute(list, "--duration", "1s")
+
+		var executionOutput statistics.AggregatorSnapShot
+		UnmarshalYamlFromFile("./output.yml", &executionOutput)
+		var summary = statistics.CreateSummary(executionOutput)
+
+		runningTime, _ := time.ParseDuration(summary.RunningTime)
+		Expect(math.Floor(runningTime.Seconds())).To(Equal(float64(1)))
 	})
 })

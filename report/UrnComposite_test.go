@@ -1,8 +1,6 @@
 package report
 
 import (
-	"fmt"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -128,7 +126,7 @@ var _ = Describe("UrnComposite", func() {
 
 		result := composite.Render(registry, []int64{1, 2, 3, 4, 5, 6})
 
-		fmt.Println(result)
+		Expect(result).ToNot(BeNil())
 	})
 
 	It("Can report all connectors", func() {

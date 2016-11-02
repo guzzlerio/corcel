@@ -115,8 +115,8 @@ func (instance HTMLReporter) Generate(output statistics.AggregatorSnapShot) {
 		"total_requests":     fmt.Sprintf("%.0f", executionSummary.TotalRequests),
 		"number_of_errors":   fmt.Sprintf("%.0f", executionSummary.TotalErrors),
 		"availability":       fmt.Sprintf("%.4f %%", executionSummary.Availability),
-		"bytes_sent":         humanize.Bytes(uint64(executionSummary.TotalBytesSent)),
-		"bytes_received":     humanize.Bytes(uint64(executionSummary.TotalBytesReceived)),
+		"bytes_sent":         humanize.Bytes(uint64(executionSummary.Bytes.TotalSent)),
+		"bytes_received":     humanize.Bytes(uint64(executionSummary.Bytes.TotalReceived)),
 		"min_latency":        fmt.Sprintf("%.0f ms", executionSummary.MinResponseTime),
 		"mean_latency":       fmt.Sprintf("%.0f ms", executionSummary.MeanResponseTime),
 		"max_latency":        fmt.Sprintf("%.0f ms", executionSummary.MaxResponseTime),
@@ -132,10 +132,10 @@ func (instance HTMLReporter) Generate(output statistics.AggregatorSnapShot) {
 	requestsValues := float64ArrayToStringArray(output.Meters["urn:action:meter:throughput"]["count"])
 	errorValues := int64ArrayToStringArray(output.Counters["urn:action:counter:error"])
 
-	minLatency := float64ArrayToStringArray(output.Timers["urn:action:timer:duration"]["min"])
-	maxLatency := float64ArrayToStringArray(output.Timers["urn:action:timer:duration"]["max"])
-	meanLatency := float64ArrayToStringArray(output.Timers["urn:action:timer:duration"]["mean"])
-	stdDevLatency := float64ArrayToStringArray(output.Timers["urn:action:timer:duration"]["stddev"])
+	minLatency := int64ArrayToStringArray(output.Histograms["urn:action:histogram:duration"]["min"])
+	maxLatency := int64ArrayToStringArray(output.Histograms["urn:action:histogram:duration"]["max"])
+	meanLatency := int64ArrayToStringArray(output.Histograms["urn:action:histogram:duration"]["mean"])
+	stdDevLatency := int64ArrayToStringArray(output.Histograms["urn:action:histogram:duration"]["stddev"])
 
 	maxBytesSentValues := int64ArrayToStringArray(output.Histograms["urn:action:histogram:bytes:sent"]["max"])
 	minBytesSentValues := int64ArrayToStringArray(output.Histograms["urn:action:histogram:bytes:sent"]["min"])

@@ -97,7 +97,7 @@ func dataCategoryMustache() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "data/category.mustache", size: 48, mode: os.FileMode(436), modTime: time.Unix(1476253212, 0)}
+	info := bindataFileInfo{name: "data/category.mustache", size: 48, mode: os.FileMode(436), modTime: time.Unix(1476256960, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -117,7 +117,7 @@ func dataCorcelLayoutMustacheHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "data/corcel.layout.mustache.html", size: 2084580, mode: os.FileMode(436), modTime: time.Unix(1476254249, 0)}
+	info := bindataFileInfo{name: "data/corcel.layout.mustache.html", size: 2084580, mode: os.FileMode(436), modTime: time.Unix(1476259959, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -137,7 +137,7 @@ func dataCounterMustache() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "data/counter.mustache", size: 99, mode: os.FileMode(436), modTime: time.Unix(1476253212, 0)}
+	info := bindataFileInfo{name: "data/counter.mustache", size: 99, mode: os.FileMode(436), modTime: time.Unix(1476256960, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -157,7 +157,7 @@ func dataCounterMustacheOld() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "data/counter.mustache.old", size: 34, mode: os.FileMode(436), modTime: time.Unix(1476253212, 0)}
+	info := bindataFileInfo{name: "data/counter.mustache.old", size: 34, mode: os.FileMode(436), modTime: time.Unix(1476256960, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -177,7 +177,7 @@ func dataGraphMustache() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "data/graph.mustache", size: 444, mode: os.FileMode(436), modTime: time.Unix(1476253212, 0)}
+	info := bindataFileInfo{name: "data/graph.mustache", size: 444, mode: os.FileMode(436), modTime: time.Unix(1476256960, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -197,7 +197,7 @@ func dataGraphsMustache() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "data/graphs.mustache", size: 519, mode: os.FileMode(436), modTime: time.Unix(1476253212, 0)}
+	info := bindataFileInfo{name: "data/graphs.mustache", size: 519, mode: os.FileMode(436), modTime: time.Unix(1476256960, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -217,7 +217,7 @@ func dataHelloworldMustache() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "data/helloworld.mustache", size: 15, mode: os.FileMode(436), modTime: time.Unix(1476253212, 0)}
+	info := bindataFileInfo{name: "data/helloworld.mustache", size: 15, mode: os.FileMode(436), modTime: time.Unix(1476256960, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -237,7 +237,7 @@ func dataHistogramMustache() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "data/histogram.mustache", size: 99, mode: os.FileMode(436), modTime: time.Unix(1476253212, 0)}
+	info := bindataFileInfo{name: "data/histogram.mustache", size: 99, mode: os.FileMode(436), modTime: time.Unix(1476256960, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -257,7 +257,7 @@ func dataRenderMustache() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "data/render.mustache", size: 536, mode: os.FileMode(436), modTime: time.Unix(1476253212, 0)}
+	info := bindataFileInfo{name: "data/render.mustache", size: 536, mode: os.FileMode(436), modTime: time.Unix(1476256960, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -277,7 +277,7 @@ func dataSummaryMustache() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "data/summary.mustache", size: 4966, mode: os.FileMode(436), modTime: time.Unix(1476253212, 0)}
+	info := bindataFileInfo{name: "data/summary.mustache", size: 4966, mode: os.FileMode(436), modTime: time.Unix(1476256960, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -297,7 +297,7 @@ func dataSummary_graphsMustache() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "data/summary_graphs.mustache", size: 1626, mode: os.FileMode(436), modTime: time.Unix(1476253212, 0)}
+	info := bindataFileInfo{name: "data/summary_graphs.mustache", size: 1626, mode: os.FileMode(436), modTime: time.Unix(1476256960, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -317,7 +317,7 @@ func dataTabcontentMustache() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "data/tabcontent.mustache", size: 86, mode: os.FileMode(436), modTime: time.Unix(1476253212, 0)}
+	info := bindataFileInfo{name: "data/tabcontent.mustache", size: 86, mode: os.FileMode(436), modTime: time.Unix(1476256960, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -337,7 +337,7 @@ func dataTabpaneMustache() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "data/tabpane.mustache", size: 81, mode: os.FileMode(436), modTime: time.Unix(1476253212, 0)}
+	info := bindataFileInfo{name: "data/tabpane.mustache", size: 81, mode: os.FileMode(436), modTime: time.Unix(1476256960, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -357,7 +357,7 @@ func dataThroughputMustache() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "data/throughput.mustache", size: 185, mode: os.FileMode(436), modTime: time.Unix(1476253212, 0)}
+	info := bindataFileInfo{name: "data/throughput.mustache", size: 185, mode: os.FileMode(436), modTime: time.Unix(1476256960, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -377,7 +377,7 @@ func dataTotal_bytesMustache() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "data/total_bytes.mustache", size: 237, mode: os.FileMode(436), modTime: time.Unix(1476253212, 0)}
+	info := bindataFileInfo{name: "data/total_bytes.mustache", size: 237, mode: os.FileMode(436), modTime: time.Unix(1476256960, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

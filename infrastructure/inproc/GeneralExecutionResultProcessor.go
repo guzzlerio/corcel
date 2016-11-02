@@ -26,6 +26,9 @@ func (instance GeneralExecutionResultProcessor) Process(result core.ExecutionRes
 	timer := metrics.GetOrRegisterTimer(core.DurationUrn.Timer().String(), registry)
 	timer.Update(obj.(time.Duration))
 
+	timerH := metrics.GetOrRegisterHistogram(core.DurationUrn.Histogram().String(), registry, metrics.NewUniformSample(100))
+	timerH.Update(int64(obj.(time.Duration)))
+
 	throughput := metrics.GetOrRegisterMeter(core.ThroughputUrn.Meter().String(), registry)
 	throughput.Mark(1)
 

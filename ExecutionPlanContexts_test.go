@@ -37,10 +37,10 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				planBuilder.
 					SetIterations(3).
 					WithContext(planBuilder.BuildContext().SetList("People", []map[string]interface{}{
-					{"name": "jill", "age": 35},
-					{"name": "bob", "age": 52},
-					{"name": "carol", "age": 24},
-				}).Build()).
+						{"name": "jill", "age": 35},
+						{"name": "bob", "age": 52},
+						{"name": "carol", "age": 24},
+					}).Build()).
 					CreateJob().
 					CreateStep().
 					ToExecuteAction(planBuilder.DummyAction().LogToFile(contextsDebugPath).Build())

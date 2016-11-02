@@ -2,22 +2,11 @@ language: go
 sudo: false
 
 go:
-   - 1.5
-
-env:
-   global:
-      - BUILD_GOARCH=amd64
-
-before_install:
-   - go get github.com/mitchellh/gox
-   - go get github.com/tcnksm/ghr
-
-after_success:
-   - bash ./ci/deploy-to-github.sh
+   - 1.7.1
+   - tip
 
 install:
    - go get -t -v ./...
 
 script:
-   - go build
-   - go test -v ./...
+   - make test

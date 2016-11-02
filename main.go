@@ -1,187 +1,55 @@
 package main
 
 import (
-	"errors"
-	"fmt"
-	"io/ioutil"
-	"math/rand"
-	"net/http"
-	"net/http/httputil"
 	"os"
-	"path/filepath"
-	"strings"
-	"sync"
-	"time"
 
-	log "github.com/Sirupsen/logrus"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/alecthomas/kingpin.v2"
+
+	"ci.guzzler.io/guzzler/corcel/cmd"
+	"ci.guzzler.io/guzzler/corcel/core"
+	"ci.guzzler.io/guzzler/corcel/infrastructure/http"
+	"ci.guzzler.io/guzzler/corcel/infrastructure/inproc"
+	"ci.guzzler.io/guzzler/corcel/logger"
+	"ci.guzzler.io/guzzler/corcel/serialisation/yaml"
 )
 
 var (
-	applicationVersion = "0.1.1-alpha"
-	//Log ...
-	Log *log.Logger
-	//RandomSource ...
-	RandomSource = rand.NewSource(time.Now().UnixNano())
-	//Random ...
-	Random = rand.New(RandomSource)
-	//ErrorMappings ...
-	ErrorMappings = map[string]ErrorCode{}
+	//Version is the application version - set with the ldflags
+	Version = ""
 )
 
-func check(err error) {
-	if err != nil {
-		for mapping, errorCode := range ErrorMappings {
-			if strings.Contains(fmt.Sprintf("%v", err), mapping) {
-				fmt.Println(errorCode.Message)
-				os.Exit(errorCode.Code)
-			}
-		}
-		Log.Fatalf("UNKNOWN ERROR: %v", err)
-	}
-}
-
-//ConfigureLogging ...
-func ConfigureLogging(config *Configuration) {
-	Log = log.New()
-	Log.Level = config.LogLevel
-	//TODO probably have another ticket to support outputting logs to a file
-	//Log.Formatter = config.Logging.Formatter
-}
-
-//ExecuteRequest ...
-func ExecuteRequest(client *http.Client, stats *Statistics, request *http.Request) {
-	Log.Infof("%s to %s", request.Method, request.URL)
-	start := time.Now()
-	response, responseError := client.Do(request)
-	duration := time.Since(start) / time.Millisecond
-	check(responseError)
-
-	defer func() {
-		err := response.Body.Close()
-		if err != nil {
-			Log.Warnf("Error closing response Body %v", err)
-		}
-	}()
-	responseBytes, _ := httputil.DumpResponse(response, true)
-	stats.BytesReceived(int64(len(responseBytes)))
-	if response.StatusCode >= 400 && response.StatusCode < 600 {
-		responseError = errors.New("5XX Response Code")
-	}
-
-	stats.ResponseTime(int64(duration))
-	requestBytes, _ := httputil.DumpRequest(request, true)
-	stats.BytesSent(int64(len(requestBytes)))
-	stats.Request(responseError)
-}
-
-//Execute ...
-func Execute(config *Configuration, stats *Statistics) {
-	var waitGroup sync.WaitGroup
-
-	reader := NewRequestReader(config.FilePath)
-
-	for i := 0; i < config.Workers; i++ {
-		waitGroup.Add(1)
-		go func() {
-			defer func() { //catch or finally
-				if err := recover(); err != nil { //catch
-					if strings.Contains(fmt.Sprintf("%v", err), "too many open files") {
-						Log.Fatalf("Too many workers man!")
-					} else {
-						Log.Fatalf("UNKNOWN ERROR: %v", err)
-					}
-				}
-			}()
-			client := &http.Client{
-				Transport: &http.Transport{
-					MaxIdleConnsPerHost: 50,
-				},
-			}
-			var stream RequestStream
-
-			if config.Random {
-				stream = NewRandomRequestStream(reader)
-			} else {
-				stream = NewSequentialRequestStream(reader)
-			}
-			if config.Duration > 0 {
-				stream = NewTimeBasedRequestStream(stream, config.Duration)
-			}
-			for stream.HasNext() {
-				request, err := stream.Next()
-				check(err)
-				ExecuteRequest(client, stats, request)
-
-				time.Sleep(config.WaitTime)
-			}
-			waitGroup.Done()
-		}()
-	}
-
-	waitGroup.Wait()
-}
-
-//GenerateExecutionOutput ...
-func GenerateExecutionOutput(file string, stats *Statistics) {
-	outputPath, err := filepath.Abs(file)
-	check(err)
-	output := stats.ExecutionOutput()
-	yamlOutput, err := yaml.Marshal(&output)
-	check(err)
-	err = ioutil.WriteFile(outputPath, yamlOutput, 0644)
-	check(err)
-}
-
-//OutputSummary ...
-func OutputSummary(stats *Statistics) {
-	output := stats.ExecutionOutput()
-	fmt.Println(fmt.Sprintf("Running Time: %g s", output.Summary.RunningTime/1000))
-	fmt.Println(fmt.Sprintf("Throughput: %v req/s", int64(output.Summary.Requests.Rate)))
-	fmt.Println(fmt.Sprintf("Total Requests: %v", output.Summary.Requests.Total))
-	fmt.Println(fmt.Sprintf("Number of Errors: %v", output.Summary.Requests.Errors))
-	fmt.Println(fmt.Sprintf("Availability: %v%%", output.Summary.Requests.Availability*100))
-	fmt.Println(fmt.Sprintf("Bytes Sent: %v", output.Summary.Bytes.Sent.Sum))
-	fmt.Println(fmt.Sprintf("Bytes Received: %v", output.Summary.Bytes.Received.Sum))
-	if output.Summary.ResponseTime.Mean > 0 {
-		fmt.Println(fmt.Sprintf("Mean Response Time: %.4v ms", output.Summary.ResponseTime.Mean))
-	} else {
-		fmt.Println(fmt.Sprintf("Mean Response Time: %v ms", output.Summary.ResponseTime.Mean))
-	}
-
-	fmt.Println(fmt.Sprintf("Min Response Time: %v ms", output.Summary.ResponseTime.Min))
-	fmt.Println(fmt.Sprintf("Max Response Time: %v ms", output.Summary.ResponseTime.Max))
-}
-
 func main() {
-	config, err := ParseConfiguration(os.Args[1:])
-	check(err)
+	logger.Initialise()
 
-	configureErrorMappings()
-	ConfigureLogging(config)
+	//TODO: This is not as efficient as it could be for example:
+	//Ideally we would only add the HTTP result processor IF an HTTP Action was used
+	//Currently every result processor needs to be added.
+	//TODO add a ScanForActions .ScanForAssertions .ScanForProcessors .ScanForExtractors .ScanForContexts
+	registry := core.CreateRegistry().
+		AddActionParser(inproc.YamlDummyActionParser{}).
+		AddActionParser(http.YamlHTTPRequestParser{}).
+		AddAssertionParser(yaml.ExactAssertionParser{}).
+		AddAssertionParser(yaml.NotEqualAssertionParser{}).
+		AddAssertionParser(yaml.EmptyAssertionParser{}).
+		AddAssertionParser(yaml.NotEmptyAssertionParser{}).
+		AddAssertionParser(yaml.GreaterThanAssertionParser{}).
+		AddAssertionParser(yaml.GreaterThanOrEqualAssertionParser{}).
+		AddAssertionParser(yaml.LessThanAssertionParser{}).
+		AddAssertionParser(yaml.LessThanOrEqualAssertionParser{}).
+		AddResultProcessor(http.NewExecutionResultProcessor()).
+		AddResultProcessor(inproc.NewGeneralExecutionResultProcessor()).
+		AddExtractorParser(yaml.RegexExtractorParser{}).
+		AddExtractorParser(yaml.XPathExtractorParser{}).
+		AddExtractorParser(yaml.JSONPathExtractorParser{})
 
-	absolutePath, err := filepath.Abs(config.FilePath)
-	check(err)
-	file, err := os.Open(absolutePath)
-	defer func() {
-		err := file.Close()
-		if err != nil {
-			Log.Printf("Error closing file %v", err)
-		}
-	}()
-	check(err)
+	//kingpin.UsageTemplate(kingpin.CompactUsageTemplate)
+	kingpin.CommandLine.Help = "An example implementation of curl."
+	app := kingpin.New("corcel", "").Version(Version).Author("Andrew Rea").Author("James Allen")
+	app.HelpFlag.Short('h')
+	app.UsageTemplate(kingpin.LongHelpTemplate)
 
-	stats := CreateStatistics()
-	stats.Start()
+	cmd.NewRunCommand(app, &registry)
+	cmd.NewServerCommand(app, &registry)
 
-	Execute(config, stats)
-
-	stats.Stop()
-
-	check(err)
-	GenerateExecutionOutput("./output.yml", stats)
-
-	if config.Summary {
-		OutputSummary(stats)
-	}
+	kingpin.MustParse(app.Parse(os.Args[1:]))
 }

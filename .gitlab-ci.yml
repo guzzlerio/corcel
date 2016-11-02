@@ -1,15 +1,39 @@
-image: golang:1.5.1
+image: golang:1.6
 
 before_script:
-    - cp -r ../../guzzler $GOPATH/src
-    - cd $GOPATH/src/guzzler/corcel
+  - mkdir -p $GOPATH/src/ci.guzzler.io/guzzler
+  - cp -r ../../guzzler $GOPATH/src/ci.guzzler.io
+  - cd $GOPATH/src/ci.guzzler.io/guzzler/corcel
 
 stages:
-    - build
+  - build
+  - deploy
 
-job1:
-    stage: build
-    script:
-        - go get -t
-        - go build
-        - go test -cover
+create_binaries:
+  stage: build
+  script:
+    - make install
+    - make build
+    - make test
+
+upload_artefacts:
+  stage: deploy
+  script:
+    - go get -t ./...
+    - go get github.com/mattn/go-isatty
+    - go get github.com/mitchellh/gox
+    - gox -os="linux windows darwin" -arch="amd64" -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
+    - bash ./ci/deploy-binaries.sh dist false
+  only:
+    - tags
+
+upload_latest_artefacts:
+  stage: deploy
+  script:
+    - go get -t ./...
+    - go get github.com/mattn/go-isatty
+    - go get github.com/mitchellh/gox
+    - gox -os="linux windows darwin" -arch="amd64" -output "latest_dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
+    - bash ./ci/deploy-binaries.sh latest_dist true
+  only:
+    - develop

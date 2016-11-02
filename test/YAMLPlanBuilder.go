@@ -158,6 +158,6 @@ func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 }
 
 //HTTPAction ...
-func (instance YamlPlanBuilder) HTTPAction() http.HTTPRequestBuilder {
+func (instance YamlPlanBuilder) HTTPAction() http.RequestBuilder {
 	return http.NewHTTPRequestBuilder()
 }

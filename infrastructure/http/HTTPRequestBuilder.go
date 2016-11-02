@@ -1,8 +1,8 @@
 package http
 
 //NewHTTPRequestBuilder ...
-func NewHTTPRequestBuilder() HTTPRequestBuilder {
-	return HTTPRequestBuilder{
+func NewHTTPRequestBuilder() RequestBuilder {
+	return RequestBuilder{
 		data: map[string]interface{}{
 			"type":        "HttpRequest",
 			"method":      "GET",
@@ -12,42 +12,42 @@ func NewHTTPRequestBuilder() HTTPRequestBuilder {
 	}
 }
 
-//HTTPRequestBuilder ...
-type HTTPRequestBuilder struct {
+//RequestBuilder ...
+type RequestBuilder struct {
 	data map[string]interface{}
 }
 
 //Timeout ...
-func (instance HTTPRequestBuilder) Timeout(value int) HTTPRequestBuilder {
+func (instance RequestBuilder) Timeout(value int) RequestBuilder {
 	instance.data["requestTimeout"] = value
 	return instance
 }
 
 //Method ...
-func (instance HTTPRequestBuilder) Method(value string) HTTPRequestBuilder {
+func (instance RequestBuilder) Method(value string) RequestBuilder {
 	instance.data["method"] = value
 	return instance
 }
 
 //URL ...
-func (instance HTTPRequestBuilder) URL(value string) HTTPRequestBuilder {
+func (instance RequestBuilder) URL(value string) RequestBuilder {
 	instance.data["url"] = value
 	return instance
 }
 
 //Header ...
-func (instance HTTPRequestBuilder) Header(key string, value string) HTTPRequestBuilder {
+func (instance RequestBuilder) Header(key string, value string) RequestBuilder {
 	instance.data["httpHeaders"].(map[string]string)[key] = value
 	return instance
 }
 
 //Body ...
-func (instance HTTPRequestBuilder) Body(value string) HTTPRequestBuilder {
+func (instance RequestBuilder) Body(value string) RequestBuilder {
 	instance.data["body"] = value
 	return instance
 }
 
 //Build ...
-func (instance HTTPRequestBuilder) Build() map[string]interface{} {
+func (instance RequestBuilder) Build() map[string]interface{} {
 	return instance.data
 }

@@ -15,6 +15,7 @@ import (
 	"ci.guzzler.io/guzzler/corcel/core"
 	"ci.guzzler.io/guzzler/corcel/errormanager"
 	"ci.guzzler.io/guzzler/corcel/logger"
+	"ci.guzzler.io/guzzler/corcel/report"
 	"ci.guzzler.io/guzzler/corcel/statistics"
 )
 
@@ -85,6 +86,9 @@ func (instance *RunCommand) run(c *kingpin.ParseContext) error {
 
 	addExecutionToHistory("./history.yml", output)
 
+	reporter := report.CreateHTMLReporter()
+	reporter.Generate(output)
+
 	if configuration.Summary {
 		outputSummary(output)
 	}
@@ -136,8 +140,8 @@ func outputSummary(snapshot statistics.AggregatorSnapShot) {
 	line(os.Stdout, "Total Requests", fmt.Sprintf("%-.0f", summary.TotalRequests))
 	line(os.Stdout, "Number of Errors", fmt.Sprintf("%-.0f", summary.TotalErrors))
 	line(os.Stdout, "Availability", fmt.Sprintf("%-.4f%%", summary.Availability))
-	line(os.Stdout, "Bytes Sent", fmt.Sprintf("%v", humanize.Bytes(uint64(summary.TotalBytesSent))))
-	line(os.Stdout, "Bytes Received", fmt.Sprintf("%v", humanize.Bytes(uint64(summary.TotalBytesReceived))))
+	line(os.Stdout, "Bytes Sent", fmt.Sprintf("%v", humanize.Bytes(uint64(summary.Bytes.TotalSent))))
+	line(os.Stdout, "Bytes Received", fmt.Sprintf("%v", humanize.Bytes(uint64(summary.Bytes.TotalReceived))))
 	line(os.Stdout, "Mean Response Time", fmt.Sprintf("%.4f ms", summary.MeanResponseTime))
 	line(os.Stdout, "Min Response Time", fmt.Sprintf("%.4f ms", summary.MinResponseTime))
 	line(os.Stdout, "Max Response Time", fmt.Sprintf("%.4f ms", summary.MaxResponseTime))

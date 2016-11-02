@@ -1,5 +1,7 @@
 package main
 
+import "ci.guzzler.io/guzzler/corcel/infrastructure/http"
+
 //GetPathRequest ...
 func GetHTTPRequestAction(url string) map[string]interface{} {
 	return map[string]interface{}{
@@ -17,7 +19,7 @@ func GetHTTPRequestAction(url string) map[string]interface{} {
 func HTTPStatusExactAssertion(code int) map[string]interface{} {
 	return map[string]interface{}{
 		"type":     "ExactAssertion",
-		"key":      "http:response:status",
+		"key":      http.ResponseStatusUrn.String(),
 		"expected": code,
 	}
 }

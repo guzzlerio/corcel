@@ -1,73 +1,62 @@
 package http
 
 import (
-	"fmt"
 	"time"
 
 	"ci.guzzler.io/guzzler/corcel/core"
+	"ci.guzzler.io/guzzler/corcel/statistics"
 
 	"github.com/rcrowley/go-metrics"
 )
 
-//NewHTTPExecutionResultProcessor ...
-func NewHTTPExecutionResultProcessor() HTTPExecutionResultProcessor {
-	return HTTPExecutionResultProcessor{}
+//NewExecutionResultProcessor ...
+func NewExecutionResultProcessor() ExecutionResultProcessor {
+	return ExecutionResultProcessor{}
 }
 
-//HTTPExecutionResultProcessor ...
-type HTTPExecutionResultProcessor struct {
+//ExecutionResultProcessor ...
+type ExecutionResultProcessor struct {
 }
 
 //Process ...
-func (instance HTTPExecutionResultProcessor) Process(result core.ExecutionResult, registry metrics.Registry) {
+func (instance ExecutionResultProcessor) Process(result core.ExecutionResult, registry metrics.Registry) {
+
+	url := result[RequestURLUrn.String()]
 	for key, value := range result {
 		switch key {
-		case "http:request:error":
-			meter := metrics.GetOrRegisterMeter("http:request:error", registry)
+		case RequestErrorUrn.String():
+			meter := metrics.GetOrRegisterMeter(RequestErrorUrn.Meter().String(), registry)
 			meter.Mark(1)
 
-			url := result["http:request:url"]
-
-			byURLRegistry := metrics.NewPrefixedChildRegistry(registry, fmt.Sprintf("byURL:%s:", url))
-			byURLmeter := metrics.GetOrRegisterMeter("http:request:error", byURLRegistry)
+			byURLmeter := metrics.GetOrRegisterMeter(RequestErrorUrn.Name("urls", url).Meter().String(), registry)
 			byURLmeter.Mark(1)
 
-		case "http:response:error":
-			meter := metrics.GetOrRegisterMeter("http:response:error", registry)
+		case ResponseErrorUrn.String():
+			meter := metrics.GetOrRegisterMeter(ResponseErrorUrn.Meter().String(), registry)
 			meter.Mark(1)
 
-			url := result["http:request:url"]
-			byURLRegistry := metrics.NewPrefixedChildRegistry(registry, fmt.Sprintf("byURL:%s:", url))
-			byURLmeter := metrics.GetOrRegisterMeter("http:response:error", byURLRegistry)
+			byURLmeter := metrics.GetOrRegisterMeter(ResponseErrorUrn.Name("urls", url).Meter().String(), registry)
 			byURLmeter.Mark(1)
 
-		case "http:request:bytes":
-			url := result["http:request:url"]
-			byURLRegistry := metrics.NewPrefixedChildRegistry(registry, fmt.Sprintf("byURL:%s:", url))
-			byURLHistogram := metrics.GetOrRegisterHistogram("http:request:bytes", byURLRegistry, metrics.NewUniformSample(100))
+		case core.BytesSentCountUrn.String():
+			byURLHistogram := metrics.GetOrRegisterHistogram(RequestBytesUrn.Histogram().String(), registry, metrics.NewUniformSample(100))
 			byURLHistogram.Update(int64(value.(int)))
 
-		case "http:response:bytes":
-			url := result["http:request:url"]
-			byURLRegistry := metrics.NewPrefixedChildRegistry(registry, fmt.Sprintf("byURL:%s:", url))
-			byURLHistogram := metrics.GetOrRegisterHistogram("http:response:bytes", byURLRegistry, metrics.NewUniformSample(100))
+		case core.BytesReceivedCountUrn.String():
+			byURLHistogram := metrics.GetOrRegisterHistogram(ResponseBytesUrn.Histogram().String(), registry, metrics.NewUniformSample(100))
 			byURLHistogram.Update(int64(value.(int)))
 
-		case "http:response:status":
+		case ResponseStatusUrn.String():
 			statusCode := value.(int)
-			url := result["http:request:url"]
-			counter := metrics.GetOrRegisterCounter(fmt.Sprintf("http:response:status:%d", statusCode), registry)
-			counter.Inc(1)
+			statistics.IncrementCounter(registry, ResponseStatusUrn.Name(statusCode).Counter().String(), 1)
 
-			byURLRegistry := metrics.NewPrefixedChildRegistry(registry, fmt.Sprintf("byURL:%s:", url))
-			byURLCounter := metrics.GetOrRegisterCounter(fmt.Sprintf("http:response:status:%d", statusCode), byURLRegistry)
-			byURLCounter.Inc(1)
+			statistics.IncrementCounter(registry, ResponseStatusUrn.Name("urls", url, statusCode).Counter().String(), 1)
 
-			obj := result["action:duration"]
-			timer := metrics.GetOrRegisterTimer(fmt.Sprintf("http:response:status:%d:duration", statusCode), registry)
+			obj := result[core.DurationUrn.String()]
+			timer := metrics.GetOrRegisterTimer(ResponseStatusUrn.Name(statusCode).Timer().String(), registry)
 			timer.Update(obj.(time.Duration))
 
-			byURLTimer := metrics.GetOrRegisterTimer(fmt.Sprintf("http:response:status:%d:duration", statusCode), byURLRegistry)
+			byURLTimer := metrics.GetOrRegisterTimer(ResponseStatusUrn.Name("urls", url, statusCode).Timer().String(), registry)
 			byURLTimer.Update(obj.(time.Duration))
 		}
 	}

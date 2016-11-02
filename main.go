@@ -36,7 +36,7 @@ func main() {
 		AddAssertionParser(yaml.GreaterThanOrEqualAssertionParser{}).
 		AddAssertionParser(yaml.LessThanAssertionParser{}).
 		AddAssertionParser(yaml.LessThanOrEqualAssertionParser{}).
-		AddResultProcessor(http.NewHTTPExecutionResultProcessor()).
+		AddResultProcessor(http.NewExecutionResultProcessor()).
 		AddResultProcessor(inproc.NewGeneralExecutionResultProcessor()).
 		AddExtractorParser(yaml.RegexExtractorParser{}).
 		AddExtractorParser(yaml.XPathExtractorParser{}).

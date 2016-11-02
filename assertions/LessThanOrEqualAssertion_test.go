@@ -42,8 +42,8 @@ var _ = Describe("LessThanOrEqualAssertion", func() {
 			}
 
 			result := assertion.Assert(executionResult)
-			Expect(result["result"]).To(Equal(true))
-			Expect(result["message"]).To(BeNil())
+			Expect(result[core.AssertionResultUrn.String()]).To(Equal(true))
+			Expect(result[core.AssertionMessageUrn.String()]).To(BeNil())
 		})
 	})
 
@@ -85,8 +85,8 @@ var _ = Describe("LessThanOrEqualAssertion", func() {
 			}
 
 			result := assertion.Assert(executionResult)
-			Expect(result["result"]).To(Equal(false))
-			Expect(result["message"]).To(Equal(fmt.Sprintf("FAIL: %v is not greater %v", actualValue, instanceValue)))
+			Expect(result[core.AssertionResultUrn.String()]).To(Equal(false))
+			Expect(result[core.AssertionMessageUrn.String()]).To(Equal(fmt.Sprintf("FAIL: %v is not greater %v", actualValue, instanceValue)))
 		})
 	})
 })

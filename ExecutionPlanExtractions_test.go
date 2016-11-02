@@ -74,9 +74,9 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 						CreateStep().
 						ToExecuteAction(planBuilder.DummyAction().Set("value:1", "talula 123 bang bang").Build()).
 						WithExtractor(planBuilder.RegexExtractor().
-						Name("regex:match:1").
-						Key("value:1").Match("\\d+").
-						Scope(core.JobScope).Build())
+							Name("regex:match:1").
+							Key("value:1").Match("\\d+").
+							Scope(core.JobScope).Build())
 					jobBuilder.
 						CreateStep().
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
@@ -101,8 +101,8 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 						CreateStep().
 						ToExecuteAction(planBuilder.DummyAction().Set("value:1", "talula 123 bang bang").Build()).
 						WithExtractor(planBuilder.RegexExtractor().
-						Name("regex:match:1").
-						Key("value:1").Match("\\d+").Build())
+							Name("regex:match:1").
+							Key("value:1").Match("\\d+").Build())
 					jobBuilder.
 						CreateStep().
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
@@ -129,9 +129,9 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 						CreateStep().
 						ToExecuteAction(planBuilder.DummyAction().Set("value:1", "talula 123 bang bang").Build()).
 						WithExtractor(planBuilder.RegexExtractor().
-						Name("regex:match:1").
-						Key("value:1").Match("\\d+").
-						Scope(core.PlanScope).Build())
+							Name("regex:match:1").
+							Key("value:1").Match("\\d+").
+							Scope(core.PlanScope).Build())
 
 					planBuilder.
 						CreateJob().
@@ -157,8 +157,8 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 						CreateStep().
 						ToExecuteAction(planBuilder.DummyAction().Set("value:1", "talula 123 bang bang").Build()).
 						WithExtractor(planBuilder.RegexExtractor().
-						Name("regex:match:1").
-						Key("value:1").Match("\\d+").Build())
+							Name("regex:match:1").
+							Key("value:1").Match("\\d+").Build())
 
 					planBuilder.
 						CreateJob().

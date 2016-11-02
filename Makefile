@@ -4,8 +4,20 @@ all: clean build lint test
 clean:
 	go clean
 
-build: clean
+gen:
+	if [ -d "corcel-reports-workbench" ]; then \
+		(cd corcel-reports-workbench && git pull) \
+	else \
+		git clone git@ci.guzzler.io:guzzler/corcel-reports-workbench.git; \
+	fi
+	cd corcel-reports-workbench && npm install -d && npm install gulp && npm install -g gulp-cli && gulp && cp out/index.html ../report/data/corcel.layout.mustache.html
+
+
+build: clean 
 	#version=`grep -Po "(?<=version=)[0-9.]+" version`
+	go get -u github.com/jteeuwen/go-bindata/...
+	go get ./...
+	(cd report && go-bindata -pkg report data)
 	go build -ldflags="-X main.Version=${version}"
 
 test: build lint
@@ -32,7 +44,17 @@ ui: install
 	(cd ui && npm install -d && gulp)
 	go-bindata -o ui.generated.go ui/public/...
 
+run_5: build
+	go build && ./corcel run --summary --progress bar --workers 1 --duration 5s --plan .resources/sample-plan.yml
+
+run_15: build
+	go build && ./corcel run --summary --progress bar --workers 1 --duration 15s --plan .resources/sample-plan.yml
+
+run_30: build
+	go build && ./corcel run --summary --progress bar --workers 1 --duration 30s --plan .resources/sample-plan.yml
+
 demo: build
-	corcel run --progress bar --summary --duration 10s --plan .resources/sample-plan.yml
+	bash ./scripts/demo.sh
+
 
 .PHONY: clean build lint test install ui dist dist_linux demo

@@ -22,8 +22,8 @@ var _ = Describe("ExactAssertion", func() {
 		}
 
 		result := assertion.Assert(executionResult)
-		Expect(result["result"]).To(Equal(true))
-		Expect(result["message"]).To(BeNil())
+		Expect(result[core.AssertionResultUrn.String()]).To(Equal(true))
+		Expect(result[core.AssertionMessageUrn.String()]).To(BeNil())
 	})
 
 	It("Exact Assertion Fails", func() {
@@ -39,8 +39,8 @@ var _ = Describe("ExactAssertion", func() {
 		}
 
 		result := assertion.Assert(executionResult)
-		Expect(result["result"]).To(Equal(false))
-		Expect(result["message"]).To(Equal("FAIL: 8 does not match 7"))
+		Expect(result[core.AssertionResultUrn.String()]).To(Equal(false))
+		Expect(result[core.AssertionMessageUrn.String()]).To(Equal("FAIL: 8 does not match 7"))
 	})
 
 	//NOTHING is currently using the message when an assertion fails but we will need
@@ -63,8 +63,8 @@ var _ = Describe("ExactAssertion", func() {
 			}
 
 			result := assertion.Assert(executionResult)
-			Expect(result["result"]).To(Equal(false))
-			Expect(result["message"]).To(Equal("FAIL: \"7\" does not match 7"))
+			Expect(result[core.AssertionResultUrn.String()]).To(Equal(false))
+			Expect(result[core.AssertionMessageUrn.String()]).To(Equal("FAIL: \"7\" does not match 7"))
 		})
 	*/
 })

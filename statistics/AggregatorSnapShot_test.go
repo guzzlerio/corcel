@@ -55,7 +55,7 @@ var _ = Describe("AggregatorSnapShot", func() {
 	It("Updates an empty snap shot histograms", func() {
 		key := "h:key"
 		subKey := "h:subkey"
-		value := float64(103.1)
+		value := int64(103)
 
 		timeStamp := time.Now().UnixNano()
 		subjectSnapShot.updateHistogram(key, subKey, value)
@@ -142,10 +142,10 @@ var _ = Describe("AggregatorSnapShot", func() {
 			count := 10
 			key := "h:key"
 			subKey := "h:subkey"
-			targetSnapShot.updateHistogram(key, subKey, float64(0))
+			targetSnapShot.updateHistogram(key, subKey, int64(0))
 			targetSnapShot.updateTime(time.Now().UnixNano())
 			for i := 0; i < count; i++ {
-				subjectSnapShot.updateHistogram(key, subKey, float64(i+1))
+				subjectSnapShot.updateHistogram(key, subKey, int64(i+1))
 				subjectSnapShot.updateTime(time.Now().UnixNano())
 			}
 			targetSnapShot.Update(*subjectSnapShot)

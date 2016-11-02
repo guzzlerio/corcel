@@ -158,8 +158,8 @@ var _ = Describe("Main", func() {
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Total Requests: %v", summary.TotalRequests)))
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Number of Errors: %v", summary.TotalErrors)))
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Availability: %v.0000%%", summary.Availability)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Bytes Sent: %v", summary.TotalBytesSent)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Bytes Received: %v", summary.TotalBytesReceived)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Bytes Sent: %v", summary.Bytes.TotalSent)))
+		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Bytes Received: %v", summary.Bytes.TotalReceived)))
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Mean Response Time: %.4f", summary.MeanResponseTime)))
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Min Response Time: %.4f ms", summary.MinResponseTime)))
 		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Max Response Time: %.4f ms", summary.MaxResponseTime)))
@@ -287,10 +287,10 @@ var _ = Describe("Main", func() {
 		UnmarshalYamlFromFile("./output.yml", &executionOutput)
 		var summary = statistics.CreateSummary(executionOutput)
 
-		Expect(summary.TotalBytesSent).To(BeNumerically(">", 0))
+		Expect(summary.Bytes.TotalSent).To(BeNumerically(">", 0))
 
-		Expect(summary.TotalBytesSent).To(BeNumerically(">", 0))
-		Expect(summary.TotalBytesReceived).To(BeNumerically(">", 0))
+		Expect(summary.Bytes.TotalSent).To(BeNumerically(">", 0))
+		Expect(summary.Bytes.TotalReceived).To(BeNumerically(">", 0))
 	})
 
 	Describe("Support sending data with http request", func() {

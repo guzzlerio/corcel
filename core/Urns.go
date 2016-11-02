@@ -1,0 +1,39 @@
+package core
+
+var (
+	//ErrorUrn ...
+	ErrorUrn = NewActionUrn().Name("error")
+
+	//DurationUrn ...
+	DurationUrn = NewActionUrn().Name("duration")
+
+	//ThroughputUrn ...
+	ThroughputUrn = NewActionUrn().Name("throughput")
+
+	//BytesSentCountUrn ...
+	BytesSentCountUrn = NewActionUrn().Name("bytes", "sent")
+
+	//BytesSentUrn ...
+	BytesSentUrn = NewActionUrn().Name("bytes", "sent", "content")
+
+	//BytesReceivedCountUrn ...
+	BytesReceivedCountUrn = NewActionUrn().Name("bytes", "received")
+
+	//BytesReceivedUrn ...
+	BytesReceivedUrn = NewActionUrn().Name("bytes", "received", "content")
+
+	//AssertionsUrn ...
+	AssertionsUrn = NewActionUrn().Name("assertions")
+
+	//AssertionsTotalUrn ...
+	AssertionsTotalUrn = AssertionsUrn.Name("total")
+
+	//AssertionsFailedUrn ...
+	AssertionsFailedUrn = AssertionsUrn.Name("failed")
+
+	//AssertionResultUrn ...
+	AssertionResultUrn = NewActionUrn().Name("assertion", "result")
+
+	//AssertionMessageUrn ...
+	AssertionMessageUrn = NewActionUrn().Name("assertion", "message")
+)

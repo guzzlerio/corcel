@@ -34,71 +34,71 @@ func (instance *GreaterThanAssertion) Assert(executionResult core.ExecutionResul
 	case float64:
 		switch instanceType := instance.Value.(type) {
 		case float64:
-			result["result"] = actualType > instanceType
+			result[core.AssertionResultUrn.String()] = actualType > instanceType
 			break
 		case int:
-			result["result"] = actualType > float64(instanceType)
+			result[core.AssertionResultUrn.String()] = actualType > float64(instanceType)
 			break
 		case string:
 			value, err := strconv.ParseFloat(instanceType, 64)
 			if err != nil {
-				result["result"] = false
+				result[core.AssertionResultUrn.String()] = false
 			} else {
-				result["result"] = actualType > value
+				result[core.AssertionResultUrn.String()] = actualType > value
 			}
 		default:
-			result["result"] = true
+			result[core.AssertionResultUrn.String()] = true
 		}
 	case int:
 		switch instanceType := instance.Value.(type) {
 		case float64:
-			result["result"] = float64(actualType) > instanceType
+			result[core.AssertionResultUrn.String()] = float64(actualType) > instanceType
 		case int:
-			result["result"] = actualType > instanceType
+			result[core.AssertionResultUrn.String()] = actualType > instanceType
 		case string:
 			value, err := strconv.ParseFloat(instanceType, 64)
 			if err != nil {
-				result["result"] = false
+				result[core.AssertionResultUrn.String()] = false
 			} else {
-				result["result"] = float64(actualType) > value
+				result[core.AssertionResultUrn.String()] = float64(actualType) > value
 			}
 		default:
-			result["result"] = true
+			result[core.AssertionResultUrn.String()] = true
 		}
 	case string:
 		switch instanceType := instance.Value.(type) {
 		case float64:
 			value, err := strconv.ParseFloat(actualType, 64)
 			if err != nil {
-				result["result"] = false
+				result[core.AssertionResultUrn.String()] = false
 			} else {
-				result["result"] = value > instanceType
+				result[core.AssertionResultUrn.String()] = value > instanceType
 			}
 		case int:
 			value, err := strconv.ParseFloat(actualType, 64)
 			if err != nil {
-				result["result"] = false
+				result[core.AssertionResultUrn.String()] = false
 			} else {
-				result["result"] = value > float64(instanceType)
+				result[core.AssertionResultUrn.String()] = value > float64(instanceType)
 			}
 		case string:
 			actualStrValue, actualStrErr := strconv.ParseFloat(actualType, 64)
 			instanceStrValue, instanceStrErr := strconv.ParseFloat(instanceType, 64)
 			if actualStrErr != nil && instanceStrErr != nil {
-				result["result"] = actualType > instanceType
+				result[core.AssertionResultUrn.String()] = actualType > instanceType
 			} else {
-				result["result"] = actualStrValue > instanceStrValue
+				result[core.AssertionResultUrn.String()] = actualStrValue > instanceStrValue
 			}
 		default:
-			result["result"] = true
+			result[core.AssertionResultUrn.String()] = true
 		}
 	default:
-		result["result"] = false
+		result[core.AssertionResultUrn.String()] = false
 
 	}
 
-	if result["result"].(bool) == false {
-		result["message"] = fmt.Sprintf("FAIL: %v is not greater %v", actual, instance.Value)
+	if result[core.AssertionResultUrn.String()].(bool) == false {
+		result[core.AssertionMessageUrn.String()] = fmt.Sprintf("FAIL: %v is not greater %v", actual, instance.Value)
 	}
 	return result
 }

@@ -21,8 +21,8 @@ var _ = Describe("NotEmptyAssertion", func() {
 		}
 
 		result := assertion.Assert(executionResult)
-		Expect(result["result"]).To(Equal(false))
-		Expect(result["message"]).To(Equal("FAIL: value is empty"))
+		Expect(result[core.AssertionResultUrn.String()]).To(Equal(false))
+		Expect(result[core.AssertionMessageUrn.String()]).To(Equal("FAIL: value is empty"))
 	})
 
 	It("Fails when empty string of whitespace", func() {
@@ -35,8 +35,8 @@ var _ = Describe("NotEmptyAssertion", func() {
 		}
 
 		result := assertion.Assert(executionResult)
-		Expect(result["result"]).To(Equal(false))
-		Expect(result["message"]).To(Equal("FAIL: value is empty"))
+		Expect(result[core.AssertionResultUrn.String()]).To(Equal(false))
+		Expect(result[core.AssertionMessageUrn.String()]).To(Equal("FAIL: value is empty"))
 	})
 
 	It("Fails when nil", func() {
@@ -47,8 +47,8 @@ var _ = Describe("NotEmptyAssertion", func() {
 		}
 
 		result := assertion.Assert(executionResult)
-		Expect(result["result"]).To(Equal(false))
-		Expect(result["message"]).To(Equal("FAIL: value is empty"))
+		Expect(result[core.AssertionResultUrn.String()]).To(Equal(false))
+		Expect(result[core.AssertionMessageUrn.String()]).To(Equal("FAIL: value is empty"))
 	})
 
 	It("Succeeds when value is not nil", func() {
@@ -62,7 +62,7 @@ var _ = Describe("NotEmptyAssertion", func() {
 		}
 
 		result := assertion.Assert(executionResult)
-		Expect(result["result"]).To(Equal(true))
-		Expect(result["message"]).To(BeNil())
+		Expect(result[core.AssertionResultUrn.String()]).To(Equal(true))
+		Expect(result[core.AssertionMessageUrn.String()]).To(BeNil())
 	})
 })

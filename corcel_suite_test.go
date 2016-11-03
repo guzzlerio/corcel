@@ -3,11 +3,11 @@ package main
 import (
 	"io/ioutil"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/guzzlerio/corcel/config"
 	"github.com/guzzlerio/corcel/global"
 	"github.com/guzzlerio/corcel/logger"
 	"github.com/guzzlerio/corcel/test"
-	"github.com/Sirupsen/logrus"
 	"github.com/guzzlerio/rizo"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

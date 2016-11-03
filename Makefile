@@ -16,8 +16,8 @@ gen:
 build: clean 
 	#version=`grep -Po "(?<=version=)[0-9.]+" version`
 	go get -u github.com/jteeuwen/go-bindata/...
-	go get ./...
 	(cd report && go-bindata -pkg report data)
+	go get ./...
 	go build -ldflags="-X main.Version=${version}"
 
 test: build lint

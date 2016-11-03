@@ -5,8 +5,5 @@ go:
    - 1.7.1
    - tip
 
-install:
-   - go get -t -v ./...
-
 script:
    - make test

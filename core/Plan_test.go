@@ -1,7 +1,7 @@
 package core_test
 
 import (
-	. "ci.guzzler.io/guzzler/corcel/core"
+	. "github.com/guzzlerio/corcel/core"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

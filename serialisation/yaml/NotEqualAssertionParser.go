@@ -1,8 +1,8 @@
 package yaml
 
 import (
-	"ci.guzzler.io/guzzler/corcel/assertions"
-	"ci.guzzler.io/guzzler/corcel/core"
+	"github.com/guzzlerio/corcel/assertions"
+	"github.com/guzzlerio/corcel/core"
 )
 
 //NotEqualAssertionParser ...

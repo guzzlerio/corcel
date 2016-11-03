@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"ci.guzzler.io/guzzler/corcel/test"
+	"github.com/guzzlerio/corcel/test"
 
 	"github.com/guzzlerio/rizo"
 	. "github.com/onsi/ginkgo"

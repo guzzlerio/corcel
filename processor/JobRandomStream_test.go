@@ -1,8 +1,8 @@
 package processor_test
 
 import (
-	"ci.guzzler.io/guzzler/corcel/core"
-	. "ci.guzzler.io/guzzler/corcel/processor"
+	"github.com/guzzlerio/corcel/core"
+	. "github.com/guzzlerio/corcel/processor"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

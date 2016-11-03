@@ -7,7 +7,7 @@ import (
 
 	"github.com/guzzlerio/rizo"
 
-	"ci.guzzler.io/guzzler/corcel/errormanager"
+	"github.com/guzzlerio/corcel/errormanager"
 )
 
 //HTTPRequestDo ...

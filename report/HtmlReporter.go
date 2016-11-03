@@ -9,7 +9,7 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/hoisie/mustache"
 
-	"ci.guzzler.io/guzzler/corcel/statistics"
+	"github.com/guzzlerio/corcel/statistics"
 )
 
 //GraphData ...

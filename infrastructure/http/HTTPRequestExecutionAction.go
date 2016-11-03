@@ -8,8 +8,8 @@ import (
 	"net/http/httputil"
 	"strings"
 
-	"ci.guzzler.io/guzzler/corcel/core"
-	"ci.guzzler.io/guzzler/corcel/logger"
+	"github.com/guzzlerio/corcel/core"
+	"github.com/guzzlerio/corcel/logger"
 )
 
 //Action ...

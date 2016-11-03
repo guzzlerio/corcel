@@ -1,6 +1,6 @@
 package processor
 
-import "ci.guzzler.io/guzzler/corcel/core"
+import "github.com/guzzlerio/corcel/core"
 
 //JobStream ...
 type JobStream interface {

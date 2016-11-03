@@ -1,6 +1,6 @@
 package main
 
-import "ci.guzzler.io/guzzler/corcel/infrastructure/http"
+import "github.com/guzzlerio/corcel/infrastructure/http"
 
 //GetPathRequest ...
 func GetHTTPRequestAction(url string) map[string]interface{} {

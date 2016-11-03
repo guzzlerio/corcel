@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	. "ci.guzzler.io/guzzler/corcel/utils"
+	. "github.com/guzzlerio/corcel/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

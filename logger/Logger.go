@@ -5,7 +5,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
-	"ci.guzzler.io/guzzler/corcel/config"
+	"github.com/guzzlerio/corcel/config"
 )
 
 var (

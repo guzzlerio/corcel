@@ -1,6 +1,6 @@
 package http
 
-import "ci.guzzler.io/guzzler/corcel/core"
+import "github.com/guzzlerio/corcel/core"
 
 var (
 	//RequestErrorUrn ...

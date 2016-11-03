@@ -1,6 +1,6 @@
 package test
 
-import "ci.guzzler.io/guzzler/corcel/serialisation/yaml"
+import "github.com/guzzlerio/corcel/serialisation/yaml"
 
 //YamlJobBuilder ...
 type YamlJobBuilder struct {

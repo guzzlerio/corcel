@@ -13,18 +13,20 @@ gen:
 	cd corcel-reports-workbench && npm install -d && npm install gulp && npm install -g gulp-cli && gulp && cp out/index.html ../report/data/corcel.layout.mustache.html
 
 
-build: clean 
+build: clean lint
 	#version=`grep -Po "(?<=version=)[0-9.]+" version`
 	go get -u github.com/jteeuwen/go-bindata/...
 	(cd report && go-bindata -pkg report data)
 	go get ./...
 	go build -ldflags="-X main.Version=${version}"
 
-test: build lint
+test: build 
 	ginkgo -cover -r --race -noisyPendings=false -slowSpecThreshold=10
 
 lint:
-	bash scripts/lint.sh
+	go get -u github.com/alecthomas/gometalinter
+	gometalinter --install
+	gometalinter -e "duplicate" -e "undeclared name: Asset"
 
 install:
 	go get -t ./...

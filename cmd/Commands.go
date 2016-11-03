@@ -11,12 +11,12 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 	yamlv2 "gopkg.in/yaml.v2"
 
-	"ci.guzzler.io/guzzler/corcel/config"
-	"ci.guzzler.io/guzzler/corcel/core"
-	"ci.guzzler.io/guzzler/corcel/errormanager"
-	"ci.guzzler.io/guzzler/corcel/logger"
-	"ci.guzzler.io/guzzler/corcel/report"
-	"ci.guzzler.io/guzzler/corcel/statistics"
+	"github.com/guzzlerio/corcel/config"
+	"github.com/guzzlerio/corcel/core"
+	"github.com/guzzlerio/corcel/errormanager"
+	"github.com/guzzlerio/corcel/logger"
+	"github.com/guzzlerio/corcel/report"
+	"github.com/guzzlerio/corcel/statistics"
 )
 
 // ServerCommand ...

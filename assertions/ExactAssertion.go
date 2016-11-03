@@ -3,7 +3,7 @@ package assertions
 import (
 	"fmt"
 
-	"ci.guzzler.io/guzzler/corcel/core"
+	"github.com/guzzlerio/corcel/core"
 )
 
 //ExactAssertion ...

@@ -1,6 +1,6 @@
 package inproc
 
-import "ci.guzzler.io/guzzler/corcel/core"
+import "github.com/guzzlerio/corcel/core"
 
 //YamlDummyActionParser ...
 type YamlDummyActionParser struct{}

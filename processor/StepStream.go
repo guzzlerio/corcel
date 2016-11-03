@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"time"
 
-	"ci.guzzler.io/guzzler/corcel/core"
+	"github.com/guzzlerio/corcel/core"
 )
 
 var (

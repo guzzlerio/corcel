@@ -3,7 +3,7 @@ package extractors
 import (
 	"regexp"
 
-	"ci.guzzler.io/guzzler/corcel/core"
+	"github.com/guzzlerio/corcel/core"
 )
 
 //RegexExtractor ...

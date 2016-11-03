@@ -18,11 +18,11 @@ import (
 
 	"github.com/guzzlerio/rizo"
 
-	"ci.guzzler.io/guzzler/corcel/errormanager"
-	"ci.guzzler.io/guzzler/corcel/global"
-	"ci.guzzler.io/guzzler/corcel/logger"
-	"ci.guzzler.io/guzzler/corcel/statistics"
-	. "ci.guzzler.io/guzzler/corcel/utils"
+	"github.com/guzzlerio/corcel/errormanager"
+	"github.com/guzzlerio/corcel/global"
+	"github.com/guzzlerio/corcel/logger"
+	"github.com/guzzlerio/corcel/statistics"
+	. "github.com/guzzlerio/corcel/utils"
 )
 
 func URLForTestServer(path string) string {

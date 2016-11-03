@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"ci.guzzler.io/guzzler/corcel/logger"
+	"github.com/guzzlerio/corcel/logger"
 )
 
 //ExecutePlanBuilder ...

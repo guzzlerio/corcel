@@ -1,8 +1,8 @@
 package yaml
 
 import (
-	"ci.guzzler.io/guzzler/corcel/core"
-	"ci.guzzler.io/guzzler/corcel/extractors"
+	"github.com/guzzlerio/corcel/core"
+	"github.com/guzzlerio/corcel/extractors"
 )
 
 //JSONPathExtractorParser ...

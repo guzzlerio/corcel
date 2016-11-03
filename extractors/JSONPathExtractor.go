@@ -5,7 +5,7 @@ import (
 
 	"github.com/NodePrime/jsonpath"
 
-	"ci.guzzler.io/guzzler/corcel/core"
+	"github.com/guzzlerio/corcel/core"
 )
 
 //JSONPathExtractor ...

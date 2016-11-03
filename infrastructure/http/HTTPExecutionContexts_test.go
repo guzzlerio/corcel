@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"ci.guzzler.io/guzzler/corcel/test"
+	"github.com/guzzlerio/corcel/test"
 
 	"github.com/guzzlerio/rizo"
 	. "github.com/onsi/ginkgo"

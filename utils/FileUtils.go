@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"ci.guzzler.io/guzzler/corcel/errormanager"
+	"github.com/guzzlerio/corcel/errormanager"
 	"gopkg.in/yaml.v2"
 )
 

@@ -6,9 +6,9 @@ import (
 	"path"
 	"time"
 
-	"ci.guzzler.io/guzzler/corcel/infrastructure/http"
-	"ci.guzzler.io/guzzler/corcel/serialisation/yaml"
-	"ci.guzzler.io/guzzler/corcel/utils"
+	"github.com/guzzlerio/corcel/infrastructure/http"
+	"github.com/guzzlerio/corcel/serialisation/yaml"
+	"github.com/guzzlerio/corcel/utils"
 
 	"github.com/satori/go.uuid"
 	yamlFormat "gopkg.in/yaml.v2"

@@ -10,10 +10,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"ci.guzzler.io/guzzler/corcel/global"
-	"ci.guzzler.io/guzzler/corcel/statistics"
-	"ci.guzzler.io/guzzler/corcel/test"
-	"ci.guzzler.io/guzzler/corcel/utils"
+	"github.com/guzzlerio/corcel/global"
+	"github.com/guzzlerio/corcel/statistics"
+	"github.com/guzzlerio/corcel/test"
+	"github.com/guzzlerio/corcel/utils"
 )
 
 var _ = Describe("ExecutionPlan", func() {

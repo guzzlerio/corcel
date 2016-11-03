@@ -3,8 +3,8 @@ package cmd
 import (
 	"github.com/gosuri/uiprogress"
 
-	"ci.guzzler.io/guzzler/corcel/config"
-	"ci.guzzler.io/guzzler/corcel/processor"
+	"github.com/guzzlerio/corcel/config"
+	"github.com/guzzlerio/corcel/processor"
 )
 
 //ConsoleProgressBar ...

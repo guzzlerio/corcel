@@ -18,6 +18,8 @@ build: clean lint generate
 	go build -ldflags="-X main.Version=${version}"
 
 test: build 
+	go get github.com/onsi/ginkgo/ginkgo
+	go get github.com/onsi/gomega
 	ginkgo -cover -r --race -noisyPendings=false -slowSpecThreshold=10
 
 generate:

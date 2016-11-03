@@ -28,7 +28,7 @@ lint: generate
 	go get -u github.com/alecthomas/gometalinter
 	go get ./...
 	gometalinter --install
-	gometalinter -e "duplicate" -e "undeclared name: Asset"
+	gometalinter -e "duplicate" -e "undeclared name: Asset" --deadline=30s
 
 dist: dist_linux
 

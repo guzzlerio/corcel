@@ -4,8 +4,8 @@ import (
 	"strings"
 	"time"
 
-	"ci.guzzler.io/guzzler/corcel/core"
-	"ci.guzzler.io/guzzler/corcel/statistics"
+	"github.com/guzzlerio/corcel/core"
+	"github.com/guzzlerio/corcel/statistics"
 	"github.com/rcrowley/go-metrics"
 )
 

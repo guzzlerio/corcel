@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"ci.guzzler.io/guzzler/corcel/core"
+	"github.com/guzzlerio/corcel/core"
 )
 
 //DummyAction ...

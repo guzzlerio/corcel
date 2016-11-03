@@ -12,10 +12,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"ci.guzzler.io/guzzler/corcel/errormanager"
-	"ci.guzzler.io/guzzler/corcel/logger"
-	"ci.guzzler.io/guzzler/corcel/statistics"
-	. "ci.guzzler.io/guzzler/corcel/utils"
+	"github.com/guzzlerio/corcel/errormanager"
+	"github.com/guzzlerio/corcel/logger"
+	"github.com/guzzlerio/corcel/statistics"
+	. "github.com/guzzlerio/corcel/utils"
 )
 
 var _ = Describe("Bugs replication", func() {

@@ -8,8 +8,8 @@ import (
 	"os"
 	"strings"
 
-	"ci.guzzler.io/guzzler/corcel/errormanager"
-	"ci.guzzler.io/guzzler/corcel/logger"
+	"github.com/guzzlerio/corcel/errormanager"
+	"github.com/guzzlerio/corcel/logger"
 )
 
 func check(err error) {

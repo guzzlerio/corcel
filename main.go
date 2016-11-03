@@ -5,12 +5,12 @@ import (
 
 	"gopkg.in/alecthomas/kingpin.v2"
 
-	"ci.guzzler.io/guzzler/corcel/cmd"
-	"ci.guzzler.io/guzzler/corcel/core"
-	"ci.guzzler.io/guzzler/corcel/infrastructure/http"
-	"ci.guzzler.io/guzzler/corcel/infrastructure/inproc"
-	"ci.guzzler.io/guzzler/corcel/logger"
-	"ci.guzzler.io/guzzler/corcel/serialisation/yaml"
+	"github.com/guzzlerio/corcel/cmd"
+	"github.com/guzzlerio/corcel/core"
+	"github.com/guzzlerio/corcel/infrastructure/http"
+	"github.com/guzzlerio/corcel/infrastructure/inproc"
+	"github.com/guzzlerio/corcel/logger"
+	"github.com/guzzlerio/corcel/serialisation/yaml"
 )
 
 var (

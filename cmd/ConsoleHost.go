@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"ci.guzzler.io/guzzler/corcel/config"
-	"ci.guzzler.io/guzzler/corcel/core"
-	"ci.guzzler.io/guzzler/corcel/processor"
+	"github.com/guzzlerio/corcel/config"
+	"github.com/guzzlerio/corcel/core"
+	"github.com/guzzlerio/corcel/processor"
 )
 
 // ConsoleHost ...

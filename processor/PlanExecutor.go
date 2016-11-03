@@ -4,9 +4,9 @@ import (
 	"sync"
 	"time"
 
-	"ci.guzzler.io/guzzler/corcel/config"
-	"ci.guzzler.io/guzzler/corcel/core"
-	"ci.guzzler.io/guzzler/corcel/errormanager"
+	"github.com/guzzlerio/corcel/config"
+	"github.com/guzzlerio/corcel/core"
+	"github.com/guzzlerio/corcel/errormanager"
 
 	"github.com/REAANDREW/telegraph"
 )

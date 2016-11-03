@@ -7,13 +7,13 @@ import (
 
 	"github.com/rcrowley/go-metrics"
 
-	"ci.guzzler.io/guzzler/corcel/config"
-	"ci.guzzler.io/guzzler/corcel/core"
-	"ci.guzzler.io/guzzler/corcel/errormanager"
-	"ci.guzzler.io/guzzler/corcel/infrastructure/http"
-	"ci.guzzler.io/guzzler/corcel/request"
-	"ci.guzzler.io/guzzler/corcel/serialisation/yaml"
-	"ci.guzzler.io/guzzler/corcel/statistics"
+	"github.com/guzzlerio/corcel/config"
+	"github.com/guzzlerio/corcel/core"
+	"github.com/guzzlerio/corcel/errormanager"
+	"github.com/guzzlerio/corcel/infrastructure/http"
+	"github.com/guzzlerio/corcel/request"
+	"github.com/guzzlerio/corcel/serialisation/yaml"
+	"github.com/guzzlerio/corcel/statistics"
 )
 
 // Control ...

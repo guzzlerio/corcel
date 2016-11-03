@@ -3,10 +3,10 @@ package main
 import (
 	"io/ioutil"
 
-	"ci.guzzler.io/guzzler/corcel/config"
-	"ci.guzzler.io/guzzler/corcel/global"
-	"ci.guzzler.io/guzzler/corcel/logger"
-	"ci.guzzler.io/guzzler/corcel/test"
+	"github.com/guzzlerio/corcel/config"
+	"github.com/guzzlerio/corcel/global"
+	"github.com/guzzlerio/corcel/logger"
+	"github.com/guzzlerio/corcel/test"
 	"github.com/Sirupsen/logrus"
 	"github.com/guzzlerio/rizo"
 	. "github.com/onsi/ginkgo"

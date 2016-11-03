@@ -3,7 +3,7 @@ package http
 import (
 	"net/http"
 
-	"ci.guzzler.io/guzzler/corcel/core"
+	"github.com/guzzlerio/corcel/core"
 )
 
 //YamlHTTPRequestParser ...

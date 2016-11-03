@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"ci.guzzler.io/guzzler/corcel/global"
+	"github.com/guzzlerio/corcel/global"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

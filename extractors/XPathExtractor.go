@@ -6,7 +6,7 @@ import (
 
 	"gopkg.in/xmlpath.v2"
 
-	"ci.guzzler.io/guzzler/corcel/core"
+	"github.com/guzzlerio/corcel/core"
 )
 
 //XPathExtractor ...

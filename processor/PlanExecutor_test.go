@@ -8,9 +8,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"ci.guzzler.io/guzzler/corcel/config"
-	"ci.guzzler.io/guzzler/corcel/logger"
-	. "ci.guzzler.io/guzzler/corcel/utils"
+	"github.com/guzzlerio/corcel/config"
+	"github.com/guzzlerio/corcel/logger"
+	. "github.com/guzzlerio/corcel/utils"
 )
 
 //NullProgressBar ...

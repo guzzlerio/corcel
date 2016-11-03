@@ -13,28 +13,22 @@ gen:
 	cd corcel-reports-workbench && npm install -d && npm install gulp && npm install -g gulp-cli && gulp && cp out/index.html ../report/data/corcel.layout.mustache.html
 
 
-build: clean lint
+build: clean lint generate
 	#version=`grep -Po "(?<=version=)[0-9.]+" version`
-	go get -u github.com/jteeuwen/go-bindata/...
-	(cd report && go-bindata -pkg report data)
-	go get ./...
 	go build -ldflags="-X main.Version=${version}"
 
 test: build 
 	ginkgo -cover -r --race -noisyPendings=false -slowSpecThreshold=10
 
-lint:
+generate:
+	go get -u github.com/jteeuwen/go-bindata/...
+	(cd report && go-bindata -pkg report data)
+
+lint: generate
 	go get -u github.com/alecthomas/gometalinter
+	go get ./...
 	gometalinter --install
 	gometalinter -e "duplicate" -e "undeclared name: Asset"
-
-install:
-	go get -t ./...
-	go get github.com/onsi/ginkgo/ginkgo
-	go get github.com/onsi/gomega
-	go get github.com/alecthomas/gometalinter
-	go get -u github.com/jteeuwen/go-bindata/...
-	gometalinter --install --update
 
 dist: dist_linux
 
@@ -59,4 +53,4 @@ demo: build
 	bash ./scripts/demo.sh
 
 
-.PHONY: clean build lint test install ui dist dist_linux demo
+.PHONY: clean build lint test install ui dist dist_linux demo generate

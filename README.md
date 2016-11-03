@@ -1,3 +1,5 @@
+![Corcel](http://docs.corcel.io/images/corcel-logo.png)
+
 # Corcel
 
 Website up at https://corcel.io

@@ -29,6 +29,12 @@ Some of the tools which exist today include:
  - Gattling
  - Apache AB
  - Siege
+ - httperf
+ - wrk
+ - vegeta
+ - autocannon
+
+and more ...
 
 Each differ from the number of features, the number of supported protocols and other various things. 
 
@@ -67,74 +73,25 @@ You can see there is a mixture of `success` and `server_error` in the list, whic
 Next, make sure the source is built and yu have the *code-named-something* executable and then invoke with the following arguments:
 
 ```shell
-./code-named-something -f ./my-urls-to-test.txt --summary --workers 10
+./corcel run --summary --workers 5 ./my-urls-to-test.txt 
 ```
 
 Once it has finished you will then see console output similar to the following:
 
 ```shell
-Running Time: 0.007 s
-Throughput: 9381 req/s
-Total Requests: 70
-Number of Errors: 30
-Availability: 57.14285714285714%
-Bytes Sent: 3510
-Bytes Received: 8990
-Mean Response Time: 0.1429 ms
-Min Response Time: 0 ms
-Max Response Time: 1 ms
+╔═══════════════════════════════════════════════════════════════════╗
+║                           Summary                                 ║
+╠═══════════════════════════════════════════════════════════════════╣
+║         Running Time: 10.001014785s                               ║
+║           Throughput: 2349 req/s                                  ║
+║       Total Requests: 23487                                       ║
+║     Number of Errors: 0                                           ║
+║         Availability: 100.0000%                                   ║
+║           Bytes Sent: 1.9 MB                                      ║
+║       Bytes Received: 3.0 MB                                      ║
+║   Mean Response Time: 0.4669 ms                                   ║
+║    Min Response Time: 0.0000 ms                                   ║
+║    Max Response Time: 21.0000 ms                                  ║
+╚═══════════════════════════════════════════════════════════════════╝
 ```
 
-## Ideas about recording assertion failures in the report
-
-In the output file:
-
-```yaml
-AssertionFailures:
- - jobId : 2
-   stepId: 4
-   action: "POST http://www.google.com"
-   key: "http:response:status"
-   type: Exact
-   expected: 200
-   actuals: 
-      - value: 201
-        count: 10
-      - value: 203
-        count: 20
-```
-
-In the summary file?  What would it look like and how would it be tracked?
-
-Also need to think about the summary so these can be compared.
-
-## Notes on Assertion Types
-
-The following are the rules which I have followed and here is an example using the Greater Than mathemtical operator.  The other operators will have similar rules but changed to match how they should operate.
-
--    Something is greater than nil
--    nil is NOT greater than nil
--    nil is NOT greater than Something
--    string which is not a number is NOT greater than any number
--    number is NOT greater than a string which is not a number
--    Attempts will first be made to parse strings into a float64
-
-```
-Test Required
-
-               INSTANCE
-               =======================================================
- ACTUAL        |    nil   |  float64  |  int  | string-number | string
-======================================================================
- float64       |     x    |     x     |   x   |       x       |    x
-======================================================================
- int           |     x    |     x     |   x   |       x       |    x
-======================================================================
- string-number |     x    |     x     |   x   |       x       |    x
-======================================================================
- string        |     x    |     x     |   x   |       x       |    x
-======================================================================
- nil           |     x    |     x     |   x   |       x       |    x
-
-
-```

@@ -2,9 +2,9 @@
 
 Website up at https://corcel.io
 
-Develop branch : [![build status](http://ci.guzzler.io/ci/projects/1/status.png?ref=develop)](http://ci.guzzler.io/ci/projects/1?ref=develop)
-Release branch : [![build status](http://ci.guzzler.io/ci/projects/1/status.png?ref=release)](http://ci.guzzler.io/ci/projects/1?ref=release)
-Master branch   : [![build status](http://ci.guzzler.io/ci/projects/1/status.png?ref=master)](http://ci.guzzler.io/ci/projects/1?ref=master)
+Develop branch : [![Build Status](https://travis-ci.org/guzzlerio/corcel.svg?branch=develop)](https://travis-ci.org/guzzlerio/corcel)
+Release branch : [![Build Status](https://travis-ci.org/guzzlerio/corcel.svg?branch=release)](https://travis-ci.org/guzzlerio/corcel)
+Master branch   : [![Build Status](https://travis-ci.org/guzzlerio/corcel.svg?branch=master)](https://travis-ci.org/guzzlerio/corcel)
 
 ## What is it and what will it be?
 

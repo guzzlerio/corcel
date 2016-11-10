@@ -48,8 +48,7 @@ func main() {
 	app.HelpFlag.Short('h')
 	app.UsageTemplate(kingpin.LongHelpTemplate)
 
-	cmd.NewRunCommand(app, &registry)
-	cmd.NewServerCommand(app, &registry)
+	cmd.New(app, &registry)
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 }

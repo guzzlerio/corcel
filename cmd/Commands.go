@@ -12,6 +12,7 @@ import (
 	yamlv2 "gopkg.in/yaml.v2"
 
 	"github.com/guzzlerio/corcel/config"
+	"github.com/guzzlerio/corcel/converters"
 	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/errormanager"
 	"github.com/guzzlerio/corcel/logger"
@@ -19,19 +20,48 @@ import (
 	"github.com/guzzlerio/corcel/statistics"
 )
 
+//New...
+func New(app *kingpin.Application, registry *core.Registry) {
+	// ServerCommand
+	sc := &ServerCommand{
+		registry: registry,
+	}
+	server := app.Command("server", "Start HTTP server").Action(sc.run)
+	server.Flag("port", "Port").Default("54332").IntVar(&sc.Port)
+
+	// ConvertCommand
+	cc := &ConvertCommand{
+		registry: registry,
+	}
+	convert := app.Command("convert", "Convert input log file into a Corcel Plan").Action(cc.run)
+	convert.Flag("input", "Input File").StringVar(&cc.inputFile)
+	convert.Flag("output", "Output .plan file").StringVar(&cc.outputFile)
+	convert.Flag("base", "Base URL").StringVar(&cc.baseUrl)
+	convert.Flag("type", "Log File Type").Short('t').Default("w3cext").EnumVar(&cc.logType, "w3c", "w3cext", "iis", "apache")
+
+	// RunCommand
+	configuration := &config.Configuration{}
+	rc := &RunCommand{
+		Config:   configuration,
+		registry: registry,
+	}
+	run := app.Command("run", "Execute performance test thing").Action(rc.run)
+	run.Arg("file", "Corcel file contains URLs or an ExecutionPlan (see the --plan argument)").Required().StringVar(&configuration.FilePath)
+	run.Flag("summary", "Output summary to STDOUT").BoolVar(&configuration.Summary)
+	run.Flag("iterations", "The number of iterations to run").Short('i').Default("0").IntVar(&configuration.Iterations)
+	run.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").Short('d').Default("0s").DurationVar(&configuration.Duration)
+	run.Flag("wait-time", "Time to wait between each execution").Default("0s").Short('t').DurationVar(&configuration.WaitTime)
+	run.Flag("workers", "The number of workers to execute the requests").Short('w').IntVar(&configuration.Workers)
+	run.Flag("random", "Select the url at random for each execution").Short('r').BoolVar(&configuration.Random)
+	run.Flag("plan", "Indicate that the corcel file is an ExecutionPlan").BoolVar(&configuration.Plan)
+	run.Flag("verbose", "verbosity").Short('v').Action(config.Counter).Bool()
+	run.Flag("progress", "Progress reporter").EnumVar(&configuration.Progress, "bar", "logo", "none")
+}
+
 // ServerCommand ...
 type ServerCommand struct {
 	Port     int
 	registry *core.Registry
-}
-
-//NewServerCommand ...
-func NewServerCommand(app *kingpin.Application, registry *core.Registry) {
-	c := &ServerCommand{
-		registry: registry,
-	}
-	server := app.Command("server", "Start HTTP server").Action(c.run)
-	server.Flag("port", "Port").Default("54332").IntVar(&c.Port)
 }
 
 func (instance *ServerCommand) run(c *kingpin.ParseContext) error {
@@ -43,30 +73,39 @@ func (instance *ServerCommand) run(c *kingpin.ParseContext) error {
 	return nil
 }
 
+// ConvertCommand ...
+type ConvertCommand struct {
+	inputFile    string
+	outputFile   string
+	logType      string
+	formatString string
+	baseUrl      string
+	registry     *core.Registry
+}
+
+func (instance *ConvertCommand) run(c *kingpin.ParseContext) error {
+	//TODO check for redirected input/output
+	/*
+		1. Establish the format of the input log file and construct the appropriate converter
+		2. Invoke the converter
+		3. Write the resulting plan to stdout or outputFile
+	*/
+	file, _ := os.Open(instance.inputFile)
+	defer file.Close()
+	var converter converters.LogConverter
+	switch instance.logType {
+	case "w3cext":
+		converter = converters.NewW3cExtConverter(instance.baseUrl, file)
+	}
+	converter.Convert()
+	fmt.Printf("Would now have converted the log file %v\n", instance.inputFile)
+	return nil
+}
+
 // RunCommand ...
 type RunCommand struct {
 	Config   *config.Configuration
 	registry *core.Registry
-}
-
-//NewRunCommand ...
-func NewRunCommand(app *kingpin.Application, registry *core.Registry) {
-	configuration := &config.Configuration{}
-	c := &RunCommand{
-		Config:   configuration,
-		registry: registry,
-	}
-	run := app.Command("run", "Execute performance test thing").Action(c.run)
-	run.Arg("file", "Corcel file contains URLs or an ExecutionPlan (see the --plan argument)").Required().StringVar(&configuration.FilePath)
-	run.Flag("summary", "Output summary to STDOUT").BoolVar(&configuration.Summary)
-	run.Flag("iterations", "The number of iterations to run").Short('i').Default("0").IntVar(&configuration.Iterations)
-	run.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").Short('d').Default("0s").DurationVar(&configuration.Duration)
-	run.Flag("wait-time", "Time to wait between each execution").Default("0s").Short('t').DurationVar(&configuration.WaitTime)
-	run.Flag("workers", "The number of workers to execute the requests").Short('w').IntVar(&configuration.Workers)
-	run.Flag("random", "Select the url at random for each execution").Short('r').BoolVar(&configuration.Random)
-	run.Flag("plan", "Indicate that the corcel file is an ExecutionPlan").BoolVar(&configuration.Plan)
-	run.Flag("verbose", "verbosity").Short('v').Action(config.Counter).Bool()
-	run.Flag("progress", "Progress reporter").EnumVar(&configuration.Progress, "bar", "logo", "none")
 }
 
 func (instance *RunCommand) run(c *kingpin.ParseContext) error {

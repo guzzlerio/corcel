@@ -37,15 +37,15 @@ type PlanExecutionContext struct {
 }
 
 func (instance *PlanExecutionContext) execute(cancellation chan struct{}) {
-	var wg sync.WaitGroup
-	wg.Add(instance.Config.Workers)
-	for i := 0; i < instance.Config.Workers; i++ {
-		go func(executionJobs []core.Job) {
-			instance.workerExecuteJobs(executionJobs, cancellation)
-			wg.Done()
-		}(instance.Plan.Jobs)
-	}
-	wg.Wait()
+	//var wg sync.WaitGroup
+	//wg.Add(instance.Config.Workers)
+	//for i := 0; i < instance.Config.Workers; i++ {
+	//		go func(executionJobs []core.Job) {
+	instance.workerExecuteJobs(instance.Plan.Jobs, cancellation)
+	//		wg.Done()
+	//		}(instance.Plan.Jobs)
+	//}
+	//wg.Wait()
 }
 
 func (instance *PlanExecutionContext) workerExecuteJobs(jobs []core.Job, cancellation chan struct{}) {
@@ -396,15 +396,15 @@ func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job, cancellation ch
 }
 
 func (instance *PlanExecutor) executeJobs(jobs []core.Job, cancellation chan struct{}) {
-	var wg sync.WaitGroup
-	wg.Add(instance.Config.Workers)
-	for i := 0; i < instance.Config.Workers; i++ {
-		go func(executionJobs []core.Job) {
-			instance.workerExecuteJobs(executionJobs, cancellation)
-			wg.Done()
-		}(jobs)
-	}
-	wg.Wait()
+	//var wg sync.WaitGroup
+	//wg.Add(instance.Config.Workers)
+	//for i := 0; i < instance.Config.Workers; i++ {
+	//	go func(executionJobs []core.Job) {
+	instance.workerExecuteJobs(jobs, cancellation)
+	//		wg.Done()
+	//	}(jobs)
+	//}
+	//wg.Wait()
 }
 
 //CreatePlanFromURLList ...
@@ -497,28 +497,6 @@ func (instance *PlanExecutor) generatePlan() core.Plan {
 func (instance *PlanExecutor) Execute() error {
 	var cancellation = make(chan struct{})
 
-	var clone = instance.generatePlan()
-	if clone.Context["vars"] != nil {
-		stringKeyData := map[string]interface{}{}
-		data := clone.Context["vars"].(map[interface{}]interface{})
-		for dataKey, dataValue := range data {
-			stringKeyData["$"+dataKey.(string)] = dataValue
-		}
-		clone.Context["vars"] = stringKeyData
-	}
-
-	var planExecutionContext = &PlanExecutionContext{
-		Plan:         clone,
-		Lists:        NewListRingRevolver(clone.Lists()),
-		Config:       instance.Config,
-		Publisher:    instance.Publisher,
-		PlanContext:  core.ExtractionResult{},
-		JobContexts:  map[int]core.ExtractionResult{},
-		StepContexts: map[int]map[int]core.ExtractionResult{},
-		Bar:          instance.Bar,
-		mutex:        &sync.Mutex{},
-	}
-
 	instance.start = time.Now()
 	//instance.Plan = plan
 
@@ -528,14 +506,48 @@ func (instance *PlanExecutor) Execute() error {
 		})
 	}
 
+	var mainPlan = instance.generatePlan()
 	//before Plan
-	for _, action := range clone.Before {
+	for _, action := range mainPlan.Before {
 		_ = action.Execute(nil, cancellation)
 	}
-	//instance.executeJobs(plan.Jobs, cancellation)
-	planExecutionContext.execute(cancellation)
-	//after Plan
-	for _, action := range clone.After {
+
+	var wg sync.WaitGroup
+	wg.Add(instance.Config.Workers)
+
+	for i := 0; i < instance.Config.Workers; i++ {
+		var workerPlan = instance.generatePlan()
+
+		go func(plan core.Plan) {
+			if plan.Context["vars"] != nil {
+				stringKeyData := map[string]interface{}{}
+				data := plan.Context["vars"].(map[interface{}]interface{})
+				for dataKey, dataValue := range data {
+					stringKeyData["$"+dataKey.(string)] = dataValue
+				}
+				plan.Context["vars"] = stringKeyData
+			}
+
+			var planExecutionContext = &PlanExecutionContext{
+				Plan:         plan,
+				Lists:        NewListRingRevolver(plan.Lists()),
+				Config:       instance.Config,
+				Publisher:    instance.Publisher,
+				PlanContext:  core.ExtractionResult{},
+				JobContexts:  map[int]core.ExtractionResult{},
+				StepContexts: map[int]map[int]core.ExtractionResult{},
+				Bar:          instance.Bar,
+				mutex:        &sync.Mutex{},
+			}
+
+			planExecutionContext.execute(cancellation)
+			wg.Done()
+		}(workerPlan)
+	}
+
+	wg.Wait()
+
+	for _, action := range mainPlan.After {
 		_ = action.Execute(nil, cancellation)
 	}
 

@@ -36,7 +36,12 @@ func CreateAction() HTTPAction {
 func (instance HTTPAction) Execute(context core.ExecutionContext, cancellation chan struct{}) core.ExecutionResult {
 
 	if instance.client == nil {
-		panic("Dang nabbit!")
+		//panic("Dang nabbit!")
+		instance.client = &http.Client{
+			Transport: &http.Transport{
+				MaxIdleConnsPerHost: 50,
+			},
+		}
 	}
 
 	result := core.ExecutionResult{}

@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/guzzlerio/corcel/config"
+	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/logger"
 	. "github.com/guzzlerio/corcel/utils"
 )
@@ -59,9 +60,8 @@ var _ = Describe("Plan Executor", func() {
 		start := time.Now()
 		configuration.Duration = time.Duration(5 * time.Second)
 
-		executor := CreatePlanExecutor(&configuration, bar)
-		plan := CreatePlanFromURLList(&configuration)
-		executor.Execute(plan)
+		executor := CreatePlanExecutor(&configuration, bar, core.CreateRegistry())
+		executor.Execute()
 
 		duration := time.Since(start)
 		Expect(int(duration / time.Second)).To(Equal(5))
@@ -69,13 +69,12 @@ var _ = Describe("Plan Executor", func() {
 
 	It("URL File with random selection", func() {
 		configuration.Random = true
-		executor := CreatePlanExecutor(&configuration, bar)
+		executor := CreatePlanExecutor(&configuration, bar, core.CreateRegistry())
 
 		tries := 50
 		firstPaths := []string{}
-		plan := CreatePlanFromURLList(&configuration)
 		for i := 0; i < tries; i++ {
-			executor.Execute(plan)
+			executor.Execute()
 			if !ContainsString(firstPaths, TestServer.Requests[0].Request.URL.Path) {
 				firstPaths = append(firstPaths, TestServer.Requests[0].Request.URL.Path)
 			}
@@ -88,10 +87,9 @@ var _ = Describe("Plan Executor", func() {
 	It("URL File with more than one worker", func() {
 		configuration.Workers = 5
 
-		executor := CreatePlanExecutor(&configuration, bar)
+		executor := CreatePlanExecutor(&configuration, bar, core.CreateRegistry())
 
-		plan := CreatePlanFromURLList(&configuration)
-		executor.Execute(plan)
+		executor.Execute()
 
 		Expect(len(TestServer.Requests)).To(Equal(configuration.Workers * len(list)))
 	})
@@ -101,11 +99,10 @@ var _ = Describe("Plan Executor", func() {
 		expectedTotalTimeInMilliseconds := len(list) * waitTimeInMilliseconds
 		configuration.WaitTime = time.Duration(time.Duration(waitTimeInMilliseconds) * time.Millisecond)
 
-		executor := CreatePlanExecutor(&configuration, bar)
-		plan := CreatePlanFromURLList(&configuration)
+		executor := CreatePlanExecutor(&configuration, bar, core.CreateRegistry())
 
 		start := time.Now()
-		executor.Execute(plan)
+		executor.Execute()
 
 		duration := time.Since(start)
 		Expect(int(duration / time.Second)).To(Equal(expectedTotalTimeInMilliseconds / 1000))

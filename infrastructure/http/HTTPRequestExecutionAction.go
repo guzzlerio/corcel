@@ -39,7 +39,7 @@ func (instance HTTPAction) Execute(context core.ExecutionContext, cancellation c
 		//panic("Dang nabbit!")
 		instance.client = &http.Client{
 			Transport: &http.Transport{
-				MaxIdleConnsPerHost: 50,
+				MaxIdleConnsPerHost: 100,
 			},
 		}
 	}

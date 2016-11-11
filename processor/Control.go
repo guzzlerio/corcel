@@ -10,7 +10,7 @@ import (
 	"github.com/guzzlerio/corcel/statistics"
 )
 
-// Control ...
+// Cntrol ...
 type Control interface {
 	Start(*config.Configuration) (*ExecutionID, error)
 	Stop(*ExecutionID) statistics.AggregatorSnapShot

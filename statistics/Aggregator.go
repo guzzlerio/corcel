@@ -341,8 +341,8 @@ func (instance *Aggregator) createSnapshot() {
 		return
 	}
 
-	instance.mutex.Lock()
-	defer instance.mutex.Unlock()
+	//instance.mutex.Lock()
+	//defer instance.mutex.Unlock()
 
 	instance.times = append(instance.times, timeToLog)
 	instance.registry.Each(func(name string, i interface{}) {

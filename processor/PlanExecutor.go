@@ -119,9 +119,6 @@ func (instance *PlanExecutionContext) workerExecuteJob(talula core.Job, cancella
 func (instance *PlanExecutionContext) executeStep(step core.Step, cancellation chan struct{}) core.ExecutionResult {
 	start := time.Now()
 
-	//instance.mutex.Lock()
-	//defer instance.mutex.Unlock()
-
 	if instance.JobContexts[step.JobID] == nil {
 		instance.JobContexts[step.JobID] = map[string]interface{}{}
 		instance.StepContexts[step.JobID] = map[int]core.ExtractionResult{}

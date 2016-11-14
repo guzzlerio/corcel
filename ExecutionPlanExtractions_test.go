@@ -5,8 +5,8 @@ import (
 	"net/url"
 
 	"github.com/guzzlerio/corcel/core"
+	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/statistics"
-	"github.com/guzzlerio/corcel/test"
 	"github.com/guzzlerio/corcel/utils"
 
 	. "github.com/onsi/ginkgo"
@@ -18,7 +18,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 		Context("Step Scope", func() {
 			Context("Succeeds", func() {
 				It("Matches simple pattern", func() {
-					planBuilder := test.NewYamlPlanBuilder()
+					planBuilder := yaml.NewPlanBuilder()
 
 					planBuilder.
 						CreateJob().
@@ -39,7 +39,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 			})
 			Context("Fails", func() {
 				It("Matches simple pattern", func() {
-					planBuilder := test.NewYamlPlanBuilder()
+					planBuilder := yaml.NewPlanBuilder()
 
 					planBuilder.
 						CreateJob().
@@ -66,7 +66,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 		Context("Job Scope", func() {
 			Context("Succeeds", func() {
 				It("Matches simple pattern", func() {
-					planBuilder := test.NewYamlPlanBuilder()
+					planBuilder := yaml.NewPlanBuilder()
 
 					jobBuilder := planBuilder.
 						CreateJob()
@@ -93,7 +93,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 			})
 			Context("Fails", func() {
 				It("Matches simple pattern but scope not set to Job and so defaults to Step", func() {
-					planBuilder := test.NewYamlPlanBuilder()
+					planBuilder := yaml.NewPlanBuilder()
 
 					jobBuilder := planBuilder.
 						CreateJob()
@@ -122,7 +122,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 
 			Context("Succeeds", func() {
 				It("Matches simple pattern", func() {
-					planBuilder := test.NewYamlPlanBuilder()
+					planBuilder := yaml.NewPlanBuilder()
 
 					planBuilder.
 						CreateJob().
@@ -150,7 +150,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 			})
 			Context("Fails", func() {
 				It("Matches simple pattern but scope not set to Job and so defaults to Step", func() {
-					planBuilder := test.NewYamlPlanBuilder()
+					planBuilder := yaml.NewPlanBuilder()
 
 					planBuilder.
 						CreateJob().
@@ -218,7 +218,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 		Context("Step Scope", func() {
 			for testCase, expectedValue := range testCases {
 				It(fmt.Sprintf("Succeeds with %s", url.QueryEscape(testCase)), func() {
-					planBuilder := test.NewYamlPlanBuilder()
+					planBuilder := yaml.NewPlanBuilder()
 
 					planBuilder.
 						CreateJob().
@@ -238,7 +238,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 				})
 			}
 			It("Fails", func() {
-				planBuilder := test.NewYamlPlanBuilder()
+				planBuilder := yaml.NewPlanBuilder()
 
 				planBuilder.
 					CreateJob().
@@ -261,7 +261,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 			Context("Succeeds", func() {
 				for testCase, expectedValue := range testCases {
 					It(fmt.Sprintf("Succeeds with %s", url.QueryEscape(testCase)), func() {
-						planBuilder := test.NewYamlPlanBuilder()
+						planBuilder := yaml.NewPlanBuilder()
 
 						jobBuilder := planBuilder.
 							CreateJob()
@@ -287,7 +287,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 			Context("Fails", func() {
 				for testCase, expectedValue := range testCases {
 					It(fmt.Sprintf("Fails with %s", url.QueryEscape(testCase)), func() {
-						planBuilder := test.NewYamlPlanBuilder()
+						planBuilder := yaml.NewPlanBuilder()
 
 						jobBuilder := planBuilder.
 							CreateJob()
@@ -316,7 +316,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 			Context("Succeeds", func() {
 				for testCase, expectedValue := range testCases {
 					It(fmt.Sprintf("Succeeds with %s", url.QueryEscape(testCase)), func() {
-						planBuilder := test.NewYamlPlanBuilder()
+						planBuilder := yaml.NewPlanBuilder()
 
 						planBuilder.
 							CreateJob().
@@ -343,7 +343,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 			Context("Fails", func() {
 				for testCase, expectedValue := range testCases {
 					It(fmt.Sprintf("Fails with %s", url.QueryEscape(testCase)), func() {
-						planBuilder := test.NewYamlPlanBuilder()
+						planBuilder := yaml.NewPlanBuilder()
 
 						planBuilder.
 							CreateJob().
@@ -424,7 +424,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 		Context("Step Scope", func() {
 			for testCase, expectedValue := range testCases {
 				It(fmt.Sprintf("Succeeds with %s", url.QueryEscape(testCase)), func() {
-					planBuilder := test.NewYamlPlanBuilder()
+					planBuilder := yaml.NewPlanBuilder()
 
 					planBuilder.
 						CreateJob().
@@ -444,7 +444,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 				})
 			}
 			It("Fails", func() {
-				planBuilder := test.NewYamlPlanBuilder()
+				planBuilder := yaml.NewPlanBuilder()
 
 				planBuilder.
 					CreateJob().
@@ -467,7 +467,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 			Context("Succeeds", func() {
 				for testCase, expectedValue := range testCases {
 					It(fmt.Sprintf("Succeeds with %s", url.QueryEscape(testCase)), func() {
-						planBuilder := test.NewYamlPlanBuilder()
+						planBuilder := yaml.NewPlanBuilder()
 
 						jobBuilder := planBuilder.
 							CreateJob()
@@ -493,7 +493,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 			Context("Fails", func() {
 				for testCase, expectedValue := range testCases {
 					It(fmt.Sprintf("Fails with %s", url.QueryEscape(testCase)), func() {
-						planBuilder := test.NewYamlPlanBuilder()
+						planBuilder := yaml.NewPlanBuilder()
 
 						jobBuilder := planBuilder.
 							CreateJob()
@@ -522,7 +522,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 			Context("Succeeds", func() {
 				for testCase, expectedValue := range testCases {
 					It(fmt.Sprintf("Succeeds with %s", url.QueryEscape(testCase)), func() {
-						planBuilder := test.NewYamlPlanBuilder()
+						planBuilder := yaml.NewPlanBuilder()
 
 						planBuilder.
 							CreateJob().
@@ -549,7 +549,7 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 			Context("Fails", func() {
 				for testCase, expectedValue := range testCases {
 					It(fmt.Sprintf("Fails with %s", url.QueryEscape(testCase)), func() {
-						planBuilder := test.NewYamlPlanBuilder()
+						planBuilder := yaml.NewPlanBuilder()
 
 						planBuilder.
 							CreateJob().

@@ -7,10 +7,11 @@ import (
 	"path/filepath"
 
 	"github.com/guzzlerio/corcel/logger"
+	"github.com/guzzlerio/corcel/serialisation/yaml"
 )
 
 //ExecutePlanBuilder ...
-func ExecutePlanBuilder(path string, planBuilder *YamlPlanBuilder) error {
+func ExecutePlanBuilder(path string, planBuilder *yaml.PlanBuilder) error {
 
 	file, err := planBuilder.Build()
 	if err != nil {

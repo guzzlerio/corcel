@@ -1,7 +1,7 @@
-package test
+package yaml
 
 //ExactAssertion ...
-func (instance YamlPlanBuilder) ExactAssertion(key string, expected interface{}) map[string]interface{} {
+func (instance PlanBuilder) ExactAssertion(key string, expected interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		"type":     "ExactAssertion",
 		"key":      key,
@@ -10,7 +10,7 @@ func (instance YamlPlanBuilder) ExactAssertion(key string, expected interface{})
 }
 
 //EmptyAssertion ...
-func (instance YamlPlanBuilder) EmptyAssertion(key string) map[string]interface{} {
+func (instance PlanBuilder) EmptyAssertion(key string) map[string]interface{} {
 	return map[string]interface{}{
 		"type": "EmptyAssertion",
 		"key":  key,
@@ -18,7 +18,7 @@ func (instance YamlPlanBuilder) EmptyAssertion(key string) map[string]interface{
 }
 
 //GreaterThanAssertion ...
-func (instance YamlPlanBuilder) GreaterThanAssertion(key string, expected interface{}) map[string]interface{} {
+func (instance PlanBuilder) GreaterThanAssertion(key string, expected interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		"type":     "GreaterThanAssertion",
 		"key":      key,
@@ -27,7 +27,7 @@ func (instance YamlPlanBuilder) GreaterThanAssertion(key string, expected interf
 }
 
 //GreaterThanOrEqualAssertion ...
-func (instance YamlPlanBuilder) GreaterThanOrEqualAssertion(key string, expected interface{}) map[string]interface{} {
+func (instance PlanBuilder) GreaterThanOrEqualAssertion(key string, expected interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		"type":     "GreaterThanOrEqualAssertion",
 		"key":      key,
@@ -36,7 +36,7 @@ func (instance YamlPlanBuilder) GreaterThanOrEqualAssertion(key string, expected
 }
 
 //LessThanAssertion ...
-func (instance YamlPlanBuilder) LessThanAssertion(key string, expected interface{}) map[string]interface{} {
+func (instance PlanBuilder) LessThanAssertion(key string, expected interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		"type":     "LessThanAssertion",
 		"key":      key,
@@ -45,7 +45,7 @@ func (instance YamlPlanBuilder) LessThanAssertion(key string, expected interface
 }
 
 //LessThanOrEqualAssertion ...
-func (instance YamlPlanBuilder) LessThanOrEqualAssertion(key string, expected interface{}) map[string]interface{} {
+func (instance PlanBuilder) LessThanOrEqualAssertion(key string, expected interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		"type":     "LessThanOrEqualAssertion",
 		"key":      key,
@@ -54,7 +54,7 @@ func (instance YamlPlanBuilder) LessThanOrEqualAssertion(key string, expected in
 }
 
 //NotEmptyAssertion ...
-func (instance YamlPlanBuilder) NotEmptyAssertion(key string) map[string]interface{} {
+func (instance PlanBuilder) NotEmptyAssertion(key string) map[string]interface{} {
 	return map[string]interface{}{
 		"type": "NotEmptyAssertion",
 		"key":  key,
@@ -62,7 +62,7 @@ func (instance YamlPlanBuilder) NotEmptyAssertion(key string) map[string]interfa
 }
 
 //NotEqualAssertion ...
-func (instance YamlPlanBuilder) NotEqualAssertion(key string, expected interface{}) map[string]interface{} {
+func (instance PlanBuilder) NotEqualAssertion(key string, expected interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		"type":     "NotEqualAssertion",
 		"key":      key,

@@ -1,7 +1,7 @@
-package test
+package yaml
 
 //JSONPathExtractor ...
-func (instance YamlPlanBuilder) JSONPathExtractor() JSONPathExtractorBuilder {
+func (instance PlanBuilder) JSONPathExtractor() JSONPathExtractorBuilder {
 	return JSONPathExtractorBuilder{
 		data: map[string]interface{}{
 			"type": "JSONPathExtractor",

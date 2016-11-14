@@ -1,7 +1,7 @@
-package test
+package yaml
 
 //RegexExtractor ...
-func (instance YamlPlanBuilder) RegexExtractor() RegexExtractorBuilder {
+func (instance PlanBuilder) RegexExtractor() RegexExtractorBuilder {
 	return RegexExtractorBuilder{
 		data: map[string]interface{}{
 			"type": "RegexExtractor",

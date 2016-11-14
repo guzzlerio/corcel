@@ -22,7 +22,7 @@ func merge(source map[string]interface{}, extra map[string]interface{}) map[stri
 	return source
 }
 
-//PlanExecutionContext encaosulates the runtime state in order to execute
+//PlanExecutionContext encapsulates the runtime state in order to execute
 //a plan
 type PlanExecutionContext struct {
 	Plan         core.Plan

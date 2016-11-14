@@ -48,7 +48,6 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 		wg.Done()
 	}()
 	instance.executions[&id] = executor
-	//plan := getPlan(config, instance.registry)
 	instance.aggregator.Start()
 	err := executor.Execute()
 	subscription.RemoveFrom(executor.Publisher)

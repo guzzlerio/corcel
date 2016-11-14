@@ -7,6 +7,67 @@ import (
 	"time"
 )
 
+//HashMapList ...
+type HashMapList map[string][]map[string]interface{}
+
+//NullPlan returns an empty initialized Plan
+func NullPlan() Plan {
+	return Plan{}
+}
+
+//DefaultPlan returns an initialized Plan with the default values
+func DefaultPlan() Plan {
+	return Plan{
+		Workers: 1,
+		Jobs:    []Job{},
+		Context: map[string]interface{}{},
+		Before:  []Action{},
+		After:   []Action{},
+	}
+
+}
+
+//PlanBuilder is a builder which ensures defaults are added to a Plan
+type PlanBuilder struct {
+	plan Plan
+}
+
+//NewPlanBuilder creates a new PlanBuilder
+func NewPlanBuilder() PlanBuilder {
+	return PlanBuilder{
+		plan: DefaultPlan(),
+	}
+}
+
+//Name sets the name of the plan
+func (instance PlanBuilder) Name(value string) PlanBuilder {
+	instance.plan.Name = value
+	return PlanBuilder{
+		plan: instance.plan,
+	}
+}
+
+//Workers ...
+func (instance PlanBuilder) Workers(value int) PlanBuilder {
+	instance.plan.Workers = value
+	return PlanBuilder{
+		plan: instance.plan,
+	}
+}
+
+//WaitTime ...
+func (instance PlanBuilder) WaitTime(value time.Duration) PlanBuilder {
+	instance.plan.WaitTime = value
+	return PlanBuilder{
+		plan: instance.plan,
+	}
+}
+
+//Build returns the created plan
+func (instance PlanBuilder) Build() Plan {
+	return instance.plan
+}
+
 //Plan ...
 type Plan struct {
 	Iterations int
@@ -43,8 +104,8 @@ func (instance Plan) AddJob(job Job) Plan {
 }
 
 //Lists returns the configured lists for the plan
-func (instance Plan) Lists() map[string][]map[string]interface{} {
-	var lists = map[string][]map[string]interface{}{}
+func (instance Plan) Lists() HashMapList {
+	var lists = HashMapList{}
 
 	if instance.Context["lists"] != nil {
 		listKeys := instance.Context["lists"].(map[interface{}]interface{})

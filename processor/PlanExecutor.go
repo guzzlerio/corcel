@@ -234,12 +234,22 @@ func CreatePlanExecutor(config *config.Configuration, bar ProgressBar, registry 
 //CreatePlanFromURLList ...
 func CreatePlanFromURLList(config *config.Configuration) core.Plan {
 	//FIXME Exposed for use in tests
-	plan := core.Plan{
-		Name:     "Plan from urls in file",
-		Workers:  config.Workers,
-		WaitTime: config.WaitTime,
-		Jobs:     []core.Job{},
-	}
+
+	/*
+		plan := core.Plan{
+			Name:     "Plan from urls in file",
+			Workers:  config.Workers,
+			WaitTime: config.WaitTime,
+			Jobs:     []core.Job{},
+		}
+	*/
+
+	var name = "Plan from urls in file"
+	var plan = core.NewPlanBuilder().
+		Name(name).
+		Workers(config.Workers).
+		WaitTime(config.WaitTime).
+		Build()
 
 	reader := request.NewRequestReader(config.FilePath)
 

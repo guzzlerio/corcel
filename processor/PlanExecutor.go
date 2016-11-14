@@ -40,29 +40,10 @@ type PlanExecutionContext struct {
 
 func (instance *PlanExecutionContext) execute(cancellation chan struct{}) {
 	var jobs = instance.Plan.Jobs
-	var jobStream JobStream
-	jobStream = CreateJobSequentialStream(jobs)
+	var jobStream = CreateJobStream(jobs, instance.Config)
 
-	if instance.Config.Random {
-		jobStream = CreateJobRandomStream(jobs)
-	}
-
-	if instance.Config.Iterations > 0 {
-		revolvingStream := CreateJobRevolvingStream(jobStream)
-		iterationStream := CreateJobIterationStream(*revolvingStream, len(jobs), instance.Config.Iterations)
-		jobStream = iterationStream
-	}
-
-	if instance.Config.Duration > time.Duration(0) {
-		jobStream = CreateJobDurationStream(jobStream, instance.Config.Duration)
-		ticker := time.NewTicker(time.Millisecond * 10)
-		if int64(time.Since(instance.start).Seconds())%2 == 0 {
-			instance.progress <- jobStream.Progress()
-		}
-		time.AfterFunc(instance.Config.Duration, func() {
-			ticker.Stop()
-			_ = instance.Bar.Set(100)
-		})
+	if int64(time.Since(instance.start).Seconds())%2 == 0 {
+		instance.progress <- jobStream.Progress()
 	}
 
 	for jobStream.HasNext() {

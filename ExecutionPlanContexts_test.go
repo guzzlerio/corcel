@@ -3,10 +3,10 @@ package main
 import (
 	"os"
 
+	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/statistics"
 	"github.com/guzzlerio/corcel/test"
 	"github.com/guzzlerio/corcel/utils"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -32,7 +32,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 
 			It("Succeeds", func() {
 
-				planBuilder := test.NewYamlPlanBuilder()
+				planBuilder := yaml.NewPlanBuilder()
 
 				planBuilder.
 					SetIterations(3).
@@ -60,7 +60,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 
 	Context("Plan Scope", func() {
 		It("Succeeds", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				WithContext(planBuilder.BuildContext().Set("value:1", "1").Set("value:2", "2").Set("value:3", "3").Build()).
@@ -82,7 +82,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 			Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 		})
 		It("Fails", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				CreateJob().
@@ -105,7 +105,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 
 	Context("Job Scope", func() {
 		It("Succeeds", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				CreateJob().
@@ -127,7 +127,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 		})
 
 		It("Fails", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				CreateJob().

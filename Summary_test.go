@@ -4,10 +4,9 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/statistics"
-	"github.com/guzzlerio/corcel/test"
 	"github.com/guzzlerio/corcel/utils"
-
 	"github.com/guzzlerio/rizo"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -20,7 +19,7 @@ var _ = Describe("Run Summary", func() {
 			w.WriteHeader(http.StatusOK)
 		}).For(rizo.RequestWithPath("/people"))
 
-		planBuilder := test.NewYamlPlanBuilder()
+		planBuilder := yaml.NewPlanBuilder()
 		planBuilder.SetDuration("1s").
 			CreateJob().
 			CreateStep().

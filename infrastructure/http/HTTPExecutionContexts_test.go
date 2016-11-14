@@ -4,8 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/guzzlerio/corcel/test"
-
+	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/rizo"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -34,14 +33,14 @@ var _ = Describe("ExecutionPlanContexts", func() {
 			xml := "application/json"
 			carf := "application/carf"
 
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 			planBuilder.
 				SetIterations(3).
 				WithContext(planBuilder.BuildContext().SetList("Content-type", []map[string]interface{}{
-				{"commonType": json},
-				{"commonType": xml},
-				{"commonType": carf},
-			}).Build()).
+					{"commonType": json},
+					{"commonType": xml},
+					{"commonType": carf},
+				}).Build()).
 				CreateJob().
 				CreateStep().
 				ToExecuteAction(planBuilder.HTTPAction().Header(expectedHeaderKey, "$Content-type.commonType").URL(TestServer.CreateURL(path)).Build())
@@ -64,7 +63,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 			expectedHeaderKey := "Content-Type"
 			expectedHeaderValue := "application/json"
 
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 			planBuilder.WithContext(planBuilder.BuildContext().Set("commonType", expectedHeaderValue).Build()).
 				CreateJob().
 				CreateStep().
@@ -80,7 +79,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 
 			path := "/$path?a=$a&b=$b&c=$c"
 
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 			planBuilder.WithContext(planBuilder.BuildContext().Set("path", "fubar").Set("a", "1").Set("b", "2").Set("c", "3").Build()).
 				CreateJob().
 				CreateStep().
@@ -99,7 +98,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
           "lastname" : "$lastname"
         }
       `
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 			planBuilder.WithContext(planBuilder.BuildContext().Set("firstname", "john").Set("lastname", "doe").Build()).
 				CreateJob().
 				CreateStep().
@@ -126,7 +125,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 
 	It("Set HTTP Header", func() {
 
-		planBuilder := test.NewYamlPlanBuilder()
+		planBuilder := yaml.NewPlanBuilder()
 
 		expectedHeaderKey := "content-boomboom"
 		expectedHeaderValue := "bang/boom"
@@ -145,7 +144,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 	})
 
 	It("Context does not override a HTTP Header set in the action it self", func() {
-		planBuilder := test.NewYamlPlanBuilder()
+		planBuilder := yaml.NewPlanBuilder()
 
 		contextHeaderKey := "content-boomboom"
 		contextHeaderValue := "bang/boom"

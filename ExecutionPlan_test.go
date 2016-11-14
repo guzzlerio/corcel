@@ -11,8 +11,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/guzzlerio/corcel/global"
+	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/statistics"
-	"github.com/guzzlerio/corcel/test"
 	"github.com/guzzlerio/corcel/utils"
 )
 
@@ -33,7 +33,7 @@ var _ = Describe("ExecutionPlan", func() {
 
 	Context("SetIterations", func() {
 		It("Single Job Single Step", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				SetIterations(2).
@@ -51,7 +51,7 @@ var _ = Describe("ExecutionPlan", func() {
 			Expect(summary.TotalRequests).To(Equal(float64(2)))
 		})
 		It("Single Job Two Steps", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			jobBuilder := planBuilder.
 				SetIterations(2).
@@ -73,7 +73,7 @@ var _ = Describe("ExecutionPlan", func() {
 			Expect(summary.TotalRequests).To(Equal(float64(4)))
 		})
 		It("Single Job Two Steps", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			jobBuilder := planBuilder.
 				SetIterations(2).
@@ -137,7 +137,7 @@ var _ = Describe("ExecutionPlan", func() {
 		name := fmt.Sprintf("SetWorkers for %v workers", numberOfWorkers)
 		func(workers int) {
 			It(name, func() {
-				planBuilder := test.NewYamlPlanBuilder()
+				planBuilder := yaml.NewPlanBuilder()
 
 				planBuilder.
 					SetWorkers(workers).
@@ -163,7 +163,7 @@ var _ = Describe("ExecutionPlan", func() {
 		numberOfSteps := 6
 		waitTime := "500ms"
 
-		planBuilder := test.NewYamlPlanBuilder()
+		planBuilder := yaml.NewPlanBuilder()
 		planBuilder.SetWaitTime(waitTime)
 		jobBuilder := planBuilder.CreateJob()
 
@@ -186,7 +186,7 @@ var _ = Describe("ExecutionPlan", func() {
 
 	It("SetDuration", func() {
 		duration := "3s"
-		planBuilder := test.NewYamlPlanBuilder()
+		planBuilder := yaml.NewPlanBuilder()
 		planBuilder.SetDuration(duration)
 		jobBuilder := planBuilder.CreateJob()
 		jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction("/people"))
@@ -206,7 +206,7 @@ var _ = Describe("ExecutionPlan", func() {
 	It("SetRandom", func() {
 		numberOfSteps := 6
 
-		planBuilder := test.NewYamlPlanBuilder()
+		planBuilder := yaml.NewPlanBuilder()
 		planBuilder.SetRandom(true)
 
 		for i := 0; i < numberOfSteps; i++ {
@@ -239,7 +239,7 @@ var _ = Describe("ExecutionPlan", func() {
 		//ASSERTION FAILURES ARE NOT CURRENTLY COUNTING AS ERRORS IN THE SUMMARY OUTPUT
 		It("ExactAssertion Fails", func() {
 
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 			planBuilder.CreateJob().
 				CreateStep().
 				ToExecuteAction(GetHTTPRequestAction("/boom")).
@@ -258,7 +258,7 @@ var _ = Describe("ExecutionPlan", func() {
 
 		It("ExactAssertion Pass", func() {
 
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 			planBuilder.CreateJob().
 				CreateStep().
 				ToExecuteAction(GetHTTPRequestAction("/boom")).
@@ -277,7 +277,7 @@ var _ = Describe("ExecutionPlan", func() {
 	})
 
 	It("Name", func() {
-		planBuilder := test.NewYamlPlanBuilder()
+		planBuilder := yaml.NewPlanBuilder()
 		planBuilder.CreateJob().
 			CreateStep().
 			ToExecuteAction(GetHTTPRequestAction("/people")).

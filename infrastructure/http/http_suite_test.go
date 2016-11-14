@@ -4,15 +4,17 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/guzzlerio/corcel/config"
-	"github.com/guzzlerio/corcel/global"
-	"github.com/guzzlerio/corcel/logger"
-	"github.com/guzzlerio/corcel/test"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/guzzlerio/rizo"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+
+	"github.com/guzzlerio/corcel/config"
+	"github.com/guzzlerio/corcel/global"
+	"github.com/guzzlerio/corcel/logger"
+	"github.com/guzzlerio/corcel/serialisation/yaml"
+	"github.com/guzzlerio/corcel/test"
 )
 
 var (
@@ -38,6 +40,6 @@ var _ = AfterSuite(func() {
 	TestServer.Stop()
 })
 
-func ExecutePlanBuilder(planBuilder *test.YamlPlanBuilder) error {
+func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) error {
 	return test.ExecutePlanBuilder("../.././corcel", planBuilder)
 }

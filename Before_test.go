@@ -3,16 +3,17 @@ package main
 import (
 	"net/http"
 
-	"github.com/guzzlerio/corcel/test"
-
 	"github.com/guzzlerio/rizo"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/guzzlerio/corcel/serialisation/yaml"
+	"github.com/guzzlerio/corcel/test"
 )
 
 var _ = Describe("Before After", func() {
 	var (
-		planBuilder *test.YamlPlanBuilder
+		planBuilder *yaml.PlanBuilder
 		path        string
 		body        string
 	)
@@ -23,7 +24,7 @@ var _ = Describe("Before After", func() {
 		})
 
 		TestServer.Use(factory).For(rizo.RequestWithPath("/people"))
-		planBuilder = test.NewYamlPlanBuilder()
+		planBuilder = yaml.NewPlanBuilder()
 		path = "/people"
 		body = "Zee Body"
 	})

@@ -1,4 +1,14 @@
-package test
+package yaml
+
+//DummyAction ...
+func (instance PlanBuilder) DummyAction() DummyActionBuilder {
+	return DummyActionBuilder{
+		data: map[string]interface{}{
+			"type":    "DummyAction",
+			"results": map[string]interface{}{},
+		},
+	}
+}
 
 //DummyActionBuilder ...
 type DummyActionBuilder struct {
@@ -22,14 +32,4 @@ func (instance DummyActionBuilder) Set(key string, value interface{}) DummyActio
 //Build ...
 func (instance DummyActionBuilder) Build() map[string]interface{} {
 	return instance.data
-}
-
-//DummyAction ...
-func (instance YamlPlanBuilder) DummyAction() DummyActionBuilder {
-	return DummyActionBuilder{
-		data: map[string]interface{}{
-			"type":    "DummyAction",
-			"results": map[string]interface{}{},
-		},
-	}
 }

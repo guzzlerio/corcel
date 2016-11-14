@@ -1,7 +1,7 @@
-package test
+package yaml
 
 //XPathExtractor ...
-func (instance YamlPlanBuilder) XPathExtractor() XPathExtractorBuilder {
+func (instance PlanBuilder) XPathExtractor() XPathExtractorBuilder {
 	return XPathExtractorBuilder{
 		data: map[string]interface{}{
 			"type": "XPathExtractor",

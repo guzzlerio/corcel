@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/statistics"
-	"github.com/guzzlerio/corcel/test"
 	"github.com/guzzlerio/corcel/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -13,7 +13,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 	Context("ExactAssertion", func() {
 
 		It("Succeeds", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				CreateJob().
@@ -32,7 +32,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 		})
 
 		It("Fails", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				CreateJob().
@@ -55,7 +55,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 	Context("EmptyAssertion", func() {
 
 		It("Succeeds", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				CreateJob().
@@ -74,7 +74,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 		})
 
 		It("Fails", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				CreateJob().
@@ -97,7 +97,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 	Context("GreaterThanAssertion", func() {
 
 		It("Succeeds", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				CreateJob().
@@ -116,7 +116,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 		})
 
 		It("Fails", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				CreateJob().
@@ -139,7 +139,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 	Context("GreaterThanOrEqualAssertion", func() {
 
 		It("Succeeds", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				CreateJob().
@@ -158,7 +158,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 		})
 
 		It("Fails", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				CreateJob().
@@ -181,7 +181,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 	Context("LessThanAssertion", func() {
 
 		It("Succeeds", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				CreateJob().
@@ -200,7 +200,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 		})
 
 		It("Fails", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				CreateJob().
@@ -223,7 +223,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 	Context("LessThanOrEqualAssertion", func() {
 
 		It("Succeeds", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				CreateJob().
@@ -242,7 +242,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 		})
 
 		It("Fails", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				CreateJob().
@@ -265,7 +265,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 	Context("NotEmptyAssertion", func() {
 
 		It("Succeeds", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				CreateJob().
@@ -284,7 +284,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 		})
 
 		It("Fails", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				CreateJob().
@@ -307,7 +307,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 	Context("NotEqualAssertion", func() {
 
 		It("Succeeds", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				CreateJob().
@@ -326,7 +326,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 		})
 
 		It("Fails", func() {
-			planBuilder := test.NewYamlPlanBuilder()
+			planBuilder := yaml.NewPlanBuilder()
 
 			planBuilder.
 				CreateJob().

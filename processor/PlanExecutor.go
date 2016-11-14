@@ -39,10 +39,7 @@ type PlanExecutionContext struct {
 }
 
 func (instance *PlanExecutionContext) execute(cancellation chan struct{}) {
-	instance.workerExecuteJobs(instance.Plan.Jobs, cancellation)
-}
-
-func (instance *PlanExecutionContext) workerExecuteJobs(jobs []core.Job, cancellation chan struct{}) {
+	var jobs = instance.Plan.Jobs
 	var jobStream JobStream
 	jobStream = CreateJobSequentialStream(jobs)
 
@@ -59,13 +56,9 @@ func (instance *PlanExecutionContext) workerExecuteJobs(jobs []core.Job, cancell
 	if instance.Config.Duration > time.Duration(0) {
 		jobStream = CreateJobDurationStream(jobStream, instance.Config.Duration)
 		ticker := time.NewTicker(time.Millisecond * 10)
-		//		go func() {
-		//			for _ = range ticker.C {
 		if int64(time.Since(instance.start).Seconds())%2 == 0 {
 			instance.progress <- jobStream.Progress()
 		}
-		//			}
-		//		}()
 		time.AfterFunc(instance.Config.Duration, func() {
 			ticker.Stop()
 			_ = instance.Bar.Set(100)
@@ -75,12 +68,12 @@ func (instance *PlanExecutionContext) workerExecuteJobs(jobs []core.Job, cancell
 	for jobStream.HasNext() {
 		job := jobStream.Next()
 		_ = instance.Bar.Set(jobStream.Progress())
-		//before Job
+
 		for _, action := range job.Before {
 			_ = action.Execute(nil, cancellation)
+
 		}
 		instance.workerExecuteJob(job, cancellation)
-		//after Job
 		for _, action := range job.After {
 			_ = action.Execute(nil, cancellation)
 		}

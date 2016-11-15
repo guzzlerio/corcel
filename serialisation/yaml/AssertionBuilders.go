@@ -1,8 +1,8 @@
 package yaml
 
 //ExactAssertion ...
-func (instance PlanBuilder) ExactAssertion(key string, expected interface{}) map[string]interface{} {
-	return map[string]interface{}{
+func (instance PlanBuilder) ExactAssertion(key string, expected interface{}) Assertion {
+	return Assertion{
 		"type":     "ExactAssertion",
 		"key":      key,
 		"expected": expected,

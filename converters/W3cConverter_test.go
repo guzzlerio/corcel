@@ -34,10 +34,21 @@ var _ = Describe("W3cExtConverter", func() {
 
 		It("builds a plan with one job and many steps", func() {
 			Ω(plan.Jobs).Should(HaveLen(1))
+			Ω(plan.Jobs[0].Steps).Should(HaveLen(5))
 		})
 
 		It("builds a plan with a GET HttpRequest", func() {
-			Ω(plan.Jobs[0].Steps[0].Action).Should(BeAssignableToTypeOf(yaml.Action{}))
+			action := plan.Jobs[0].Steps[0].Action
+			Ω(action).Should(BeAssignableToTypeOf(yaml.Action{}))
+			Ω(action["type"]).Should(Equal("HttpRequest"))
+			Ω(action["method"]).Should(Equal("GET"))
+		})
+
+		It("adds an ExactAssertion for the HTTP status", func() {
+			assertion := plan.Jobs[0].Steps[0].Assertions[0]
+			Ω(assertion).Should(BeAssignableToTypeOf(yaml.Assertion{}))
+			Ω(assertion["type"]).Should(Equal("ExactAssertion"))
+			Ω(assertion["key"]).Should(Equal("response:status"))
 		})
 	})
 })

@@ -36,7 +36,7 @@ func New(app *kingpin.Application, registry *core.Registry) {
 	convert := app.Command("convert", "Convert input log file into a Corcel Plan").Action(cc.run)
 	convert.Flag("input", "Input File").StringVar(&cc.inputFile)
 	convert.Flag("output", "Output .plan file").StringVar(&cc.outputFile)
-	convert.Flag("base", "Base URL").StringVar(&cc.baseUrl)
+	convert.Flag("base", "Base URL").Short('b').Required().StringVar(&cc.baseUrl)
 	convert.Flag("type", "Log File Type").Short('t').Default("w3cext").EnumVar(&cc.logType, "w3c", "w3cext", "iis", "apache")
 
 	// RunCommand
@@ -96,6 +96,8 @@ func (instance *ConvertCommand) run(c *kingpin.ParseContext) error {
 	switch instance.logType {
 	case "w3cext":
 		converter = converters.NewW3cExtConverter(instance.baseUrl, file)
+	default:
+		panic(fmt.Errorf("Unsupported logType: %v", instance.logType))
 	}
 	converter.Convert()
 	fmt.Printf("Would now have converted the log file %v\n", instance.inputFile)

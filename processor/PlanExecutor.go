@@ -61,14 +61,16 @@ func (instance *PlanExecutionContext) execute(cancellation chan struct{}) {
 	}
 }
 
-func (instance *PlanExecutionContext) workerExecuteJob(talula core.Job, cancellation chan struct{}) {
-	defer func() { //catch or finally
-		if err := recover(); err != nil { //catch
-			errormanager.Log(err)
-		}
-	}()
+func (instance *PlanExecutionContext) workerExecuteJob(job core.Job, cancellation chan struct{}) {
+	/*
+		defer func() { //catch or finally
+			if err := recover(); err != nil { //catch
+				errormanager.Log(err)
+			}
+		}()
+	*/
 	var stepStream StepStream
-	stepStream = CreateStepSequentialStream(talula.Steps)
+	stepStream = CreateStepSequentialStream(job.Steps)
 	if instance.Config.WaitTime > time.Duration(0) {
 		stepStream = CreateStepDelayStream(stepStream, instance.Config.WaitTime)
 	}

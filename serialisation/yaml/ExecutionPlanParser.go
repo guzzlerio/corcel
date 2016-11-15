@@ -46,7 +46,7 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 	err := yaml.Unmarshal([]byte(data), &yamlExecutionPlan)
 
 	if err != nil {
-		return core.Plan{}, err
+		return core.NullPlan(), err
 	}
 
 	executionPlan.Name = yamlExecutionPlan.Name

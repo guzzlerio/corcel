@@ -19,6 +19,7 @@ var (
 )
 
 func main() {
+
 	logger.Initialise()
 
 	//TODO: This is not as efficient as it could be for example:

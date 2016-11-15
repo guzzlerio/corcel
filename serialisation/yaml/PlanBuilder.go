@@ -107,13 +107,15 @@ func (instance *PlanBuilder) CreateJob(arg ...string) *JobBuilder {
 	return builder
 }
 
+// BuildAndWrite ...
+func (instance *PlanBuilder) BuildAndWrite() (*os.File, error) {
+
+	plan := instance.Build()
+	return instance.Write(plan)
+}
+
 //Build ...
-func (instance *PlanBuilder) Build() (*os.File, error) {
-
-	outputBasePath := "/tmp/corcel/plans"
-	//FIXME ignored error output from MkdirAll
-	os.MkdirAll(outputBasePath, 0777)
-
+func (instance *PlanBuilder) Build() *ExecutionPlan {
 	plan := ExecutionPlan{
 		Iterations: instance.Iterations,
 		Random:     instance.Random,
@@ -128,6 +130,15 @@ func (instance *PlanBuilder) Build() (*os.File, error) {
 		yamlExecutionJob := jobBuilder.Build()
 		plan.Jobs = append(plan.Jobs, yamlExecutionJob)
 	}
+	return &plan
+}
+
+// Write ...
+func (instance *PlanBuilder) Write(plan *ExecutionPlan) (*os.File, error) {
+	outputBasePath := "/tmp/corcel/plans"
+	//FIXME ignored error output from MkdirAll
+	os.MkdirAll(outputBasePath, 0777)
+
 	file, err := ioutil.TempFile(os.TempDir(), "yamlExecutionPlanForCorcel")
 	if err != nil {
 		return nil, err
@@ -135,7 +146,7 @@ func (instance *PlanBuilder) Build() (*os.File, error) {
 	defer func() {
 		utils.CheckErr(file.Close())
 	}()
-	contents, err := yamlFormat.Marshal(&plan)
+	contents, err := yamlFormat.Marshal(plan)
 	// fmt.Println(string(contents[:]))
 	if err != nil {
 		return nil, err

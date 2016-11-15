@@ -1,6 +1,9 @@
 package converters
 
 import (
+	"fmt"
+	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/guzzlerio/corcel/serialisation/yaml"
@@ -52,3 +55,17 @@ var _ = Describe("W3cExtConverter", func() {
 		})
 	})
 })
+
+func WriteOutputYAML(plan *yaml.ExecutionPlan) {
+	planBuilder := yaml.NewPlanBuilder()
+	if file, err := planBuilder.Write(plan); err == nil {
+		defer func() {
+			if fileErr := os.Remove(file.Name()); fileErr != nil {
+				panic(fileErr)
+			}
+		}()
+		dat, _ := ioutil.ReadFile(file.Name())
+
+		fmt.Println(string(dat))
+	}
+}

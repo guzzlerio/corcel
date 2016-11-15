@@ -4,9 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 
@@ -28,7 +26,10 @@ type logEntry map[string]string
 func NewW3cExtConverter(baseUrl string, input io.Reader) *W3cExtConverter {
 	scanner := bufio.NewScanner(input)
 	//TODO check for error
-	u, _ := url.Parse(baseUrl)
+	u, err := url.Parse(baseUrl)
+	if err != nil {
+		panic(err)
+	}
 	return &W3cExtConverter{
 		baseUrl: u,
 		scanner: scanner,
@@ -40,6 +41,7 @@ func (i *W3cExtConverter) Convert() (*yaml.ExecutionPlan, error) {
 	jobBuilder := planBuilder.CreateJob()
 	for i.scanner.Scan() {
 		line := i.scanner.Text()
+		fmt.Println(line)
 		if i.isDirective(line) {
 			if i.isFieldDefinition(line) {
 				i.parseFields(line)
@@ -60,17 +62,7 @@ func (i *W3cExtConverter) Convert() (*yaml.ExecutionPlan, error) {
 		return nil, err
 	}
 	plan := planBuilder.Build()
-	if file, err := planBuilder.Write(plan); err == nil {
-		defer func() {
-			if fileErr := os.Remove(file.Name()); fileErr != nil {
-				panic(fileErr)
-			}
-		}()
-		dat, _ := ioutil.ReadFile(file.Name())
-
-		fmt.Sprintln(string(dat))
-	}
-
+	plan.Name = fmt.Sprintf("Log file replay for: %v", i.baseUrl.String())
 	return plan, nil
 }
 

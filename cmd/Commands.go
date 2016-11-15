@@ -17,6 +17,7 @@ import (
 	"github.com/guzzlerio/corcel/errormanager"
 	"github.com/guzzlerio/corcel/logger"
 	"github.com/guzzlerio/corcel/report"
+	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/statistics"
 )
 
@@ -99,8 +100,22 @@ func (instance *ConvertCommand) run(c *kingpin.ParseContext) error {
 	default:
 		panic(fmt.Errorf("Unsupported logType: %v", instance.logType))
 	}
-	converter.Convert()
-	fmt.Printf("Would now have converted the log file %v\n", instance.inputFile)
+	plan, err := converter.Convert()
+	if err != nil {
+		fmt.Printf("BOOOOOOM: %+v", err)
+	}
+	planBuilder := yaml.NewPlanBuilder()
+	if file, err := planBuilder.Write(plan); err == nil {
+		defer func() {
+			if fileErr := os.Remove(file.Name()); fileErr != nil {
+				panic(fileErr)
+			}
+		}()
+		dat, _ := ioutil.ReadFile(file.Name())
+
+		fmt.Printf("Converted the log file %v\n", instance.inputFile)
+		fmt.Println(string(dat))
+	}
 	return nil
 }
 

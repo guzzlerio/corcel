@@ -25,7 +25,7 @@ func CreateAction() HTTPAction {
 	var instance = HTTPAction{
 		client: &http.Client{
 			Transport: &http.Transport{
-				MaxIdleConnsPerHost: 50,
+				MaxIdleConnsPerHost: ConfigMaxIdleConnsPerHost,
 			},
 		},
 	}
@@ -34,10 +34,6 @@ func CreateAction() HTTPAction {
 
 //Execute ...
 func (instance HTTPAction) Execute(context core.ExecutionContext, cancellation chan struct{}) core.ExecutionResult {
-
-	if instance.client == nil {
-		panic("Dang nabbit!")
-	}
 
 	result := core.ExecutionResult{}
 

@@ -1,12 +1,16 @@
 package processor
 
 import (
+	"io/ioutil"
 	"sync"
 	"time"
 
 	"github.com/guzzlerio/corcel/config"
 	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/errormanager"
+	"github.com/guzzlerio/corcel/infrastructure/http"
+	"github.com/guzzlerio/corcel/request"
+	"github.com/guzzlerio/corcel/serialisation/yaml"
 
 	"github.com/REAANDREW/telegraph"
 )
@@ -18,43 +22,78 @@ func merge(source map[string]interface{}, extra map[string]interface{}) map[stri
 	return source
 }
 
-//ExecutionBranch ...
-type ExecutionBranch interface {
-	Execute(plan core.Plan) error
-}
-
-//PlanExecutor ...
-type PlanExecutor struct {
-	Config       *config.Configuration
-	Bar          ProgressBar
-	start        time.Time
-	Publisher    telegraph.LinkedPublisher
-	Lists        *ListRingRevolver
+//PlanExecutionContext encapsulates the runtime state in order to execute
+//a plan
+type PlanExecutionContext struct {
 	Plan         core.Plan
+	Lists        *ListRingRevolver
+	Config       *config.Configuration
+	Publisher    telegraph.LinkedPublisher
 	PlanContext  core.ExtractionResult
 	JobContexts  map[int]core.ExtractionResult
 	StepContexts map[int]map[int]core.ExtractionResult
+	Bar          ProgressBar
 	mutex        *sync.Mutex
+	progress     chan int
+	start        time.Time
 }
 
-//CreatePlanExecutor ...
-func CreatePlanExecutor(config *config.Configuration, bar ProgressBar) *PlanExecutor {
-	return &PlanExecutor{
-		Config:       config,
-		Bar:          bar,
-		Publisher:    telegraph.NewLinkedPublisher(),
-		PlanContext:  core.ExtractionResult{},
-		JobContexts:  map[int]core.ExtractionResult{},
-		StepContexts: map[int]map[int]core.ExtractionResult{},
-		mutex:        &sync.Mutex{},
+func (instance *PlanExecutionContext) execute(cancellation chan struct{}) {
+	var jobs = instance.Plan.Jobs
+	var jobStream = CreateJobStream(jobs, instance.Config)
+
+	if int64(time.Since(instance.start).Seconds())%2 == 0 {
+		instance.progress <- jobStream.Progress()
+	}
+
+	for jobStream.HasNext() {
+		job := jobStream.Next()
+		_ = instance.Bar.Set(jobStream.Progress())
+
+		for _, action := range job.Before {
+			_ = action.Execute(nil, cancellation)
+
+		}
+		instance.workerExecuteJob(job, cancellation)
+		for _, action := range job.After {
+			_ = action.Execute(nil, cancellation)
+		}
 	}
 }
 
-func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan struct{}) core.ExecutionResult {
-	start := time.Now()
+func (instance *PlanExecutionContext) workerExecuteJob(job core.Job, cancellation chan struct{}) {
+	/*
+		defer func() { //catch or finally
+			if err := recover(); err != nil { //catch
+				errormanager.Log(err)
+			}
+		}()
+	*/
+	var stepStream StepStream
+	stepStream = CreateStepSequentialStream(job.Steps)
+	if instance.Config.WaitTime > time.Duration(0) {
+		stepStream = CreateStepDelayStream(stepStream, instance.Config.WaitTime)
+	}
 
-	instance.mutex.Lock()
-	defer instance.mutex.Unlock()
+	for stepStream.HasNext() {
+		step := stepStream.Next()
+		//before Step
+		for _, action := range step.Before {
+			_ = action.Execute(nil, cancellation)
+		}
+		executionResult := instance.executeStep(step, cancellation)
+		//after Step
+		for _, action := range step.After {
+			_ = action.Execute(nil, cancellation)
+		}
+
+		instance.Publisher.Publish(executionResult)
+
+	}
+}
+
+func (instance *PlanExecutionContext) executeStep(step core.Step, cancellation chan struct{}) core.ExecutionResult {
+	start := time.Now()
 
 	if instance.JobContexts[step.JobID] == nil {
 		instance.JobContexts[step.JobID] = map[string]interface{}{}
@@ -134,124 +173,161 @@ func (instance *PlanExecutor) executeStep(step core.Step, cancellation chan stru
 	return executionResult
 }
 
-func (instance *PlanExecutor) workerExecuteJob(talula core.Job, cancellation chan struct{}) {
-	defer func() { //catch or finally
-		if err := recover(); err != nil { //catch
-			errormanager.Log(err)
-		}
-	}()
-	var stepStream StepStream
-	stepStream = CreateStepSequentialStream(talula.Steps)
-	if instance.Config.WaitTime > time.Duration(0) {
-		stepStream = CreateStepDelayStream(stepStream, instance.Config.WaitTime)
-	}
+//ExecutionBranch ...
+type ExecutionBranch interface {
+	Execute() error
+}
 
-	for stepStream.HasNext() {
-		step := stepStream.Next()
-		//before Step
-		for _, action := range step.Before {
-			_ = action.Execute(nil, cancellation)
-		}
-		executionResult := instance.executeStep(step, cancellation)
-		//after Step
-		for _, action := range step.After {
-			_ = action.Execute(nil, cancellation)
-		}
+//PlanExecutor ...
+type PlanExecutor struct {
+	Config       *config.Configuration
+	Bar          ProgressBar
+	start        time.Time
+	Publisher    telegraph.LinkedPublisher
+	Lists        *ListRingRevolver
+	Plan         core.Plan
+	PlanContext  core.ExtractionResult
+	JobContexts  map[int]core.ExtractionResult
+	StepContexts map[int]map[int]core.ExtractionResult
+	mutex        *sync.Mutex
+	registry     core.Registry
+}
 
-		instance.Publisher.Publish(executionResult)
-
+//CreatePlanExecutor ...
+func CreatePlanExecutor(config *config.Configuration, bar ProgressBar, registry core.Registry) *PlanExecutor {
+	return &PlanExecutor{
+		Config:       config,
+		Bar:          bar,
+		Publisher:    telegraph.NewLinkedPublisher(),
+		PlanContext:  core.ExtractionResult{},
+		JobContexts:  map[int]core.ExtractionResult{},
+		StepContexts: map[int]map[int]core.ExtractionResult{},
+		mutex:        &sync.Mutex{},
+		registry:     registry,
 	}
 }
 
-func (instance *PlanExecutor) workerExecuteJobs(jobs []core.Job, cancellation chan struct{}) {
-	var jobStream JobStream
-	jobStream = CreateJobSequentialStream(jobs)
+//CreatePlanFromURLList ...
+func CreatePlanFromURLList(config *config.Configuration) core.Plan {
+	//FIXME Exposed for use in tests
 
-	if instance.Config.Random {
-		jobStream = CreateJobRandomStream(jobs)
-	}
+	/*
+		plan := core.Plan{
+			Name:     "Plan from urls in file",
+			Workers:  config.Workers,
+			WaitTime: config.WaitTime,
+			Jobs:     []core.Job{},
+		}
+	*/
 
-	if instance.Config.Iterations > 0 {
-		revolvingStream := CreateJobRevolvingStream(jobStream)
-		iterationStream := CreateJobIterationStream(*revolvingStream, len(jobs), instance.Config.Iterations)
-		jobStream = iterationStream
-	}
+	var name = "Plan from urls in file"
+	var plan = core.NewPlanBuilder().
+		Name(name).
+		Workers(config.Workers).
+		WaitTime(config.WaitTime).
+		Build()
 
-	if instance.Config.Duration > time.Duration(0) {
-		jobStream = CreateJobDurationStream(jobStream, instance.Config.Duration)
-		ticker := time.NewTicker(time.Millisecond * 10)
-		go func() {
-			for _ = range ticker.C {
-				_ = instance.Bar.Set(jobStream.Progress())
+	reader := request.NewRequestReader(config.FilePath)
+
+	stream := request.NewSequentialRequestStream(reader)
+
+	for stream.HasNext() {
+		job := plan.CreateJob()
+		job.Name = "Job for the urls in file"
+
+		request, err := stream.Next()
+		if err != nil {
+			errormanager.Check(err)
+		}
+		step := job.CreateStep()
+
+		var body string
+		if request.Body != nil {
+			data, _ := ioutil.ReadAll(request.Body)
+			if err != nil {
+				errormanager.Check(err)
+			} else {
+				body = string(data)
 			}
-		}()
-		time.AfterFunc(instance.Config.Duration, func() {
-			ticker.Stop()
-			_ = instance.Bar.Set(100)
-		})
+		}
+		action := http.CreateAction()
+
+		action.URL = request.URL.String()
+		action.Method = request.Method
+		action.Headers = request.Header
+		action.Body = body
+
+		step.Action = action
+		//job.Steps = append(job.Steps, step)
+		job = job.AddStep(step)
+		//plan.Jobs = append(plan.Jobs, job)
+		plan = plan.AddJob(job)
 	}
 
-	for jobStream.HasNext() {
-		job := jobStream.Next()
-		_ = instance.Bar.Set(jobStream.Progress())
-		//before Job
-		for _, action := range job.Before {
-			_ = action.Execute(nil, cancellation)
-		}
-		instance.workerExecuteJob(job, cancellation)
-		//after Job
-		for _, action := range job.After {
-			_ = action.Execute(nil, cancellation)
-		}
-	}
+	return plan
 }
 
-func (instance *PlanExecutor) executeJobs(jobs []core.Job, cancellation chan struct{}) {
-	var wg sync.WaitGroup
-	wg.Add(instance.Config.Workers)
-	for i := 0; i < instance.Config.Workers; i++ {
-		go func(executionJobs []core.Job) {
-			instance.workerExecuteJobs(executionJobs, cancellation)
-			wg.Done()
-		}(jobs)
+func (instance *PlanExecutor) generatePlan() core.Plan {
+	var plan core.Plan
+	var err error
+	var config = instance.Config
+	var registry = instance.registry
+
+	if !config.Plan {
+		plan = CreatePlanFromURLList(config)
+	} else {
+		parser := yaml.CreateExecutionPlanParser(registry)
+		data, dataErr := ioutil.ReadFile(config.FilePath)
+		if dataErr != nil {
+			panic(dataErr)
+		}
+		plan, err = parser.Parse(string(data))
+		config.Workers = plan.Workers
+		if config.WaitTime == time.Duration(0) {
+			config.WaitTime = plan.WaitTime
+		}
+
+		if config.Duration == time.Duration(0) {
+			config.Duration = plan.Duration
+		}
+
+		if config.Iterations == 0 {
+			config.Iterations = plan.Iterations
+		}
+
+		config.Random = plan.Random
+		if err != nil {
+			panic(err)
+		}
 	}
-	wg.Wait()
+	return plan
 }
 
 // Execute ...
-func (instance *PlanExecutor) Execute(plan core.Plan) error {
+func (instance *PlanExecutor) Execute() error {
 	var cancellation = make(chan struct{})
-	instance.start = time.Now()
-	instance.Plan = plan
-	if instance.Plan.Context["lists"] != nil {
-		var lists = map[string][]map[string]interface{}{}
 
-		listKeys := instance.Plan.Context["lists"].(map[interface{}]interface{})
-		for listKey, listValue := range listKeys {
-			lists[listKey.(string)] = []map[string]interface{}{}
-			listValueItems := listValue.([]interface{})
-			for _, listValueItem := range listValueItems {
-				srcData := listValueItem.(map[interface{}]interface{})
-				stringKeyData := map[string]interface{}{}
-				for srcKey, srcValue := range srcData {
-					stringKeyData[srcKey.(string)] = srcValue
+	instance.start = time.Now()
+
+	var progressChan = make(chan int, 1000)
+	defer close(progressChan)
+
+	go func() {
+		var read = true
+		for read == true {
+			select {
+			case value, ok := <-progressChan:
+				if ok {
+					instance.Bar.Set(value)
+				} else {
+					progressChan = nil
+					read = false
+					break
 				}
-				lists[listKey.(string)] = append(lists[listKey.(string)], stringKeyData)
+			default:
 			}
 		}
-
-		instance.Lists = NewListRingRevolver(lists)
-	} else {
-		instance.Lists = NewListRingRevolver(map[string][]map[string]interface{}{})
-	}
-	if instance.Plan.Context["vars"] != nil {
-		stringKeyData := map[string]interface{}{}
-		data := instance.Plan.Context["vars"].(map[interface{}]interface{})
-		for dataKey, dataValue := range data {
-			stringKeyData["$"+dataKey.(string)] = dataValue
-		}
-		instance.Plan.Context["vars"] = stringKeyData
-	}
+	}()
 
 	if instance.Config.Duration > time.Duration(0) {
 		time.AfterFunc(instance.Config.Duration, func() {
@@ -259,13 +335,50 @@ func (instance *PlanExecutor) Execute(plan core.Plan) error {
 		})
 	}
 
+	var mainPlan = instance.generatePlan()
 	//before Plan
-	for _, action := range plan.Before {
+	for _, action := range mainPlan.Before {
 		_ = action.Execute(nil, cancellation)
 	}
-	instance.executeJobs(plan.Jobs, cancellation)
-	//after Plan
-	for _, action := range plan.After {
+
+	var wg sync.WaitGroup
+	wg.Add(instance.Config.Workers)
+
+	for i := 0; i < instance.Config.Workers; i++ {
+		var workerPlan = instance.generatePlan()
+
+		go func(plan core.Plan) {
+			if plan.Context["vars"] != nil {
+				stringKeyData := map[string]interface{}{}
+				data := plan.Context["vars"].(map[interface{}]interface{})
+				for dataKey, dataValue := range data {
+					stringKeyData["$"+dataKey.(string)] = dataValue
+				}
+				plan.Context["vars"] = stringKeyData
+			}
+
+			var planExecutionContext = &PlanExecutionContext{
+				Plan:         plan,
+				Lists:        NewListRingRevolver(plan.Lists()),
+				Config:       instance.Config,
+				Publisher:    instance.Publisher,
+				PlanContext:  core.ExtractionResult{},
+				JobContexts:  map[int]core.ExtractionResult{},
+				StepContexts: map[int]map[int]core.ExtractionResult{},
+				Bar:          instance.Bar,
+				mutex:        &sync.Mutex{},
+				progress:     progressChan,
+				start:        time.Now(),
+			}
+
+			planExecutionContext.execute(cancellation)
+			wg.Done()
+		}(workerPlan)
+	}
+
+	wg.Wait()
+
+	for _, action := range mainPlan.After {
 		_ = action.Execute(nil, cancellation)
 	}
 

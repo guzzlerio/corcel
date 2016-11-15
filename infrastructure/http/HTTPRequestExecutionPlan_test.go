@@ -7,8 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/guzzlerio/corcel/test"
-
+	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/rizo"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -25,7 +24,7 @@ var _ = Describe("ExecutionPlanHttpRequest", func() {
 	})
 
 	It("Supplies a payload to the HTTP Request", func() {
-		planBuilder := test.NewYamlPlanBuilder()
+		planBuilder := yaml.NewPlanBuilder()
 
 		path := "/people"
 		body := "Zee Body"
@@ -62,7 +61,7 @@ var _ = Describe("ExecutionPlanHttpRequest", func() {
 		path := "/people"
 		body := fmt.Sprintf("@%s", tmpfn)
 
-		planBuilder := test.NewYamlPlanBuilder()
+		planBuilder := yaml.NewPlanBuilder()
 
 		planBuilder.
 			CreateJob().

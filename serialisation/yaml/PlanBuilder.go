@@ -1,4 +1,4 @@
-package test
+package yaml
 
 import (
 	"io/ioutil"
@@ -7,59 +7,58 @@ import (
 	"time"
 
 	"github.com/guzzlerio/corcel/infrastructure/http"
-	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/utils"
 
 	"github.com/satori/go.uuid"
 	yamlFormat "gopkg.in/yaml.v2"
 )
 
-//YamlPlanBuilder ...
-type YamlPlanBuilder struct {
+//PlanBuilder ...
+type PlanBuilder struct {
 	Iterations      int
 	Random          bool
 	NumberOfWorkers int
 	WaitTime        string
 	Duration        string
-	JobBuilders     []*YamlJobBuilder
+	JobBuilders     []*JobBuilder
 	Context         map[string]interface{}
-	Before          []yaml.Action
-	After           []yaml.Action
+	Before          []Action
+	After           []Action
 }
 
-//NewYamlPlanBuilder ...
-func NewYamlPlanBuilder() *YamlPlanBuilder {
-	return &YamlPlanBuilder{
+//NewPlanBuilder ...
+func NewPlanBuilder() *PlanBuilder {
+	return &PlanBuilder{
 		Iterations:      0,
 		Random:          false,
 		NumberOfWorkers: 1,
 		Duration:        "0s",
 		WaitTime:        "0s",
-		JobBuilders:     []*YamlJobBuilder{},
+		JobBuilders:     []*JobBuilder{},
 		Context:         map[string]interface{}{},
 	}
 }
 
 //SetIterations ...
-func (instance *YamlPlanBuilder) SetIterations(value int) *YamlPlanBuilder {
+func (instance *PlanBuilder) SetIterations(value int) *PlanBuilder {
 	instance.Iterations = value
 	return instance
 }
 
 //SetRandom ...
-func (instance *YamlPlanBuilder) SetRandom(value bool) *YamlPlanBuilder {
+func (instance *PlanBuilder) SetRandom(value bool) *PlanBuilder {
 	instance.Random = value
 	return instance
 }
 
 //SetDuration ...
-func (instance *YamlPlanBuilder) SetDuration(value string) *YamlPlanBuilder {
+func (instance *PlanBuilder) SetDuration(value string) *PlanBuilder {
 	instance.Duration = value
 	return instance
 }
 
 //SetWorkers ...
-func (instance *YamlPlanBuilder) SetWorkers(value int) *YamlPlanBuilder {
+func (instance *PlanBuilder) SetWorkers(value int) *PlanBuilder {
 	if value <= 0 {
 		panic("Numbers of workers must be greater than 0")
 	}
@@ -68,7 +67,7 @@ func (instance *YamlPlanBuilder) SetWorkers(value int) *YamlPlanBuilder {
 }
 
 //SetWaitTime ...
-func (instance *YamlPlanBuilder) SetWaitTime(value string) *YamlPlanBuilder {
+func (instance *PlanBuilder) SetWaitTime(value string) *PlanBuilder {
 	_, err := time.ParseDuration(value)
 	if err != nil {
 		panic(err)
@@ -78,44 +77,44 @@ func (instance *YamlPlanBuilder) SetWaitTime(value string) *YamlPlanBuilder {
 }
 
 //WithContext ...
-func (instance *YamlPlanBuilder) WithContext(context map[string]interface{}) *YamlPlanBuilder {
+func (instance *PlanBuilder) WithContext(context map[string]interface{}) *PlanBuilder {
 	instance.Context = context
 	return instance
 }
 
 //AddBefore ...
-func (instance *YamlPlanBuilder) AddBefore(before yaml.Action) *YamlPlanBuilder {
+func (instance *PlanBuilder) AddBefore(before Action) *PlanBuilder {
 	instance.Before = append(instance.Before, before)
 	return instance
 }
 
 //AddAfter ...
-func (instance *YamlPlanBuilder) AddAfter(after yaml.Action) *YamlPlanBuilder {
+func (instance *PlanBuilder) AddAfter(after Action) *PlanBuilder {
 	instance.After = append(instance.After, after)
 	return instance
 }
 
 //CreateJob ...
-func (instance *YamlPlanBuilder) CreateJob(arg ...string) *YamlJobBuilder {
+func (instance *PlanBuilder) CreateJob(arg ...string) *JobBuilder {
 	var name string
 	if len(arg) == 0 {
 		name = ""
 	} else {
 		name = arg[0]
 	}
-	builder := NewYamlJobBuilder(name)
+	builder := NewJobBuilder(name)
 	instance.JobBuilders = append(instance.JobBuilders, builder)
 	return builder
 }
 
 //Build ...
-func (instance *YamlPlanBuilder) Build() (*os.File, error) {
+func (instance *PlanBuilder) Build() (*os.File, error) {
 
 	outputBasePath := "/tmp/corcel/plans"
 	//FIXME ignored error output from MkdirAll
 	os.MkdirAll(outputBasePath, 0777)
 
-	plan := yaml.ExecutionPlan{
+	plan := ExecutionPlan{
 		Iterations: instance.Iterations,
 		Random:     instance.Random,
 		Workers:    instance.NumberOfWorkers,
@@ -158,6 +157,6 @@ func (instance *YamlPlanBuilder) Build() (*os.File, error) {
 }
 
 //HTTPAction ...
-func (instance YamlPlanBuilder) HTTPAction() http.RequestBuilder {
+func (instance PlanBuilder) HTTPAction() http.RequestBuilder {
 	return http.NewHTTPRequestBuilder()
 }

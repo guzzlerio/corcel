@@ -310,6 +310,7 @@ func (instance *PlanExecutor) Execute() error {
 	instance.start = time.Now()
 
 	var progressChan = make(chan int, 1000)
+	defer close(progressChan)
 
 	go func() {
 		var read = true
@@ -376,7 +377,6 @@ func (instance *PlanExecutor) Execute() error {
 	}
 
 	wg.Wait()
-	close(progressChan)
 
 	for _, action := range mainPlan.After {
 		_ = action.Execute(nil, cancellation)

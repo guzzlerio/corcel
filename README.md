@@ -2,7 +2,7 @@
 
 # Corcel
 
-Performance Testing Tool
+Performance Testing Tool that is simple, scalable and powerful
 
 Website up at https://corcel.io
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -14,8 +15,12 @@ import (
 )
 
 var (
-	//Version is the application version - set with the ldflags
-	Version = ""
+	//Version ...
+	Version = "EMPTY"
+	//BuildTime ...
+	BuildTime = "EMPTY"
+	//CommitHash ...
+	CommitHash = "EMPTY"
 )
 
 func main() {
@@ -45,7 +50,10 @@ func main() {
 
 	//kingpin.UsageTemplate(kingpin.CompactUsageTemplate)
 	kingpin.CommandLine.Help = "An example implementation of curl."
-	app := kingpin.New("corcel", "").Version(Version).Author("Andrew Rea").Author("James Allen")
+
+	versionString := fmt.Sprintf("Version %s, Build Time: %s, Hash: %s", Version, BuildTime, CommitHash)
+
+	app := kingpin.New("corcel", "").Version(versionString).Author("Andrew Rea").Author("James Allen")
 	app.HelpFlag.Short('h')
 	app.UsageTemplate(kingpin.LongHelpTemplate)
 

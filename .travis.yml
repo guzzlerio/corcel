@@ -6,7 +6,7 @@ go:
 before_install:
     - # http://stackoverflow.com/questions/16989598/bash-comparing-version-numbers
     - if [ ! $(cat VERSION | grep -P "[0-9]+\.[0-9]+\.[0-9]+$") ]; then echo "MALFORMED VERSION NUMBER" && exit 1;fi;
-    - current_version=$(git describe --tags --abbrev=0 2&>/dev/null | grep -qv latest);
+    - current_version=$( (git describe --tags --abbrev=0 | grep -qv latest) 2&> /dev/null)
     - next_version="$(cat VERSION)"
     - if [ "$current_version" != "" ] && [ ! $(version_gt next_version current_version) ]; then echo "VERSION NEEDS TO INCREMENT && exit 1"; fi; 
     - go get github.com/mitchellh/gox

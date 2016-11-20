@@ -2,6 +2,8 @@
 
 # Corcel
 
+Performance Testing Tool
+
 Website up at https://corcel.io
 
 Develop branch : [![Build Status](https://travis-ci.org/guzzlerio/corcel.svg?branch=develop)](https://travis-ci.org/guzzlerio/corcel)

@@ -200,7 +200,6 @@ func (instance *Aggregator) Snapshot() AggregatorSnapShot {
 }
 
 func (instance *Aggregator) logCounter(name string, value int64) {
-	//name = strings.Replace(name, "counter:", "", -1)
 	if _, ok := instance.counters[name]; !ok {
 		instance.counters[name] = make([]int64, len(instance.times)-1)
 		for i := 0; i < len(instance.times)-1; i++ {
@@ -221,7 +220,6 @@ func (instance *Aggregator) logGuage(name string, value float64) {
 }
 
 func (instance *Aggregator) logHistogram(name string, value metrics.Histogram) {
-	//name = strings.Replace(name, "histogram:", "", -1)
 	ps := value.Percentiles([]float64{0.5, 0.75, 0.95, 0.99, 0.999})
 	if _, ok := instance.histograms[name]; !ok {
 		instance.histograms[name] = map[string][]int64{}
@@ -340,9 +338,6 @@ func (instance *Aggregator) createSnapshot() {
 	if len(instance.times) > 1 && instance.times[len(instance.times)-1] == int64(timeToLog) {
 		return
 	}
-
-	instance.mutex.Lock()
-	defer instance.mutex.Unlock()
 
 	instance.times = append(instance.times, timeToLog)
 	instance.registry.Each(func(name string, i interface{}) {

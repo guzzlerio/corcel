@@ -1,7 +1,7 @@
-package test
+package yaml
 
 //BuildContext ...
-func (instance YamlPlanBuilder) BuildContext() ContextBuilder {
+func (instance PlanBuilder) BuildContext() ContextBuilder {
 	return ContextBuilder{
 		data: map[string]interface{}{},
 	}

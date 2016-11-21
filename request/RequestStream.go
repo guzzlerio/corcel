@@ -129,23 +129,17 @@ func NewTimeBasedRequestStream(stream RequestStream, duration time.Duration) Req
 	return &TimeBasedRequestStream{
 		stream:   stream,
 		duration: duration,
+		start:    time.Now(),
 	}
 }
 
 //HasNext ...
 func (instance *TimeBasedRequestStream) HasNext() bool {
-	instance.lock.Lock()
-	defer instance.lock.Unlock()
-	if instance.start.IsZero() {
-		instance.start = time.Now()
-	}
 	return time.Since(instance.start) < instance.duration
 }
 
 //Next ...
 func (instance *TimeBasedRequestStream) Next() (*http.Request, error) {
-	instance.lock.Lock()
-	defer instance.lock.Unlock()
 	if !instance.stream.HasNext() {
 		instance.stream.Reset()
 	}
@@ -154,22 +148,16 @@ func (instance *TimeBasedRequestStream) Next() (*http.Request, error) {
 
 //Reset ...
 func (instance *TimeBasedRequestStream) Reset() {
-	instance.lock.Lock()
-	defer instance.lock.Unlock()
 	instance.start = time.Time{}
 }
 
 //Progress ...
 func (instance *TimeBasedRequestStream) Progress() int {
-	instance.lock.Lock()
-	defer instance.lock.Unlock()
 	current := (float64(time.Since(instance.start).Nanoseconds()) / float64(instance.duration.Nanoseconds()))
 	return int(math.Ceil(current * 100))
 }
 
 //Size ...
 func (instance *TimeBasedRequestStream) Size() int {
-	instance.lock.Lock()
-	defer instance.lock.Unlock()
 	return int(instance.duration.Nanoseconds())
 }

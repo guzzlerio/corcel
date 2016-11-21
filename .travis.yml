@@ -13,8 +13,6 @@ before_install:
     - go get github.com/tcnksm/ghr
     - go get github.com/axw/gocov/gocov
     - go get github.com/mattn/goveralls
-    - go get -u github.com/alecthomas/gometalinter
-    - gometalinter --install
     - go get -u github.com/jteeuwen/go-bindata/...
 before_script:
     - APP_VERSION="v$(cat VERSION)"
@@ -27,6 +25,8 @@ script:
     - go clean
     - (cd report && go-bindata -pkg report data)
     - go get -t ./...
+    - go get -u github.com/alecthomas/gometalinter
+    - gometalinter --install
     - gometalinter -e "duplicate" -e "undeclared name: Asset" -e "_test" --deadline=30s
     - go build -ldflags "-X main.BuildTime=`date -u '+%Y-%m-%d_%I:%M:%S%p'` -X main.CommitHash=`git rev-parse HEAD` -X main.Version=\"${APP_VERSION}\""
       #- make test

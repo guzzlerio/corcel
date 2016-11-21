@@ -15,6 +15,7 @@ before_install:
     - go get github.com/mattn/goveralls
     - go get -u github.com/alecthomas/gometalinter
     - gometalinter --install
+    - go get -u github.com/jteeuwen/go-bindata/...
 before_script:
     - APP_VERSION="v$(cat VERSION)"
     - RELEASE_CANDIDATE="$(($(git tag -l "${APP_VERSION}*" | wc -l) + 1))"
@@ -24,10 +25,9 @@ before_script:
     - if [[ ! "master release develop" =~ "$TRAVIS_BRANCH" ]]; then APP_VERSION="$(git describe --tags)"; fi;
 script:
     - go clean
+    - (cd report && go-bindata -pkg report data)
     - go get -t ./...
     - gometalinter -e "duplicate" -e "undeclared name: Asset" -e "_test" --deadline=30s
-    - go get -u github.com/jteeuwen/go-bindata/...
-    - (cd report && go-bindata -pkg report data)
     - go build -ldflags "-X main.BuildTime=`date -u '+%Y-%m-%d_%I:%M:%S%p'` -X main.CommitHash=`git rev-parse HEAD` -X main.Version=\"${APP_VERSION}\""
       #- make test
 notifications:

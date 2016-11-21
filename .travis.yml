@@ -17,7 +17,7 @@ before_script:
     - APP_VERSION="v$(cat VERSION)"
     - RELEASE_CANDIDATE="$(($(git tag -l "${APP_VERSION}*" | wc -l) + 1))"
     - if [ "$TRAVIS_BRANCH" == "develop" ]; then APP_VERSION="${APP_VERSION}-dev"; fi;
-    - if [ "$TRAVIS_BRANCH" == "release" ]; then APP_VERSION="${APP_VERSION}-${RELEASE_CANDIDATE}"; fi;
+    - if [ "$TRAVIS_BRANCH" == "release" ]; then APP_VERSION="${APP_VERSION}-rc${RELEASE_CANDIDATE}"; fi;
     - if [ "$TRAVIS_BRANCH" == "master" ]; then APP_VERSION="${APP_VERSION}"; fi;
     - if [[ ! "master release develop" =~ "$TRAVIS_BRANCH" ]]; then APP_VERSION="$(git describe --tags)"; fi;
 script:

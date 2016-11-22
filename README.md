@@ -40,8 +40,8 @@ Master branch   : [![Build Status](https://travis-ci.org/guzzlerio/corcel.svg?br
  - HP Load Runner
  - Apache JMeter
  - Gattling
- - Apache AB
  - Siege
+ - Apache AB
  - httperf
  - wrk
  - vegeta

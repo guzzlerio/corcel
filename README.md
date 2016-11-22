@@ -29,6 +29,8 @@ Master branch   : [![Build Status](https://travis-ci.org/guzzlerio/corcel.svg?br
  - Cater for all types of technical staff
  - Detailed and clear reporting
  - Support for Scenarios
+ - Simple CLI
+ - Simple UI
 
 ## What tools already exist?
 

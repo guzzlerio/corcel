@@ -4,6 +4,8 @@
 
 Performance Testing Tool that is simple, scalable and powerful
 
+## Status
+
 Develop branch : [![Build Status](https://travis-ci.org/guzzlerio/corcel.svg?branch=develop)](https://travis-ci.org/guzzlerio/corcel)
 Release branch : [![Build Status](https://travis-ci.org/guzzlerio/corcel.svg?branch=release)](https://travis-ci.org/guzzlerio/corcel)
 Master branch   : [![Build Status](https://travis-ci.org/guzzlerio/corcel.svg?branch=master)](https://travis-ci.org/guzzlerio/corcel)

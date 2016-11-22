@@ -28,6 +28,7 @@ Master branch   : [![Build Status](https://travis-ci.org/guzzlerio/corcel.svg?br
  - Consistent
  - Cater for all types of technical staff
  - Detailed and clear reporting
+ - Performance comparisons with previous runs
  - Support for Scenarios
  - Simple CLI
  - Simple UI

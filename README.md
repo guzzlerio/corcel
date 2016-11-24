@@ -50,5 +50,3 @@ Master branch   : [![Build Status](https://travis-ci.org/guzzlerio/corcel.svg?br
 and more ...
 
 Each differ from the number of features, the number of supported protocols and other various things. 
-
-

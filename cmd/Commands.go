@@ -21,6 +21,10 @@ import (
 	"github.com/guzzlerio/corcel/statistics"
 )
 
+type Command interface {
+	Run(c *kingpin.ParseContext) error
+}
+
 //New...
 func New(app *kingpin.Application, registry *core.Registry) {
 	// ServerCommand
@@ -34,11 +38,12 @@ func New(app *kingpin.Application, registry *core.Registry) {
 	cc := &ConvertCommand{
 		registry: registry,
 	}
-	convert := app.Command("convert", "Convert input log file into a Corcel Plan").Action(cc.run)
-	convert.Flag("input", "Input File").StringVar(&cc.inputFile)
-	convert.Flag("output", "Output .plan file").StringVar(&cc.outputFile)
+	convert := app.Command("convert", "Convert input log file into a Corcel Plan").Action(cc.Run)
+	convert.Arg("input", "Input File").StringVar(&cc.inputFile)
+	convert.Arg("output", "Output .plan file").StringVar(&cc.outputFile)
 	convert.Flag("base", "Base URL").Short('b').Required().StringVar(&cc.baseUrl)
-	convert.Flag("type", "Log File Type").Short('t').Default("w3cext").EnumVar(&cc.logType, "w3c", "w3cext", "iis", "apache")
+	convert.Flag("type", "Log File Type").Short('t').Default("iis").EnumVar(&cc.logType, "iis")
+	convert.Flag("converter", "Path to custom JavaScript converter").Short('c').ExistingFileVar(&cc.converter)
 
 	// RunCommand
 	configuration := &config.Configuration{}
@@ -81,10 +86,11 @@ type ConvertCommand struct {
 	logType      string
 	formatString string
 	baseUrl      string
+	converter    string
 	registry     *core.Registry
 }
 
-func (instance *ConvertCommand) run(c *kingpin.ParseContext) error {
+func (instance *ConvertCommand) Run(c *kingpin.ParseContext) error {
 	//TODO check for redirected input/output
 	/*
 		1. Establish the format of the input log file and construct the appropriate converter
@@ -93,20 +99,27 @@ func (instance *ConvertCommand) run(c *kingpin.ParseContext) error {
 	*/
 	file, _ := os.Open(instance.inputFile)
 	defer file.Close()
-	var converter converters.LogConverter
-	switch instance.logType {
-	case "w3cext":
-		converter = converters.NewW3cExtConverter(instance.baseUrl, file)
-	default:
-		panic(fmt.Errorf("Unsupported logType: %v", instance.logType))
+	var buf []byte
+	if len(instance.converter) > 0 {
+		buf, _ = ioutil.ReadFile(instance.converter)
+	} else {
+		switch instance.logType {
+		case "iis":
+			buf, _ = ioutil.ReadFile("./converters/parsers/iisParser.js")
+		default:
+			panic(fmt.Errorf("Unsupported logType: %v", instance.logType))
+		}
 	}
+	converter := converters.NewJsLogConverter(string(buf), instance.baseUrl, file)
 	plan, err := converter.Convert()
 	if err != nil {
 		fmt.Printf("BOOOOOOM: %+v", err)
 	}
+	//TODO the Write function should be extracted.
 	planBuilder := yaml.NewPlanBuilder()
 	if file, err := planBuilder.Write(plan); err == nil {
 		defer func() {
+			//TODO only do this if an output file is not specified
 			if fileErr := os.Remove(file.Name()); fileErr != nil {
 				panic(fileErr)
 			}

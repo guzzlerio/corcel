@@ -75,6 +75,25 @@ var _ = Describe("JsLogConverter", func() {
 				Ω(assertion["expected"]).Should(Equal(200))
 			})
 		})
+
+		Describe("and the input log file contains POST requests", func() {
+			Describe("but does not contain the payload", func() {
+				BeforeEach(func() {
+					postLine := "1996-01-01 10:48:02 195.52.225.44 - WEB1 192.166.0.24 POST /default.htm - 200 1703 279 0 HTTP/1.0 Mozilla/4.0+[en]+(WinNT;+I) - http://www.webtrends.com/def_f1.htm"
+					talula := input + "\n" + postLine
+					converter = NewJsLogConverter(parser, baseUrl, strings.NewReader(talula))
+					plan, err = converter.Convert()
+				})
+
+				It("it does not add a Step for that line", func() {
+					for _, step := range plan.Jobs[0].Steps {
+						Ω(step.Action).ShouldNot(HaveKeyWithValue("method", "POST"))
+					}
+				})
+			})
+		})
+		Describe("but the input log file contains invalid data", func() {})
+		Describe("but the input log file does not contain sufficient fields", func() {})
 	})
 
 	PDescribe("when the js is invalid", func() {

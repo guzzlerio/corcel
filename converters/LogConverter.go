@@ -18,11 +18,12 @@ type LogEntry struct {
 	} `json:"response"`
 	Request struct {
 		Headers map[string]string `json:"headers"`
-		Port    int               `json:"port"`
-		Scheme  string            `json:"scheme"`
-		Path    string            `json:"path"`
-		Query   string            `json:"query"`
-		Method  string            `json:"method"`
 		Host    string            `json:"host"`
+		Method  string            `json:"method"`
+		Path    string            `json:"path"`
+		Payload string            `json:"payload"`
+		Port    int               `json:"port"`
+		Query   string            `json:"query"`
+		Scheme  string            `json:"scheme"`
 	} `json:"request"`
 }

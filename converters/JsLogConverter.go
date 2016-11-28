@@ -8,6 +8,7 @@ import (
 	"net/url"
 
 	"github.com/guzzlerio/corcel/serialisation/yaml"
+	"github.com/onsi/gomega/format"
 	"github.com/robertkrimen/otto"
 )
 
@@ -62,7 +63,8 @@ func (i *JsLogConverter) Convert() (*yaml.ExecutionPlan, error) {
 		json.Unmarshal([]byte(ottoLine.String()), &entry)
 
 		if i.failsMinRequiredFields(entry) {
-			panic(fmt.Errorf("Insufficient populated fields to convert: %+v", entry))
+			fmt.Printf("Insufficient populated fields to convert: %s", format.Object(entry, 1))
+			continue
 		}
 
 		jobBuilder.
@@ -79,7 +81,14 @@ func (i *JsLogConverter) Convert() (*yaml.ExecutionPlan, error) {
 }
 
 func (i *JsLogConverter) failsMinRequiredFields(entry LogEntry) bool {
-	return false
+	if entry.Request.Method == "POST" && entry.Request.Payload == "" {
+		fmt.Printf("ENTRY: %+v\n", entry)
+		return true
+	}
+	if entry.Request.Host == "" && i.baseUrl == nil {
+		return true
+	}
+	return (entry.Request.Method == "" || entry.Response.Status < 100)
 }
 
 func (i *JsLogConverter) buildURL(entry LogEntry) string {

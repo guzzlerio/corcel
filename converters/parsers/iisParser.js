@@ -3,11 +3,6 @@ function isFieldDefinition(line) {
     return line.slice(0, fieldDefinition.length) == fieldDefinition;
 }
 
-function parseFields(line) {
-    line = line.slice(fieldDefinition.length);
-    return line.trim().split(' ');
-}
-
 function parseLine(line, fields) {
 
     function zip(names, values) {
@@ -16,12 +11,18 @@ function parseLine(line, fields) {
             result[names[i]] = values[i];
         return result;
     }
+
     function get(entry, field) {
         var value = entry[field];
         if (value === '-') {
             return null;
         }
         return value;
+    }
+
+    function parseFields(line) {
+        line = line.slice(fieldDefinition.length);
+        return line.trim().split(' ');
     }
 
     if (isFieldDefinition(line)) {

@@ -8,7 +8,6 @@ import (
 	"net/url"
 
 	"github.com/guzzlerio/corcel/serialisation/yaml"
-	"github.com/onsi/gomega/format"
 	"github.com/robertkrimen/otto"
 )
 
@@ -21,13 +20,11 @@ type JsLogConverter struct {
 }
 
 // NewW3cExtConverter ...
-func NewJsLogConverter(js string, baseUrl string, input io.Reader) *JsLogConverter {
+func NewJsLogConverter(js string, baseUrl *url.URL, input io.Reader) *JsLogConverter {
 	scanner := bufio.NewScanner(input)
 	//TODO allow different scanner Split options see https://golang.org/pkg/bufio/index.html#Scanner.Split
-	//TODO test for error
-	u, err := url.Parse(baseUrl)
-	if err != nil {
-		panic(err)
+	if baseUrl == nil {
+		panic(fmt.Errorf("Base URL is required", nil))
 	}
 	vm := otto.New()
 	if _, err := vm.Run(js); err != nil {
@@ -35,7 +32,7 @@ func NewJsLogConverter(js string, baseUrl string, input io.Reader) *JsLogConvert
 	}
 
 	return &JsLogConverter{
-		baseUrl: u,
+		baseUrl: baseUrl,
 		scanner: scanner,
 		vm:      vm,
 		fields:  []string{},
@@ -59,11 +56,14 @@ func (i *JsLogConverter) Convert() (*yaml.ExecutionPlan, error) {
 		}
 
 		entry := LogEntry{}
-		ottoLine, _ := i.vm.Call("parseLine", nil, line, i.fields)
+		ottoLine, err := i.vm.Call("parseLine", nil, line, i.fields)
+		if err != nil {
+			return nil, err
+		}
 		json.Unmarshal([]byte(ottoLine.String()), &entry)
 
-		if i.failsMinRequiredFields(entry) {
-			fmt.Printf("Insufficient populated fields to convert: %s", format.Object(entry, 1))
+		if err := i.failsMinRequiredFields(entry); err != nil {
+			fmt.Println(err)
 			continue
 		}
 
@@ -80,15 +80,20 @@ func (i *JsLogConverter) Convert() (*yaml.ExecutionPlan, error) {
 	return plan, nil
 }
 
-func (i *JsLogConverter) failsMinRequiredFields(entry LogEntry) bool {
+func (i *JsLogConverter) failsMinRequiredFields(entry LogEntry) error {
 	if entry.Request.Method == "POST" && entry.Request.Payload == "" {
-		fmt.Printf("ENTRY: %+v\n", entry)
-		return true
+		return fmt.Errorf("POST method found in log entry but no payload")
 	}
 	if entry.Request.Host == "" && i.baseUrl == nil {
-		return true
+		return fmt.Errorf("No Host found in log entry and no base URL provided")
 	}
-	return (entry.Request.Method == "" || entry.Response.Status < 100)
+	if entry.Request.Method == "" {
+		return fmt.Errorf("No method found in log entry")
+	}
+	if entry.Response.Status < 100 {
+		return fmt.Errorf("No expected response status found in log entry")
+	}
+	return nil
 }
 
 func (i *JsLogConverter) buildURL(entry LogEntry) string {

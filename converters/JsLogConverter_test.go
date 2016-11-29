@@ -10,6 +10,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"net/url"
 )
 
 var _ = Describe("JsLogConverter", func() {
@@ -24,17 +25,17 @@ var _ = Describe("JsLogConverter", func() {
 		plan      *yaml.ExecutionPlan
 		err       error
 		parser    string
-		baseUrl   string
+		baseUrl   *url.URL
 	)
 
 	BeforeSuite(func() {
 		buf, _ := ioutil.ReadFile("./parsers/iisParser.js")
 		parser = string(buf)
+		baseUrl, _ = url.Parse("http://blah.com")
 	})
 
 	Describe("when the js parser is valid javascript", func() {
 		BeforeEach(func() {
-			baseUrl = "http://mybase.uri"
 			converter = NewJsLogConverter(parser, baseUrl, strings.NewReader(input))
 			plan, err = converter.Convert()
 			// WriteOutputYAML(plan)
@@ -64,7 +65,7 @@ var _ = Describe("JsLogConverter", func() {
 				Ω(action).Should(BeAssignableToTypeOf(yaml.Action{}))
 				Ω(action["type"]).Should(Equal("HttpRequest"))
 				Ω(action["method"]).Should(Equal("GET"))
-				Ω(action["url"]).Should(Equal(baseUrl + "/loganalyzer/info.htm?sourceid=chrome-instant&ion=1&espv=2&ie=UTF-8#q=sample%20iis%20log%20files"))
+				Ω(action["url"]).Should(Equal(baseUrl.String() + "/loganalyzer/info.htm?sourceid=chrome-instant&ion=1&espv=2&ie=UTF-8#q=sample%20iis%20log%20files"))
 			})
 
 			It("add an ExactAssertion for the HTTP status", func() {
@@ -92,27 +93,44 @@ var _ = Describe("JsLogConverter", func() {
 				})
 			})
 		})
-		Describe("but the input log file contains invalid data", func() {})
+
+		Describe("but the input log file contains invalid data", func() {
+			It("Blows up!", func() {
+				talula := `************`
+				converter = NewJsLogConverter(parser, baseUrl, strings.NewReader(talula))
+				plan, err = converter.Convert()
+			})
+		})
 		Describe("but the input log file does not contain sufficient fields", func() {})
 	})
 
-	PDescribe("when the js is invalid", func() {
+	Describe("when the js is invalid", func() {
 		It("panics", func() {
-			Expect(NewJsLogConverter("not valid javascript", "http://blah.com", strings.NewReader(input))).To(Panic())
+			defer func() {
+				err := recover()
+				Ω(err).Should(HaveOccurred())
+			}()
+			NewJsLogConverter("not valid javascript", baseUrl, strings.NewReader(input))
 		})
 	})
 
-	PDescribe("when the baseUrl is not supplied", func() {
+	Describe("when the baseUrl is not supplied", func() {
 		It("panics", func() {
-			Expect(NewJsLogConverter(parser, "", strings.NewReader(input))).To(Panic())
+			defer func() {
+				err := recover()
+				Ω(err).Should(HaveOccurred())
+			}()
+			NewJsLogConverter(parser, nil, strings.NewReader(input))
 		})
 	})
 
 	Describe("when the js errors", func() {
-		BeforeEach(func() {
-			parser = "function parseLine() { throw new Error('Booooom); }"
+		It("errors", func() {
+			parser = `function parseLine(line, fields) { throw new Error('BOOOOOM'); }`
 			converter = NewJsLogConverter(parser, baseUrl, strings.NewReader(input))
-			plan, err = converter.Convert()
+			plan, err := converter.Convert()
+			Ω(err).Should(HaveOccurred())
+			Ω(plan).Should(BeNil())
 		})
 	})
 })

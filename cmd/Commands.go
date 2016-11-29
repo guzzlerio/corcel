@@ -110,10 +110,17 @@ func (instance *ConvertCommand) Run(c *kingpin.ParseContext) error {
 			panic(fmt.Errorf("Unsupported logType: %v", instance.logType))
 		}
 	}
-	converter := converters.NewJsLogConverter(string(buf), instance.baseUrl, file)
+	//TODO test for error
+	u, err := url.Parse(instance.baseUrl)
+	fmt.Println(u)
+	fmt.Println(err)
+	if err != nil {
+		panic(err)
+	}
+	converter := converters.NewJsLogConverter(string(buf), u, file)
 	plan, err := converter.Convert()
 	if err != nil {
-		fmt.Printf("BOOOOOOM: %+v", err)
+		panic(err)
 	}
 	//TODO the Write function should be extracted.
 	planBuilder := yaml.NewPlanBuilder()

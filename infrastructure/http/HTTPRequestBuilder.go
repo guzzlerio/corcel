@@ -17,6 +17,12 @@ type RequestBuilder struct {
 	data map[string]interface{}
 }
 
+//Name ...
+func (instance RequestBuilder) Name(value string) RequestBuilder {
+	instance.data["name"] = value
+	return instance
+}
+
 //Timeout ...
 func (instance RequestBuilder) Timeout(value int) RequestBuilder {
 	instance.data["requestTimeout"] = value

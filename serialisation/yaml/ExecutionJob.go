@@ -2,9 +2,9 @@ package yaml
 
 //ExecutionJob ...
 type ExecutionJob struct {
-	Name    string                 `yaml:"name"`
-	Before  []Action               `yaml:"before"`
+	Name    string                 `yaml:"name,omitempty"`
+	Before  []Action               `yaml:"before,omitempty"`
 	Steps   []ExecutionStep        `yaml:"steps"`
-	Context map[string]interface{} `yaml:"context"`
-	After   []Action               `yaml:"after"`
+	Context map[string]interface{} `yaml:"context,omitempty"`
+	After   []Action               `yaml:"after,omitempty"`
 }

@@ -67,9 +67,16 @@ func (i *JsLogConverter) Convert() (*yaml.ExecutionPlan, error) {
 			continue
 		}
 
+		actionBuilder := planBuilder.HTTPAction().
+			Name(fmt.Sprintf("%v %v", entry.Request.Method, entry.Request.Path)).
+			Method(entry.Request.Method).
+			URL(i.buildURL(entry))
+		for key, value := range entry.Request.Headers {
+			actionBuilder.Header(key, value)
+		}
 		jobBuilder.
 			CreateStep().
-			ToExecuteAction(planBuilder.HTTPAction().Method(entry.Request.Method).URL(i.buildURL(entry)).Build()).
+			ToExecuteAction(actionBuilder.Build()).
 			WithAssertion(planBuilder.ExactAssertion("response:status", entry.Response.Status))
 	}
 	if err := i.scanner.Err(); err != nil {

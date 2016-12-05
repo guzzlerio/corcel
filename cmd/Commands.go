@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path/filepath"
 
@@ -91,14 +92,9 @@ type ConvertCommand struct {
 }
 
 func (instance *ConvertCommand) Run(c *kingpin.ParseContext) error {
-	//TODO check for redirected input/output
-	/*
-		1. Establish the format of the input log file and construct the appropriate converter
-		2. Invoke the converter
-		3. Write the resulting plan to stdout or outputFile
-	*/
 	file, _ := os.Open(instance.inputFile)
 	defer file.Close()
+
 	var buf []byte
 	if len(instance.converter) > 0 {
 		buf, _ = ioutil.ReadFile(instance.converter)
@@ -110,10 +106,7 @@ func (instance *ConvertCommand) Run(c *kingpin.ParseContext) error {
 			panic(fmt.Errorf("Unsupported logType: %v", instance.logType))
 		}
 	}
-	//TODO test for error
 	u, err := url.Parse(instance.baseUrl)
-	fmt.Println(u)
-	fmt.Println(err)
 	if err != nil {
 		panic(err)
 	}
@@ -133,8 +126,13 @@ func (instance *ConvertCommand) Run(c *kingpin.ParseContext) error {
 		}()
 		dat, _ := ioutil.ReadFile(file.Name())
 
-		fmt.Printf("Converted the log file %v\n", instance.inputFile)
-		fmt.Println(string(dat))
+		if instance.outputFile != "" {
+			_ = ioutil.WriteFile(instance.outputFile, dat, 0644)
+			fmt.Printf("Converted the log file %v written to %v\n", instance.inputFile, instance.outputFile)
+		} else {
+			fmt.Printf("Converted the log file %v\n", instance.inputFile)
+			fmt.Println(string(dat))
+		}
 	}
 	return nil
 }

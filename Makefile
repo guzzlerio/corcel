@@ -13,9 +13,11 @@ gen:
 	cd corcel-reports-workbench && npm install -d && npm install gulp && npm install -g gulp-cli && gulp && cp out/index.html ../report/data/corcel.layout.mustache.html
 
 
-build: clean lint generate
+build: 
+	#clean lint generate
 	#version=`grep -Po "(?<=version=)[0-9.]+" version`
-	go build -ldflags="-X main.Version=${version}"
+	#go build -ldflags="-X main.Version=${version}"
+	go build -ldflags "-X main.BuildTime=`date -u '+%Y-%m-%d_%I:%M:%S%p'` -X main.CommitHash=`git rev-parse HEAD` -X main.Version=`git describe --tags`"
 
 test: build 
 	go get github.com/onsi/ginkgo/ginkgo

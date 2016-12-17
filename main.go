@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"runtime/pprof"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 
@@ -21,9 +23,21 @@ var (
 	BuildTime = "EMPTY"
 	//CommitHash ...
 	CommitHash = "EMPTY"
+
+	//profile
+	profile = ""
 )
 
 func main() {
+
+	if profile != "" {
+		f, err := os.Create("./corcel.prof")
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
 
 	logger.Initialise()
 

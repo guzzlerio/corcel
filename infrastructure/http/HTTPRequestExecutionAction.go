@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"strings"
+	"time"
 
 	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/logger"
@@ -22,12 +24,17 @@ type HTTPAction struct {
 }
 
 func CreateAction() HTTPAction {
+	tr := &http.Transport{
+		Dial: (&net.Dialer{
+			Timeout:   0,
+			KeepAlive: 0,
+		}).Dial,
+		TLSHandshakeTimeout: 10 * time.Second,
+		DisableKeepAlives:   true,
+		MaxIdleConnsPerHost: 10,
+	}
 	var instance = HTTPAction{
-		client: &http.Client{
-			Transport: &http.Transport{
-				MaxIdleConnsPerHost: ConfigMaxIdleConnsPerHost,
-			},
-		},
+		client: &http.Client{Transport: tr},
 	}
 	return instance
 }
@@ -86,7 +93,7 @@ func (instance HTTPAction) Execute(context core.ExecutionContext, cancellation c
 	//After each request the client channel is closed.  When set to true
 	//the performance overhead is large in terms of Network IO throughput
 
-	//req.Close = true
+	req.Close = true
 
 	if err != nil {
 		result[core.ErrorUrn.String()] = err

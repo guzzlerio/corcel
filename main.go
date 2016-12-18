@@ -36,7 +36,10 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		pprof.StartCPUProfile(f)
+		err = pprof.StartCPUProfile(f)
+		if err != nil {
+			log.Fatal(err)
+		}
 		defer pprof.StopCPUProfile()
 	}
 
@@ -82,8 +85,15 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		pprof.WriteHeapProfile(f)
-		f.Close()
+		err = pprof.WriteHeapProfile(f)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = f.Close()
+
+		if err != nil {
+			log.Fatal(err)
+		}
 		return
 	}
 

@@ -24,13 +24,14 @@ var (
 	//CommitHash ...
 	CommitHash = "EMPTY"
 
-	//profile
-	profile = ""
+	cpuprofile = ""
+
+	memprofile = ""
 )
 
 func main() {
 
-	if profile != "" {
+	if cpuprofile != "" {
 		f, err := os.Create("./corcel.prof")
 		if err != nil {
 			log.Fatal(err)
@@ -75,4 +76,15 @@ func main() {
 	cmd.NewServerCommand(app, &registry)
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
+
+	if memprofile != "" {
+		f, err := os.Create("./corcel.mprof")
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.WriteHeapProfile(f)
+		f.Close()
+		return
+	}
+
 }

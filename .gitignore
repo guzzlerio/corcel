@@ -17,3 +17,7 @@ history.yml
 output
 corcel-reports-workbench
 report/bindata.go
+*.prof
+*.mprof
+*.svg
+*.txt

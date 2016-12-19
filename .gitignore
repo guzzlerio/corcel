@@ -21,3 +21,4 @@ report/bindata.go
 *.mprof
 *.svg
 *.txt
+investigation-results

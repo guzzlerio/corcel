@@ -1,8 +1,9 @@
 package core
 
 import (
-	"fmt"
+	"bytes"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -57,16 +58,30 @@ func (instance Urn) Name(values ...interface{}) Urn {
 
 //Build ...
 func (instance Urn) String() string {
-	urn := "urn:"
-	urn = fmt.Sprintf("%s%s:", urn, instance.Connector)
+	var buffer bytes.Buffer
+
+	buffer.WriteString("urn:")
+	buffer.WriteString(instance.Connector)
 	if strings.TrimSpace(instance.Metric) != "" {
-		urn = fmt.Sprintf("%s%s:", urn, instance.Metric)
+		buffer.WriteString(":")
+		buffer.WriteString(instance.Metric)
 	}
 	for _, name := range instance.Names {
-		safeName := url.QueryEscape(fmt.Sprintf("%v", name))
-		urn = fmt.Sprintf("%s%v:", urn, safeName)
+		buffer.WriteString(":")
+		var safeName string
+		switch name.(type) {
+		case int:
+			safeName = strconv.Itoa(name.(int))
+			break
+		default:
+			safeName = name.(string)
+			break
+
+		}
+		safeName = url.QueryEscape(safeName)
+		buffer.WriteString(safeName)
 	}
-	return urn[:len(urn)-1]
+	return buffer.String()
 }
 
 //NewUrn ...

@@ -1,6 +1,6 @@
 ---
   name : The plan
-  workers : 2
+  workers : 20
   waitTime : 0
   jobs:
     -

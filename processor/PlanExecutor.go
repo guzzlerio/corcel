@@ -34,7 +34,6 @@ type PlanExecutionContext struct {
 	StepContexts map[int]map[int]core.ExtractionResult
 	Bar          ProgressBar
 	mutex        *sync.Mutex
-	progress     chan int
 	start        time.Time
 }
 
@@ -42,9 +41,11 @@ func (instance *PlanExecutionContext) execute(cancellation chan struct{}) {
 	var jobs = instance.Plan.Jobs
 	var jobStream = CreateJobStream(jobs, instance.Config)
 
-	if int64(time.Since(instance.start).Seconds())%2 == 0 {
-		instance.progress <- jobStream.Progress()
-	}
+	/*
+		if int64(time.Since(instance.start).Seconds())%2 == 0 {
+			instance.progress <- jobStream.Progress()
+		}
+	*/
 
 	for jobStream.HasNext() {
 		job := jobStream.Next()
@@ -312,22 +313,24 @@ func (instance *PlanExecutor) Execute() error {
 	var progressChan = make(chan int, 1000)
 	defer close(progressChan)
 
-	go func() {
-		var read = true
-		for read == true {
-			select {
-			case value, ok := <-progressChan:
-				if ok {
-					instance.Bar.Set(value)
-				} else {
-					progressChan = nil
-					read = false
-					break
+	/*
+		go func() {
+			var read = true
+			for read == true {
+				select {
+				case value, ok := <-progressChan:
+					if ok {
+						instance.Bar.Set(value)
+					} else {
+						progressChan = nil
+						read = false
+						break
+					}
+				default:
 				}
-			default:
 			}
-		}
-	}()
+		}()
+	*/
 
 	if instance.Config.Duration > time.Duration(0) {
 		time.AfterFunc(instance.Config.Duration, func() {
@@ -367,7 +370,6 @@ func (instance *PlanExecutor) Execute() error {
 				StepContexts: map[int]map[int]core.ExtractionResult{},
 				Bar:          instance.Bar,
 				mutex:        &sync.Mutex{},
-				progress:     progressChan,
 				start:        time.Now(),
 			}
 

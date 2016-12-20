@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -40,7 +41,7 @@ func CreateAction() HTTPAction {
 }
 
 //Execute ...
-func (instance HTTPAction) Execute(context core.ExecutionContext, cancellation chan struct{}) core.ExecutionResult {
+func (instance HTTPAction) Execute(ctx context.Context, executionContext core.ExecutionContext) core.ExecutionResult {
 
 	result := core.ExecutionResult{}
 
@@ -61,8 +62,8 @@ func (instance HTTPAction) Execute(context core.ExecutionContext, cancellation c
 	for k := range instance.Headers {
 		headers.Set(k, instance.Headers.Get(k))
 	}
-	if context["$httpHeaders"] != nil {
-		for hKey, hValue := range context["$httpHeaders"].(map[interface{}]interface{}) {
+	if executionContext["$httpHeaders"] != nil {
+		for hKey, hValue := range executionContext["$httpHeaders"].(map[interface{}]interface{}) {
 			headerKey := hKey.(string)
 			headerValue := hValue.(string)
 
@@ -72,7 +73,7 @@ func (instance HTTPAction) Execute(context core.ExecutionContext, cancellation c
 		}
 	}
 
-	for k, v := range context {
+	for k, v := range executionContext {
 		token := k
 		switch value := v.(type) {
 		case string:
@@ -87,7 +88,8 @@ func (instance HTTPAction) Execute(context core.ExecutionContext, cancellation c
 
 	requestBody := bytes.NewBuffer([]byte(body))
 	req, err := http.NewRequest(method, requestURL, requestBody)
-	req.Cancel = cancellation
+	req = req.WithContext(ctx)
+	//req.Cancel = cancellation
 	//This should be a configuration item.  It allows the client to work
 	//in a way similar to a server which does not support HTTP KeepAlive
 	//After each request the client channel is closed.  When set to true

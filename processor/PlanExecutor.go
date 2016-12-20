@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"context"
 	"io/ioutil"
 	"sync"
 	"time"
@@ -37,7 +38,8 @@ type PlanExecutionContext struct {
 	start        time.Time
 }
 
-func (instance *PlanExecutionContext) execute(cancellation chan struct{}) {
+//func (instance *PlanExecutionContext) execute(cancellation chan struct{}) {
+func (instance *PlanExecutionContext) execute(ctx context.Context) {
 	var jobs = instance.Plan.Jobs
 	var jobStream = CreateJobStream(jobs, instance.Config)
 
@@ -52,17 +54,17 @@ func (instance *PlanExecutionContext) execute(cancellation chan struct{}) {
 		_ = instance.Bar.Set(jobStream.Progress())
 
 		for _, action := range job.Before {
-			_ = action.Execute(nil, cancellation)
+			_ = action.Execute(ctx, nil)
 
 		}
-		instance.workerExecuteJob(job, cancellation)
+		instance.workerExecuteJob(ctx, job)
 		for _, action := range job.After {
-			_ = action.Execute(nil, cancellation)
+			_ = action.Execute(ctx, nil)
 		}
 	}
 }
 
-func (instance *PlanExecutionContext) workerExecuteJob(job core.Job, cancellation chan struct{}) {
+func (instance *PlanExecutionContext) workerExecuteJob(ctx context.Context, job core.Job) {
 	/*
 		defer func() { //catch or finally
 			if err := recover(); err != nil { //catch
@@ -80,12 +82,12 @@ func (instance *PlanExecutionContext) workerExecuteJob(job core.Job, cancellatio
 		step := stepStream.Next()
 		//before Step
 		for _, action := range step.Before {
-			_ = action.Execute(nil, cancellation)
+			_ = action.Execute(ctx, nil)
 		}
-		executionResult := instance.executeStep(step, cancellation)
+		executionResult := instance.executeStep(ctx, step)
 		//after Step
 		for _, action := range step.After {
-			_ = action.Execute(nil, cancellation)
+			_ = action.Execute(ctx, nil)
 		}
 
 		instance.Publisher.Publish(executionResult)
@@ -93,7 +95,7 @@ func (instance *PlanExecutionContext) workerExecuteJob(job core.Job, cancellatio
 	}
 }
 
-func (instance *PlanExecutionContext) executeStep(step core.Step, cancellation chan struct{}) core.ExecutionResult {
+func (instance *PlanExecutionContext) executeStep(ctx context.Context, step core.Step) core.ExecutionResult {
 	start := time.Now()
 
 	if instance.JobContexts[step.JobID] == nil {
@@ -133,7 +135,7 @@ func (instance *PlanExecutionContext) executeStep(step core.Step, cancellation c
 	var executionResult = core.ExecutionResult{}
 
 	if step.Action != nil {
-		executionResult = step.Action.Execute(executionContext, cancellation)
+		executionResult = step.Action.Execute(ctx, executionContext)
 	}
 
 	executionResult = merge(executionResult, instance.PlanContext)
@@ -306,7 +308,9 @@ func (instance *PlanExecutor) generatePlan() core.Plan {
 
 // Execute ...
 func (instance *PlanExecutor) Execute() error {
-	var cancellation = make(chan struct{})
+	//var cancellation = make(chan struct{})
+
+	var ctx, cancel = context.WithCancel(context.Background())
 
 	instance.start = time.Now()
 
@@ -334,14 +338,16 @@ func (instance *PlanExecutor) Execute() error {
 
 	if instance.Config.Duration > time.Duration(0) {
 		time.AfterFunc(instance.Config.Duration, func() {
-			close(cancellation)
+			//close(cancellation)
+			cancel()
 		})
 	}
 
 	var mainPlan = instance.generatePlan()
 	//before Plan
 	for _, action := range mainPlan.Before {
-		_ = action.Execute(nil, cancellation)
+		//_ = action.Execute(nil, cancellation)
+		_ = action.Execute(ctx, nil)
 	}
 
 	var wg sync.WaitGroup
@@ -373,7 +379,8 @@ func (instance *PlanExecutor) Execute() error {
 				start:        time.Now(),
 			}
 
-			planExecutionContext.execute(cancellation)
+			//planExecutionContext.execute(cancellation)
+			planExecutionContext.execute(ctx)
 			wg.Done()
 		}(workerPlan)
 	}
@@ -381,7 +388,8 @@ func (instance *PlanExecutor) Execute() error {
 	wg.Wait()
 
 	for _, action := range mainPlan.After {
-		_ = action.Execute(nil, cancellation)
+		//_ = action.Execute(nil, cancellation)
+		_ = action.Execute(ctx, nil)
 	}
 
 	return nil

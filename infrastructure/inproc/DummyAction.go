@@ -1,6 +1,7 @@
 package inproc
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"os"
@@ -36,10 +37,10 @@ func (instance DummyAction) saveContexts() {
 }
 
 //Execute ...
-func (instance DummyAction) Execute(context core.ExecutionContext, cancellation chan struct{}) core.ExecutionResult {
+func (instance DummyAction) Execute(ctx context.Context, executionContext core.ExecutionContext) core.ExecutionResult {
 	result := core.ExecutionResult{}
 
-	for k, v := range context {
+	for k, v := range executionContext {
 		switch value := v.(type) {
 		case string:
 			for key, resultValue := range instance.Results {
@@ -60,7 +61,7 @@ func (instance DummyAction) Execute(context core.ExecutionContext, cancellation 
 			instance.createNewContextsFile()
 		}
 		instance.contexts = instance.getContexts()
-		instance.contexts = append(instance.contexts, context)
+		instance.contexts = append(instance.contexts, executionContext)
 
 		instance.saveContexts()
 	}

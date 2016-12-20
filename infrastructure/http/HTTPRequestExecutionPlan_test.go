@@ -39,6 +39,31 @@ var _ = Describe("ExecutionPlanHttpRequest", func() {
 		Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithBody(body))).To(Equal(true))
 	})
 
+	It("Supplies a header which is an int", func() {
+		plan := fmt.Sprintf(`---
+iterations: 0
+random: false
+workers: 1
+waitTime: 0s
+duration: 0s
+jobs:
+- name: ""
+  steps:
+  - name: ""
+    action:
+      body: Zee Body
+      httpHeaders:
+        key: 1
+      method: GET
+      type: HttpRequest
+      url: %s
+`, TestServer.CreateURL("/people"))
+
+		err := ExecutePlanFromData(plan)
+		Expect(err).To(BeNil())
+		Expect(TestServer.Find(rizo.RequestWithHeader("key", "1"))).To(Equal(true))
+	})
+
 	It("Supplies a payload as a file reference to the HTTP Request", func() {
 		content := []byte("temporary file's content")
 		dir, err := ioutil.TempDir("", "ExecutionPlanHttpRequest")

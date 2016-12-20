@@ -43,3 +43,7 @@ var _ = AfterSuite(func() {
 func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) error {
 	return test.ExecutePlanBuilder("../.././corcel", planBuilder)
 }
+
+func ExecutePlanFromData(plan string) error {
+	return test.ExecutePlanFromData("../.././corcel", plan)
+}

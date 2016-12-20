@@ -140,6 +140,7 @@ func (instance *PlanBuilder) Build() (*os.File, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	//FIXME Write returns an error which is ignored...
 	file.Write(contents)
 

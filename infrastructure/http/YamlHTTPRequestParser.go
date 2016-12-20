@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/guzzlerio/corcel/core"
@@ -18,7 +19,7 @@ func (instance YamlHTTPRequestParser) Parse(input map[string]interface{}) core.A
 
 	if value, ok := input["httpHeaders"]; ok && value != nil {
 		for key, value := range input["httpHeaders"].(map[interface{}]interface{}) {
-			action.Headers.Set(key.(string), value.(string))
+			action.Headers.Set(key.(string), fmt.Sprintf("%v", value))
 		}
 	}
 

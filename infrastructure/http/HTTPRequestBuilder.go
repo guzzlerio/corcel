@@ -4,10 +4,9 @@ package http
 func NewHTTPRequestBuilder() RequestBuilder {
 	return RequestBuilder{
 		data: map[string]interface{}{
-			"type":        "HttpRequest",
-			"method":      "GET",
-			"url":         "",
-			"httpHeaders": map[string]string{},
+			"type":   "HttpRequest",
+			"method": "GET",
+			"url":    "",
 		},
 	}
 }
@@ -37,6 +36,9 @@ func (instance RequestBuilder) URL(value string) RequestBuilder {
 
 //Header ...
 func (instance RequestBuilder) Header(key string, value string) RequestBuilder {
+	if _, ok := instance.data["httpHeaders"]; !ok {
+		instance.data["httpHeaders"] = map[string]string{}
+	}
 	instance.data["httpHeaders"].(map[string]string)[key] = value
 	return instance
 }

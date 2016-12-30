@@ -14,6 +14,236 @@ import (
 )
 
 var _ = Describe("ExecutionPlanExtractions", func() {
+
+	Context("KeyValue", func() {
+		Context("Step Scope", func() {
+			It("Succeeds", func() {
+				var plan = fmt.Sprintf(`---
+name: Some Plan
+iterations: 0
+random: false
+workers: 1
+waitTime: 0s
+duration: 0s
+jobs:
+    - name: Some Job
+      steps:
+      - name: Some Step
+        action:
+          type: DummyAction
+          results:
+            key: 12345
+        extractors:
+         - type: KeyValueExtractor
+           key: key
+           name: target
+        assertions:
+         - type: ExactAssertion
+           key: target
+           expected: 12345`)
+
+				err := ExecutePlanFromData(plan)
+				Expect(err).To(BeNil())
+
+				var executionOutput statistics.AggregatorSnapShot
+				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+				var summary = statistics.CreateSummary(executionOutput)
+
+				Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+			})
+			It("Fails", func() {
+
+				var plan = fmt.Sprintf(`---
+name: Some Plan
+iterations: 0
+random: false
+workers: 1
+waitTime: 0s
+duration: 0s
+jobs:
+- name: Some Job
+  steps:
+  - name: Some Step
+    action:
+       type: DummyAction
+       results:
+          hole: 12345
+    extractors:
+        - type: KeyValueExtractor
+          key: key
+          name: target
+    assertions:
+        - type: ExactAssertion
+          key: target
+          expected: 123456`)
+
+				err := ExecutePlanFromData(plan)
+				Expect(err).To(BeNil())
+
+				var executionOutput statistics.AggregatorSnapShot
+				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+				var summary = statistics.CreateSummary(executionOutput)
+
+				Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
+			})
+		})
+		Context("Job Scope", func() {
+			It("Succeeds", func() {
+				var plan = fmt.Sprintf(`---
+name: Some Plan
+iterations: 0
+random: false
+workers: 1
+waitTime: 0s
+duration: 0s
+jobs:
+    - name: Some Job
+      steps:
+      - name: Step 1
+        action:
+          type: DummyAction
+          results:
+            key: 12345
+        extractors:
+         - type: KeyValueExtractor
+           key: key
+           name: target
+           scope: job
+      - name: Step 2
+        assertions:
+         - type: ExactAssertion
+           key: target
+           expected: 12345
+      `)
+
+				err := ExecutePlanFromData(plan)
+				Expect(err).To(BeNil())
+
+				var executionOutput statistics.AggregatorSnapShot
+				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+				var summary = statistics.CreateSummary(executionOutput)
+
+				Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+			})
+			It("Fails", func() {
+
+				var plan = fmt.Sprintf(`---
+name: Some Plan
+iterations: 0
+random: false
+workers: 1
+waitTime: 0s
+duration: 0s
+jobs:
+    - name: Some Job
+      steps:
+      - name: Step 1
+        action:
+          type: DummyAction
+          results:
+            hole: 12345
+        extractors:
+         - type: KeyValueExtractor
+           key: key
+           name: target
+           scope: job
+      - name:  Step 2
+        assertions:
+         - type: ExactAssertion
+           key: target
+           expected: 12345
+      `)
+
+				err := ExecutePlanFromData(plan)
+				Expect(err).To(BeNil())
+
+				var executionOutput statistics.AggregatorSnapShot
+				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+				var summary = statistics.CreateSummary(executionOutput)
+
+				Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
+			})
+		})
+		Context("Plan Scope", func() {
+			It("Succeeds", func() {
+				var plan = fmt.Sprintf(`---
+name: Some Plan
+iterations: 0
+random: false
+workers: 1
+waitTime: 0s
+duration: 0s
+jobs:
+    - name: Job 1
+      steps:
+      - name: Step 1
+        action:
+          type: DummyAction
+          results:
+            key: 12345
+        extractors:
+         - type: KeyValueExtractor
+           key: key
+           name: target
+           scope: plan
+    - name: Job 2
+      steps: 
+      - name: Step 1
+        assertions:
+         - type: ExactAssertion
+           key: target
+           expected: 12345`)
+
+				err := ExecutePlanFromData(plan)
+				Expect(err).To(BeNil())
+
+				var executionOutput statistics.AggregatorSnapShot
+				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+				var summary = statistics.CreateSummary(executionOutput)
+
+				Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+			})
+			It("Fails", func() {
+				var plan = fmt.Sprintf(`---
+name: Some Plan
+iterations: 0
+random: false
+workers: 1
+waitTime: 0s
+duration: 0s
+jobs:
+    - name: Job 1
+      steps:
+      - name: Step 1
+        action:
+          type: DummyAction
+          results:
+            hole: 12345
+        extractors:
+         - type: KeyValueExtractor
+           key: key
+           name: target
+           scope: plan
+    - name: Job 2
+      steps: 
+      - name: Step 1
+        assertions:
+         - type: ExactAssertion
+           key: target
+           expected: 12345`)
+
+				err := ExecutePlanFromData(plan)
+				Expect(err).To(BeNil())
+
+				var executionOutput statistics.AggregatorSnapShot
+				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+				var summary = statistics.CreateSummary(executionOutput)
+
+				Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
+			})
+		})
+	})
+
 	Context("Regex", func() {
 		Context("Step Scope", func() {
 			Context("Succeeds", func() {
@@ -119,7 +349,6 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 			})
 		})
 		Context("Plan Scope", func() {
-
 			Context("Succeeds", func() {
 				It("Matches simple pattern", func() {
 					planBuilder := yaml.NewPlanBuilder()
@@ -411,14 +640,14 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 		testCases := map[string]string{
 			"$.expensive": "10",
 			/*
-				"$.store.book[0].price":                        "8.95",
-				"$.store.book[-1].isbn":                        "0-395-19395-8",
-				"$.store.book[0,1].price":                      "[8.95, 12.99]",
-				"$.store.book[0:2].price":                      "[8.95, 12.99, 8.99]",
-				"$.store.book[?(@.isbn)].price":                "[8.99, 22.99]",
-				"$.store.book[?(@.price > 10)].title":          "[\"Sword of Honour\", \"The Lord of the Rings\"]",
-				"$.store.book[?(@.price < $.expensive)].price": "[8.95, 8.99]",
-				"$.store.book[:].price":                        "[8.9.5, 12.99, 8.9.9, 22.99]",
+			   "$.store.book[0].price":                        "8.95",
+			   "$.store.book[-1].isbn":                        "0-395-19395-8",
+			   "$.store.book[0,1].price":                      "[8.95, 12.99]",
+			   "$.store.book[0:2].price":                      "[8.95, 12.99, 8.99]",
+			   "$.store.book[?(@.isbn)].price":                "[8.99, 22.99]",
+			   "$.store.book[?(@.price > 10)].title":          "[\"Sword of Honour\", \"The Lord of the Rings\"]",
+			   "$.store.book[?(@.price < $.expensive)].price": "[8.95, 8.99]",
+			   "$.store.book[:].price":                        "[8.9.5, 12.99, 8.9.9, 22.99]",
 			*/
 		}
 		Context("Step Scope", func() {

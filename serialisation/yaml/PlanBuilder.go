@@ -15,6 +15,7 @@ import (
 
 //PlanBuilder ...
 type PlanBuilder struct {
+	Name            string
 	Iterations      int
 	Random          bool
 	NumberOfWorkers int
@@ -76,6 +77,12 @@ func (instance *PlanBuilder) SetWaitTime(value string) *PlanBuilder {
 	return instance
 }
 
+//WithName ...
+func (instance *PlanBuilder) WithName(name string) *PlanBuilder {
+	instance.Name = name
+	return instance
+}
+
 //WithContext ...
 func (instance *PlanBuilder) WithContext(context map[string]interface{}) *PlanBuilder {
 	instance.Context = context
@@ -115,6 +122,7 @@ func (instance *PlanBuilder) Build() (*os.File, error) {
 	os.MkdirAll(outputBasePath, 0777)
 
 	plan := ExecutionPlan{
+		Name:       instance.Name,
 		Iterations: instance.Iterations,
 		Random:     instance.Random,
 		Workers:    instance.NumberOfWorkers,

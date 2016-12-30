@@ -30,6 +30,10 @@ func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) error {
 	return test.ExecutePlanBuilder("./corcel", planBuilder)
 }
 
+func ExecutePlanFromData(plan string) error {
+	return test.ExecutePlanFromData("./corcel", plan)
+}
+
 var _ = BeforeSuite(func() {
 	logger.Initialise()
 	logger.ConfigureLogging(&config.Configuration{})

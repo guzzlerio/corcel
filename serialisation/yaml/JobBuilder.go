@@ -61,6 +61,12 @@ func (instance *JobBuilder) AddAfter(after Action) *JobBuilder {
 	return instance
 }
 
+//WithName ...
+func (instance *JobBuilder) WithName(name string) *JobBuilder {
+	instance.Name = name
+	return instance
+}
+
 //WithContext ...
 func (instance *JobBuilder) WithContext(context map[string]interface{}) *JobBuilder {
 	instance.Context = context

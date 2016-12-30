@@ -2,6 +2,7 @@ package yaml
 
 //StepBuilder ...
 type StepBuilder struct {
+	Name       string
 	Before     []Action
 	Action     map[string]interface{}
 	Assertions []map[string]interface{}
@@ -12,6 +13,7 @@ type StepBuilder struct {
 //Build ...
 func (instance *StepBuilder) Build() ExecutionStep {
 	return ExecutionStep{
+		Name:       instance.Name,
 		Before:     instance.Before,
 		Action:     instance.Action,
 		Assertions: instance.Assertions,
@@ -45,6 +47,12 @@ func (instance *StepBuilder) AddAfter(after Action) *StepBuilder {
 //ToExecuteAction ...
 func (instance *StepBuilder) ToExecuteAction(data Action) *StepBuilder {
 	instance.Action = data
+	return instance
+}
+
+//WithName ...
+func (instance *StepBuilder) WithName(name string) *StepBuilder {
+	instance.Name = name
 	return instance
 }
 

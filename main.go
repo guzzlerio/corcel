@@ -10,6 +10,7 @@ import (
 
 	"github.com/guzzlerio/corcel/cmd"
 	"github.com/guzzlerio/corcel/core"
+	"github.com/guzzlerio/corcel/errormanager"
 	"github.com/guzzlerio/corcel/infrastructure/http"
 	"github.com/guzzlerio/corcel/infrastructure/inproc"
 	"github.com/guzzlerio/corcel/logger"
@@ -31,6 +32,8 @@ var (
 
 func main() {
 
+	defer errormanager.HandlePanic()
+
 	if cpuprofile != "" {
 		f, err := os.Create("./corcel.prof")
 		if err != nil {
@@ -51,6 +54,7 @@ func main() {
 	//TODO add a ScanForActions .ScanForAssertions .ScanForProcessors .ScanForExtractors .ScanForContexts
 	registry := core.CreateRegistry().
 		AddActionParser(inproc.YamlDummyActionParser{}).
+		AddActionParser(inproc.YamlIPanicActionParser{}).
 		AddActionParser(http.YamlHTTPRequestParser{}).
 		AddAssertionParser(yaml.ExactAssertionParser{}).
 		AddAssertionParser(yaml.NotEqualAssertionParser{}).

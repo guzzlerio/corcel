@@ -34,7 +34,7 @@ var _ = Describe("ExecutionPlanHttpRequest", func() {
 			CreateStep().
 			ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-		err := ExecutePlanBuilder(planBuilder)
+		_, err := ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())
 		Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithBody(body))).To(Equal(true))
 	})
@@ -59,7 +59,7 @@ jobs:
       url: %s
 `, TestServer.CreateURL("/people"))
 
-		err := ExecutePlanFromData(plan)
+		_, err := ExecutePlanFromData(plan)
 		Expect(err).To(BeNil())
 		Expect(TestServer.Find(rizo.RequestWithHeader("key", "1"))).To(Equal(true))
 	})
@@ -93,7 +93,7 @@ jobs:
 			CreateStep().
 			ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-		err = ExecutePlanBuilder(planBuilder)
+		_, err = ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())
 		Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithBody(string(content)))).To(Equal(true))
 	})

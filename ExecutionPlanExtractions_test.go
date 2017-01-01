@@ -42,7 +42,7 @@ jobs:
            key: target
            expected: 12345`)
 
-				err := ExecutePlanFromData(plan)
+				_, err := ExecutePlanFromData(plan)
 				Expect(err).To(BeNil())
 
 				var executionOutput statistics.AggregatorSnapShot
@@ -77,7 +77,7 @@ jobs:
           key: target
           expected: 123456`)
 
-				err := ExecutePlanFromData(plan)
+				_, err := ExecutePlanFromData(plan)
 				Expect(err).To(BeNil())
 
 				var executionOutput statistics.AggregatorSnapShot
@@ -116,7 +116,7 @@ jobs:
            expected: 12345
       `)
 
-				err := ExecutePlanFromData(plan)
+				_, err := ExecutePlanFromData(plan)
 				Expect(err).To(BeNil())
 
 				var executionOutput statistics.AggregatorSnapShot
@@ -154,7 +154,7 @@ jobs:
            expected: 12345
       `)
 
-				err := ExecutePlanFromData(plan)
+				_, err := ExecutePlanFromData(plan)
 				Expect(err).To(BeNil())
 
 				var executionOutput statistics.AggregatorSnapShot
@@ -194,7 +194,7 @@ jobs:
            key: target
            expected: 12345`)
 
-				err := ExecutePlanFromData(plan)
+				_, err := ExecutePlanFromData(plan)
 				Expect(err).To(BeNil())
 
 				var executionOutput statistics.AggregatorSnapShot
@@ -232,7 +232,7 @@ jobs:
            key: target
            expected: 12345`)
 
-				err := ExecutePlanFromData(plan)
+				_, err := ExecutePlanFromData(plan)
 				Expect(err).To(BeNil())
 
 				var executionOutput statistics.AggregatorSnapShot
@@ -257,7 +257,7 @@ jobs:
 						WithExtractor(planBuilder.RegexExtractor().Name("regex:match:1").Key("value:1").Match("\\d+").Build()).
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
-					err := ExecutePlanBuilder(planBuilder)
+					_, err := ExecutePlanBuilder(planBuilder)
 					Expect(err).To(BeNil())
 
 					var executionOutput statistics.AggregatorSnapShot
@@ -278,7 +278,7 @@ jobs:
 						WithExtractor(planBuilder.RegexExtractor().Name("regex:match:1").Key("value:1").Match("boom").Build()).
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
-					err := ExecutePlanBuilder(planBuilder)
+					_, err := ExecutePlanBuilder(planBuilder)
 					Expect(err).To(BeNil())
 
 					var executionOutput statistics.AggregatorSnapShot
@@ -311,7 +311,7 @@ jobs:
 						CreateStep().
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
-					err := ExecutePlanBuilder(planBuilder)
+					_, err := ExecutePlanBuilder(planBuilder)
 					Expect(err).To(BeNil())
 
 					var executionOutput statistics.AggregatorSnapShot
@@ -337,7 +337,7 @@ jobs:
 						CreateStep().
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
-					err := ExecutePlanBuilder(planBuilder)
+					_, err := ExecutePlanBuilder(planBuilder)
 					Expect(err).To(BeNil())
 
 					var executionOutput statistics.AggregatorSnapShot
@@ -367,7 +367,7 @@ jobs:
 						CreateStep().
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
-					err := ExecutePlanBuilder(planBuilder)
+					_, err := ExecutePlanBuilder(planBuilder)
 					Expect(err).To(BeNil())
 
 					var executionOutput statistics.AggregatorSnapShot
@@ -394,7 +394,7 @@ jobs:
 						CreateStep().
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
-					err := ExecutePlanBuilder(planBuilder)
+					_, err := ExecutePlanBuilder(planBuilder)
 					Expect(err).To(BeNil())
 
 					var executionOutput statistics.AggregatorSnapShot
@@ -456,7 +456,7 @@ jobs:
 						WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath(testCase).Build()).
 						WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
-					err := ExecutePlanBuilder(planBuilder)
+					_, err := ExecutePlanBuilder(planBuilder)
 					Expect(err).To(BeNil())
 
 					var executionOutput statistics.AggregatorSnapShot
@@ -476,7 +476,7 @@ jobs:
 					WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath("fubar").Build()).
 					WithAssertion(planBuilder.ExactAssertion("xpath:match:1", "123"))
 
-				err := ExecutePlanBuilder(planBuilder)
+				_, err := ExecutePlanBuilder(planBuilder)
 				Expect(err).To(BeNil())
 
 				var executionOutput statistics.AggregatorSnapShot
@@ -502,7 +502,7 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
-						err := ExecutePlanBuilder(planBuilder)
+						_, err := ExecutePlanBuilder(planBuilder)
 						Expect(err).To(BeNil())
 
 						var executionOutput statistics.AggregatorSnapShot
@@ -528,7 +528,7 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
-						err := ExecutePlanBuilder(planBuilder)
+						_, err := ExecutePlanBuilder(planBuilder)
 						Expect(err).To(BeNil())
 
 						var executionOutput statistics.AggregatorSnapShot
@@ -558,7 +558,7 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
-						err := ExecutePlanBuilder(planBuilder)
+						_, err := ExecutePlanBuilder(planBuilder)
 						Expect(err).To(BeNil())
 
 						var executionOutput statistics.AggregatorSnapShot
@@ -585,7 +585,7 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
-						err := ExecutePlanBuilder(planBuilder)
+						_, err := ExecutePlanBuilder(planBuilder)
 						Expect(err).To(BeNil())
 
 						var executionOutput statistics.AggregatorSnapShot
@@ -662,7 +662,7 @@ jobs:
 						WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath(testCase).Build()).
 						WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
 
-					err := ExecutePlanBuilder(planBuilder)
+					_, err := ExecutePlanBuilder(planBuilder)
 					Expect(err).To(BeNil())
 
 					var executionOutput statistics.AggregatorSnapShot
@@ -682,7 +682,7 @@ jobs:
 					WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath("fubar").Build()).
 					WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", "123"))
 
-				err := ExecutePlanBuilder(planBuilder)
+				_, err := ExecutePlanBuilder(planBuilder)
 				Expect(err).To(BeNil())
 
 				var executionOutput statistics.AggregatorSnapShot
@@ -708,7 +708,7 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
 
-						err := ExecutePlanBuilder(planBuilder)
+						_, err := ExecutePlanBuilder(planBuilder)
 						Expect(err).To(BeNil())
 
 						var executionOutput statistics.AggregatorSnapShot
@@ -734,7 +734,7 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
 
-						err := ExecutePlanBuilder(planBuilder)
+						_, err := ExecutePlanBuilder(planBuilder)
 						Expect(err).To(BeNil())
 
 						var executionOutput statistics.AggregatorSnapShot
@@ -764,7 +764,7 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
 
-						err := ExecutePlanBuilder(planBuilder)
+						_, err := ExecutePlanBuilder(planBuilder)
 						Expect(err).To(BeNil())
 
 						var executionOutput statistics.AggregatorSnapShot
@@ -791,7 +791,7 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
 
-						err := ExecutePlanBuilder(planBuilder)
+						_, err := ExecutePlanBuilder(planBuilder)
 						Expect(err).To(BeNil())
 
 						var executionOutput statistics.AggregatorSnapShot

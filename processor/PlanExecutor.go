@@ -342,6 +342,7 @@ func (instance *PlanExecutor) Execute() error {
 	for i := 0; i < instance.Config.Workers; i++ {
 
 		go func() {
+			defer errormanager.HandlePanic()
 			//var plan = instance.generatePlan()
 			var plan = <-planChannel
 			if plan.Context["vars"] != nil {

@@ -21,7 +21,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 				ToExecuteAction(planBuilder.DummyAction().Set("value:1", "talula").Build()).
 				WithAssertion(planBuilder.ExactAssertion("value:1", "talula"))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -40,7 +40,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 				ToExecuteAction(planBuilder.DummyAction().Set("value:1", 2).Build()).
 				WithAssertion(planBuilder.ExactAssertion("value:1", 1))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -63,7 +63,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 				ToExecuteAction(planBuilder.DummyAction().Set("value:1", "").Build()).
 				WithAssertion(planBuilder.EmptyAssertion("value:1"))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -82,7 +82,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 				ToExecuteAction(planBuilder.DummyAction().Set("value:1", "1").Build()).
 				WithAssertion(planBuilder.EmptyAssertion("value:1"))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -105,7 +105,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 				ToExecuteAction(planBuilder.DummyAction().Set("value:1", 5).Build()).
 				WithAssertion(planBuilder.GreaterThanAssertion("value:1", 2))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -124,7 +124,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 				ToExecuteAction(planBuilder.DummyAction().Set("value:1", 2).Build()).
 				WithAssertion(planBuilder.GreaterThanAssertion("value:1", 5))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -147,7 +147,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 				ToExecuteAction(planBuilder.DummyAction().Set("value:1", 5).Build()).
 				WithAssertion(planBuilder.GreaterThanOrEqualAssertion("value:1", 5))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -166,7 +166,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 				ToExecuteAction(planBuilder.DummyAction().Set("value:1", 2).Build()).
 				WithAssertion(planBuilder.GreaterThanOrEqualAssertion("value:1", 5))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -189,7 +189,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 				ToExecuteAction(planBuilder.DummyAction().Set("value:1", 3).Build()).
 				WithAssertion(planBuilder.LessThanAssertion("value:1", 5))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -208,7 +208,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 				ToExecuteAction(planBuilder.DummyAction().Set("value:1", 5).Build()).
 				WithAssertion(planBuilder.LessThanAssertion("value:1", 3))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -231,7 +231,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 				ToExecuteAction(planBuilder.DummyAction().Set("value:1", 5).Build()).
 				WithAssertion(planBuilder.LessThanOrEqualAssertion("value:1", 5))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -250,7 +250,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 				ToExecuteAction(planBuilder.DummyAction().Set("value:1", 5).Build()).
 				WithAssertion(planBuilder.LessThanOrEqualAssertion("value:1", 4))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -273,7 +273,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 				ToExecuteAction(planBuilder.DummyAction().Set("value:1", 5).Build()).
 				WithAssertion(planBuilder.NotEmptyAssertion("value:1"))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -292,7 +292,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 				ToExecuteAction(planBuilder.DummyAction().Set("value:2", 5).Build()).
 				WithAssertion(planBuilder.NotEmptyAssertion("value:1"))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -315,7 +315,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 				ToExecuteAction(planBuilder.DummyAction().Set("value:1", 5).Build()).
 				WithAssertion(planBuilder.NotEqualAssertion("value:1", 6))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -334,7 +334,7 @@ var _ = Describe("ExecutionPlan Assertions", func() {
 				ToExecuteAction(planBuilder.DummyAction().Set("value:1", 6).Build()).
 				WithAssertion(planBuilder.NotEqualAssertion("value:1", 6))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot

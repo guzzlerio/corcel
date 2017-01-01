@@ -73,6 +73,7 @@ func (instance *RunCommand) run(c *kingpin.ParseContext) error {
 	configuration, err := config.ParseConfiguration(instance.Config)
 	if err != nil {
 		errormanager.Log(err)
+		panic("REPLACE ME THIS IS TEMP")
 		os.Exit(1)
 	}
 	logger.ConfigureLogging(configuration)

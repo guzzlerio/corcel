@@ -45,7 +45,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.HTTPAction().Header(expectedHeaderKey, "$Content-type.commonType").URL(TestServer.CreateURL(path)).Build())
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			Expect(len(TestServer.Requests)).To(Equal(3))
@@ -69,7 +69,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.HTTPAction().Header(expectedHeaderKey, "$commonType").URL(TestServer.CreateURL(path)).Build())
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithHeader(expectedHeaderKey, expectedHeaderValue))).To(Equal(true))
@@ -85,7 +85,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Build())
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			Expect(TestServer.Find(rizo.RequestWithPath("/fubar"), rizo.RequestWithQuerystring("a=1&b=2&c=3"))).To(Equal(true))
@@ -104,7 +104,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.HTTPAction().Header("Content-type", "application/json").Body(body).URL(TestServer.CreateURL(path)).Build())
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			expectedBody := strings.Replace(body, "$firstname", "john", -1)
@@ -137,7 +137,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 			CreateStep().
 			ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Build())
 
-		err := ExecutePlanBuilder(planBuilder)
+		_, err := ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())
 
 		Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithHeader(expectedHeaderKey, expectedHeaderValue))).To(Equal(true))
@@ -158,7 +158,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 			CreateStep().
 			ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Header(contextHeaderKey, expectedHeaderValue).Build())
 
-		err := ExecutePlanBuilder(planBuilder)
+		_, err := ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())
 
 		Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithHeader(contextHeaderKey, expectedHeaderValue))).To(Equal(true))

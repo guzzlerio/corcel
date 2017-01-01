@@ -25,7 +25,7 @@ var _ = Describe("Run Summary", func() {
 			CreateStep().
 			ToExecuteAction(GetHTTPRequestAction(TestServer.CreateURL("/people")))
 
-		err := ExecutePlanBuilder(planBuilder)
+		_, err := ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())
 	}
 

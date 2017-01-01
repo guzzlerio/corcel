@@ -33,3 +33,22 @@ func (instance DummyActionBuilder) Set(key string, value interface{}) DummyActio
 func (instance DummyActionBuilder) Build() map[string]interface{} {
 	return instance.data
 }
+
+//IPanicAction ...
+func (instance PlanBuilder) IPanicAction() IPanicActionBuilder {
+	return IPanicActionBuilder{
+		data: map[string]interface{}{
+			"type": "IPanicAction",
+		},
+	}
+}
+
+//IPanicActionBuilder ...
+type IPanicActionBuilder struct {
+	data map[string]interface{}
+}
+
+//Build ...
+func (instance IPanicActionBuilder) Build() map[string]interface{} {
+	return instance.data
+}

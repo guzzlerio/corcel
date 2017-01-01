@@ -46,7 +46,7 @@ var _ = Describe("Before After", func() {
 					CreateStep().
 					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-				_ = test.ExecutePlanBuilder("./corcel", planBuilder)
+				_, _ = test.ExecutePlanBuilder("./corcel", planBuilder)
 				Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
 					"Before Plan",
 					"Zee Body",
@@ -61,7 +61,7 @@ var _ = Describe("Before After", func() {
 					CreateStep().
 					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-				_ = test.ExecutePlanBuilder("./corcel", planBuilder)
+				_, _ = test.ExecutePlanBuilder("./corcel", planBuilder)
 				Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
 					"Before Plan 1",
 					"Before Plan 2",
@@ -77,7 +77,7 @@ var _ = Describe("Before After", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-			_ = test.ExecutePlanBuilder("./corcel", planBuilder)
+			_, _ = test.ExecutePlanBuilder("./corcel", planBuilder)
 			Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
 				"Zee Body",
 				"After Plan",
@@ -92,7 +92,7 @@ var _ = Describe("Before After", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-			_ = test.ExecutePlanBuilder("./corcel", planBuilder)
+			_, _ = test.ExecutePlanBuilder("./corcel", planBuilder)
 			Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
 				"Before Plan",
 				"Zee Body",
@@ -110,7 +110,7 @@ var _ = Describe("Before After", func() {
 					CreateStep().
 					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-				_ = test.ExecutePlanBuilder("./corcel", planBuilder)
+				_, _ = test.ExecutePlanBuilder("./corcel", planBuilder)
 				Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
 					"Before Job",
 					"Zee Body",
@@ -126,7 +126,7 @@ var _ = Describe("Before After", func() {
 					CreateStep().
 					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-				_ = test.ExecutePlanBuilder("./corcel", planBuilder)
+				_, _ = test.ExecutePlanBuilder("./corcel", planBuilder)
 				Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
 					"Zee Body",
 					"After Job",
@@ -143,7 +143,7 @@ var _ = Describe("Before After", func() {
 					CreateStep().
 					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-				_ = test.ExecutePlanBuilder("./corcel", planBuilder)
+				_, _ = test.ExecutePlanBuilder("./corcel", planBuilder)
 				Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
 					"Before Job",
 					"Zee Body",
@@ -165,7 +165,7 @@ var _ = Describe("Before After", func() {
 					AddBefore(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("Before Step").Build()).
 					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-				_ = test.ExecutePlanBuilder("./corcel", planBuilder)
+				_, _ = test.ExecutePlanBuilder("./corcel", planBuilder)
 				Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
 					"Zee Body",
 					"Before Step",
@@ -186,7 +186,7 @@ var _ = Describe("Before After", func() {
 					AddAfter(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("After Step 2").Build()).
 					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-				_ = test.ExecutePlanBuilder("./corcel", planBuilder)
+				_, _ = test.ExecutePlanBuilder("./corcel", planBuilder)
 				Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
 					"Zee Body",
 					"After Step 1",
@@ -209,7 +209,7 @@ var _ = Describe("Before After", func() {
 					AddAfter(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("After Step 2").Build()).
 					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-				_ = test.ExecutePlanBuilder("./corcel", planBuilder)
+				_, _ = test.ExecutePlanBuilder("./corcel", planBuilder)
 				Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
 					"Zee Body",
 					"After Step 1",
@@ -244,7 +244,7 @@ var _ = Describe("Before After", func() {
 			jobBuilder.CreateStep().
 				AddAfter(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("After Job 2, Step 1").Build()).
 				ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
-			_ = test.ExecutePlanBuilder("./corcel", planBuilder)
+			_, _ = test.ExecutePlanBuilder("./corcel", planBuilder)
 			Expect(TestServer.Requests).Should(WithTransform(getBody, Equal([]string{
 				"Before Plan",
 				"Before Job 1",

@@ -7,6 +7,7 @@ import (
 
 	"github.com/guzzlerio/corcel/config"
 	"github.com/guzzlerio/corcel/core"
+	"github.com/guzzlerio/corcel/errormanager"
 	"github.com/guzzlerio/corcel/statistics"
 )
 
@@ -39,6 +40,7 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
+		defer errormanager.HandlePanic()
 		for executionResult := range subscription.Channel {
 			result := executionResult.(core.ExecutionResult)
 			for _, processor := range instance.registry.ResultProcessors {

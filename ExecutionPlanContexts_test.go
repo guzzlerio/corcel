@@ -45,7 +45,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 					CreateStep().
 					ToExecuteAction(planBuilder.DummyAction().LogToFile(contextsDebugPath).Build())
 
-				err := ExecutePlanBuilder(planBuilder)
+				_, err := ExecutePlanBuilder(planBuilder)
 				Expect(err).To(BeNil())
 
 				contexts := test.GetExecutionContexts(contextsDebugPath)
@@ -72,7 +72,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				WithAssertion(planBuilder.ExactAssertion("$value:3", "3")).
 				WithAssertion(planBuilder.ExactAssertion("something", "1"))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -92,7 +92,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
 				WithAssertion(planBuilder.ExactAssertion("$value:3", "3"))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -116,7 +116,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
 				WithAssertion(planBuilder.ExactAssertion("$value:3", "3"))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -141,7 +141,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
 				WithAssertion(planBuilder.ExactAssertion("$value:3", "3"))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot

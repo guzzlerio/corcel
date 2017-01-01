@@ -2,8 +2,12 @@ package errormanager
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"runtime/debug"
 	"strings"
+
+	"github.com/satori/go.uuid"
 )
 
 //Check ...
@@ -32,20 +36,37 @@ func configure() {
 	mappings = make(map[string]ErrorCode)
 
 	mappings["socket: too many open files"] = ErrorCode{
-		Code:    5001,
+		Code:    1,
 		Message: "Your workers value is set to high.  Either increase the system limit for open files or reduce the value of the workers",
 	}
 	mappings[`unsupported protocol scheme ""`] = ErrorCode{
-		Code:    5002,
+		Code:    2,
 		Message: LogMessageVaidURLs,
 	}
 	mappings["too many open files"] = ErrorCode{
-		Code:    5003,
+		Code:    3,
 		Message: "Too many workers man!",
 	}
 	mappings["invalid URI for request"] = ErrorCode{
-		Code:    5004,
+		Code:    4,
 		Message: LogMessageVaidURLs,
+	}
+}
+
+//HandlePanic ...
+func HandlePanic() {
+	if err := recover(); err != nil { //catch
+		for mapping, errorCode := range mappings {
+			if strings.Contains(fmt.Sprintf("%v", err), mapping) {
+				fmt.Println(errorCode.Message)
+				os.Exit(errorCode.Code)
+			}
+		}
+
+		var id = uuid.NewV4().String()
+		ioutil.WriteFile(fmt.Sprintf("/tmp/%v", id), []byte(fmt.Sprintf("%v \n\n %s", err, string(debug.Stack()))), 0644)
+		fmt.Println(fmt.Sprintf("An unexpected error has occurred.  The error has been logged to /tmp/%v", id))
+		os.Exit(255)
 	}
 }
 
@@ -57,9 +78,10 @@ func Log(err interface{}) {
 	for mapping, errorCode := range mappings {
 		if strings.Contains(fmt.Sprintf("%v", err), mapping) {
 			fmt.Println(errorCode.Message)
-			os.Exit(errorCode.Code)
+			//		os.Exit(errorCode.Code)
 		}
 	}
-	panic(err)
+	//panic(err)
+	panic("BOOM")
 	//logger.Log.Fatalf("UNKNOWN ERROR: %v", err)
 }

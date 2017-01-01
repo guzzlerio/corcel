@@ -27,16 +27,16 @@ func planDataToFile(platData string) (*os.File, error) {
 }
 
 //ExecutePlanFromData ...
-func ExecutePlanFromData(path string, planData string) error {
+func ExecutePlanFromData(path string, planData string) ([]byte, error) {
 	file, err := planDataToFile(planData)
 	if err != nil {
-		return err
+		return []byte{}, err
 	}
 
 	//path := "./corcel"
 	exePath, err := filepath.Abs(path)
 	if err != nil {
-		return err
+		return []byte{}, err
 	}
 	defer func() {
 		fileErr := os.Remove(file.Name())
@@ -49,21 +49,21 @@ func ExecutePlanFromData(path string, planData string) error {
 	output, err := cmd.CombinedOutput()
 	//fmt.Println(string(output))
 	logger.Log.Println(fmt.Sprintf("%s", output))
-	return err
+	return output, err
 }
 
 //ExecutePlanBuilder ...
-func ExecutePlanBuilder(path string, planBuilder *yaml.PlanBuilder) error {
+func ExecutePlanBuilder(path string, planBuilder *yaml.PlanBuilder) ([]byte, error) {
 
 	file, err := planBuilder.Build()
 	if err != nil {
-		return err
+		return []byte{}, err
 	}
 
 	//path := "./corcel"
 	exePath, err := filepath.Abs(path)
 	if err != nil {
-		return err
+		return []byte{}, err
 	}
 	defer func() {
 		fileErr := os.Remove(file.Name())
@@ -74,7 +74,7 @@ func ExecutePlanBuilder(path string, planBuilder *yaml.PlanBuilder) error {
 	args := []string{"--plan"}
 	cmd := exec.Command(exePath, append(append([]string{"run", "--progress", "none"}, args...), file.Name())...)
 	output, err := cmd.CombinedOutput()
-	//fmt.Println(string(output))
+	//fmt.Println(fmt.Sprintf("OUTPUT: %v\nERROR: %v\n", string(output), err))
 	logger.Log.Println(fmt.Sprintf("%s", output))
-	return err
+	return output, err
 }

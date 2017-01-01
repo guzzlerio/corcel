@@ -26,11 +26,11 @@ func TestCorcel(t *testing.T) {
 	RunSpecs(t, "Corcel Suite")
 }
 
-func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) error {
+func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) ([]byte, error) {
 	return test.ExecutePlanBuilder("./corcel", planBuilder)
 }
 
-func ExecutePlanFromData(plan string) error {
+func ExecutePlanFromData(plan string) ([]byte, error) {
 	return test.ExecutePlanFromData("./corcel", plan)
 }
 

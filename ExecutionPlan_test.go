@@ -41,7 +41,7 @@ var _ = Describe("ExecutionPlan", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build())
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -63,7 +63,7 @@ var _ = Describe("ExecutionPlan", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build())
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -95,7 +95,7 @@ var _ = Describe("ExecutionPlan", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build())
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			Expect(err).To(BeNil())
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -145,7 +145,7 @@ var _ = Describe("ExecutionPlan", func() {
 					CreateStep().
 					ToExecuteAction(GetHTTPRequestAction("/people"))
 
-				err := ExecutePlanBuilder(planBuilder)
+				_, err := ExecutePlanBuilder(planBuilder)
 				Expect(err).To(BeNil())
 
 				var executionOutput statistics.AggregatorSnapShot
@@ -171,7 +171,7 @@ var _ = Describe("ExecutionPlan", func() {
 			jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction("/people"))
 		}
 
-		err := ExecutePlanBuilder(planBuilder)
+		_, err := ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())
 
 		var executionOutput statistics.AggregatorSnapShot
@@ -190,7 +190,7 @@ var _ = Describe("ExecutionPlan", func() {
 		planBuilder.SetDuration(duration)
 		jobBuilder := planBuilder.CreateJob()
 		jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction("/people"))
-		err := ExecutePlanBuilder(planBuilder)
+		_, err := ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())
 
 		var executionOutput statistics.AggregatorSnapShot
@@ -214,12 +214,12 @@ var _ = Describe("ExecutionPlan", func() {
 			jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction(fmt.Sprintf("/%d", i+1)))
 		}
 
-		err := ExecutePlanBuilder(planBuilder)
+		_, err := ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())
 		firstBatchOfRequests := utils.ConcatRequestPaths(utils.ToHTTPRequestArray(TestServer.Requests))
 		TestServer.Clear()
 
-		err = ExecutePlanBuilder(planBuilder)
+		_, err = ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())
 		secondBatchOfRequests := utils.ConcatRequestPaths(utils.ToHTTPRequestArray(TestServer.Requests))
 
@@ -245,7 +245,7 @@ var _ = Describe("ExecutionPlan", func() {
 				ToExecuteAction(GetHTTPRequestAction("/boom")).
 				WithAssertion(HTTPStatusExactAssertion(201))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			utils.CheckErr(err)
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -264,7 +264,7 @@ var _ = Describe("ExecutionPlan", func() {
 				ToExecuteAction(GetHTTPRequestAction("/boom")).
 				WithAssertion(HTTPStatusExactAssertion(200))
 
-			err := ExecutePlanBuilder(planBuilder)
+			_, err := ExecutePlanBuilder(planBuilder)
 			utils.CheckErr(err)
 
 			var executionOutput statistics.AggregatorSnapShot
@@ -283,7 +283,7 @@ var _ = Describe("ExecutionPlan", func() {
 			ToExecuteAction(GetHTTPRequestAction("/people")).
 			WithAssertion(HTTPStatusExactAssertion(201))
 
-		err := ExecutePlanBuilder(planBuilder)
+		_, err := ExecutePlanBuilder(planBuilder)
 		utils.CheckErr(err)
 
 		var executionOutput statistics.AggregatorSnapShot

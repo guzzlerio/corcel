@@ -23,7 +23,7 @@ type Control interface {
 type Controller struct {
 	executions map[*ExecutionID]ExecutionBranch
 	bar        ProgressBar
-	aggregator *statistics.Aggregator
+	aggregator statistics.AggregatorInterfaceToRenameLater
 	registry   core.Registry
 }
 
@@ -33,7 +33,7 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 
 	instance.aggregator = statistics.NewAggregator(metrics.DefaultRegistry)
 
-	executor := CreatePlanExecutor(config, instance.bar, instance.registry)
+	executor := CreatePlanExecutor(config, instance.bar, instance.registry, instance.aggregator)
 
 	subscription := executor.Publisher.Subscribe()
 	var wg sync.WaitGroup
@@ -48,7 +48,7 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 		wg.Done()
 	}()
 	instance.executions[&id] = executor
-	instance.aggregator.Start()
+	//instance.aggregator.Start()
 	err := executor.Execute()
 	subscription.RemoveFrom(executor.Publisher)
 	wg.Wait()

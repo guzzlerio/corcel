@@ -7,6 +7,14 @@ import (
 	"github.com/rcrowley/go-metrics"
 )
 
+//AggregatorInterfaceToRenameLater ...
+type AggregatorInterfaceToRenameLater interface {
+	Start()
+	Stop()
+	Initialize()
+	Snapshot() AggregatorSnapShot
+}
+
 //Aggregator ...
 type Aggregator struct {
 	times      []int64
@@ -159,22 +167,26 @@ func IncrementCounter(registry metrics.Registry, key string, value int64) {
 }
 
 //NewAggregator ...
-func NewAggregator(registry metrics.Registry) *Aggregator {
-	agg := &Aggregator{
-		times:      []int64{},
-		counters:   map[string][]int64{},
-		gauges:     map[string][]float64{},
-		histograms: map[string]map[string][]int64{},
-		meters:     map[string]map[string][]float64{},
-		timers:     map[string]map[string][]float64{},
-		ticker:     time.NewTicker(time.Second * 2),
-		registry:   registry,
-		mutex:      &sync.Mutex{},
-	}
+func NewAggregator(registry metrics.Registry) AggregatorInterfaceToRenameLater {
+	/*
+		agg := &Aggregator{
+			times:      []int64{},
+			counters:   map[string][]int64{},
+			gauges:     map[string][]float64{},
+			histograms: map[string]map[string][]int64{},
+			meters:     map[string]map[string][]float64{},
+			timers:     map[string]map[string][]float64{},
+			ticker:     time.NewTicker(time.Second * 2),
+			registry:   registry,
+			mutex:      &sync.Mutex{},
+		}
 
-	agg.Initialize()
+		agg.Initialize()
 
-	return agg
+		return agg
+
+	*/
+	return CreateAggregatorController(registry)
 }
 
 //Initialize ...
@@ -335,9 +347,11 @@ func (instance *Aggregator) logTimer(name string, value metrics.Timer) {
 
 func (instance *Aggregator) createSnapshot() {
 	timeToLog := time.Now().UnixNano()
-	if len(instance.times) > 1 && instance.times[len(instance.times)-1] == int64(timeToLog) {
-		return
-	}
+	/*
+		if len(instance.times) > 1 && instance.times[len(instance.times)-1] == int64(timeToLog) {
+			return
+		}
+	*/
 
 	instance.times = append(instance.times, timeToLog)
 	instance.registry.Each(func(name string, i interface{}) {

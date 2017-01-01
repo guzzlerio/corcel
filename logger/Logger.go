@@ -17,6 +17,7 @@ var (
 //Initialise ...
 func Initialise() {
 	log.SetOutput(os.Stdout)
+	log.SetLevel(log.InfoLevel)
 	Log = log.New()
 	initialised = true
 }

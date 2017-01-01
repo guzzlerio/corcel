@@ -12,6 +12,7 @@ import (
 	"github.com/guzzlerio/corcel/infrastructure/http"
 	"github.com/guzzlerio/corcel/request"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
+	"github.com/guzzlerio/corcel/statistics"
 
 	"github.com/REAANDREW/telegraph"
 )
@@ -50,16 +51,21 @@ func (instance *PlanExecutionContext) execute(ctx context.Context) {
 	*/
 
 	for jobStream.HasNext() {
-		job := jobStream.Next()
 		_ = instance.Bar.Set(jobStream.Progress())
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			job := jobStream.Next()
 
-		for _, action := range job.Before {
-			_ = action.Execute(ctx, nil)
+			for _, action := range job.Before {
+				_ = action.Execute(ctx, nil)
 
-		}
-		instance.workerExecuteJob(ctx, job)
-		for _, action := range job.After {
-			_ = action.Execute(ctx, nil)
+			}
+			instance.workerExecuteJob(ctx, job)
+			for _, action := range job.After {
+				_ = action.Execute(ctx, nil)
+			}
 		}
 	}
 }
@@ -85,13 +91,13 @@ func (instance *PlanExecutionContext) workerExecuteJob(ctx context.Context, job 
 			_ = action.Execute(ctx, nil)
 		}
 		executionResult := instance.executeStep(ctx, step)
+		//instance.executeStep(ctx, step)
+
 		//after Step
 		for _, action := range step.After {
 			_ = action.Execute(ctx, nil)
 		}
-
 		instance.Publisher.Publish(executionResult)
-
 	}
 }
 
@@ -194,10 +200,11 @@ type PlanExecutor struct {
 	StepContexts map[int]map[int]core.ExtractionResult
 	mutex        *sync.Mutex
 	registry     core.Registry
+	aggregator   statistics.AggregatorInterfaceToRenameLater
 }
 
 //CreatePlanExecutor ...
-func CreatePlanExecutor(config *config.Configuration, bar ProgressBar, registry core.Registry) *PlanExecutor {
+func CreatePlanExecutor(config *config.Configuration, bar ProgressBar, registry core.Registry, aggregator statistics.AggregatorInterfaceToRenameLater) *PlanExecutor {
 	return &PlanExecutor{
 		Config:       config,
 		Bar:          bar,
@@ -207,6 +214,7 @@ func CreatePlanExecutor(config *config.Configuration, bar ProgressBar, registry 
 		StepContexts: map[int]map[int]core.ExtractionResult{},
 		mutex:        &sync.Mutex{},
 		registry:     registry,
+		aggregator:   aggregator,
 	}
 }
 
@@ -314,35 +322,6 @@ func (instance *PlanExecutor) Execute() error {
 
 	instance.start = time.Now()
 
-	var progressChan = make(chan int, 1000)
-	defer close(progressChan)
-
-	/*
-		go func() {
-			var read = true
-			for read == true {
-				select {
-				case value, ok := <-progressChan:
-					if ok {
-						instance.Bar.Set(value)
-					} else {
-						progressChan = nil
-						read = false
-						break
-					}
-				default:
-				}
-			}
-		}()
-	*/
-
-	if instance.Config.Duration > time.Duration(0) {
-		time.AfterFunc(instance.Config.Duration, func() {
-			//close(cancellation)
-			cancel()
-		})
-	}
-
 	var mainPlan = instance.generatePlan()
 	//before Plan
 	for _, action := range mainPlan.Before {
@@ -353,10 +332,18 @@ func (instance *PlanExecutor) Execute() error {
 	var wg sync.WaitGroup
 	wg.Add(instance.Config.Workers)
 
-	for i := 0; i < instance.Config.Workers; i++ {
-		var workerPlan = instance.generatePlan()
+	var latch sync.WaitGroup
+	latch.Add(instance.Config.Workers)
 
-		go func(plan core.Plan) {
+	var startingFence = make(chan struct{})
+
+	var planChannel = make(chan core.Plan)
+
+	for i := 0; i < instance.Config.Workers; i++ {
+
+		go func() {
+			//var plan = instance.generatePlan()
+			var plan = <-planChannel
 			if plan.Context["vars"] != nil {
 				stringKeyData := map[string]interface{}{}
 				data := plan.Context["vars"].(map[interface{}]interface{})
@@ -380,15 +367,26 @@ func (instance *PlanExecutor) Execute() error {
 			}
 
 			//planExecutionContext.execute(cancellation)
+			latch.Done()
+			<-startingFence
 			planExecutionContext.execute(ctx)
 			wg.Done()
-		}(workerPlan)
+		}()
+		planChannel <- mainPlan
 	}
 
+	latch.Wait()
+	instance.aggregator.Start()
+	close(startingFence)
+	if instance.Config.Duration > time.Duration(0) {
+		time.AfterFunc(instance.Config.Duration, func() {
+			//close(cancellation)
+			cancel()
+		})
+	}
 	wg.Wait()
 
 	for _, action := range mainPlan.After {
-		//_ = action.Execute(nil, cancellation)
 		_ = action.Execute(ctx, nil)
 	}
 

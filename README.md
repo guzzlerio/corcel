@@ -6,11 +6,12 @@ Performance Testing Tool that is simple, scalable and powerful
 
 ## Status
 
-Develop branch : [![Build Status](https://travis-ci.org/guzzlerio/corcel.svg?branch=develop)](https://travis-ci.org/guzzlerio/corcel)
+|Develop | Release | Master |
+| --- | --- | --- |
+| [![Build Status](https://travis-ci.org/guzzlerio/corcel.svg?branch=develop)](https://travis-ci.org/guzzlerio/corcel) | [![Build Status](https://travis-ci.org/guzzlerio/corcel.svg?branch=release)](https://travis-ci.org/guzzlerio/corcel) | [![Build Status](https://travis-ci.org/guzzlerio/corcel.svg?branch=master)](https://travis-ci.org/guzzlerio/corcel) |
+| [![Coverage Status](https://coveralls.io/repos/github/guzzlerio/corcel/badge.svg?branch=develop)](https://coveralls.io/github/guzzlerio/corcel?branch=develop) | [![Coverage Status](https://coveralls.io/repos/github/guzzlerio/corcel/badge.svg?branch=release)](https://coveralls.io/github/guzzlerio/corcel?branch=release)| [![Coverage Status](https://coveralls.io/repos/github/guzzlerio/corcel/badge.svg?branch=master)](https://coveralls.io/github/guzzlerio/corcel?branch=master) |
 
-Release branch : [![Build Status](https://travis-ci.org/guzzlerio/corcel.svg?branch=release)](https://travis-ci.org/guzzlerio/corcel)
 
-Master branch   : [![Build Status](https://travis-ci.org/guzzlerio/corcel.svg?branch=master)](https://travis-ci.org/guzzlerio/corcel)
 
 ## Website
 

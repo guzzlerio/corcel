@@ -81,7 +81,7 @@ func (instance Urn) String() string {
 		safeName = url.QueryEscape(safeName)
 		buffer.WriteString(safeName)
 	}
-	return buffer.String()
+	return strings.ToLower(buffer.String())
 }
 
 //NewUrn ...

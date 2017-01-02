@@ -135,12 +135,12 @@ func (instance HTTPAction) Execute(ctx context.Context, executionContext core.Ex
 		//result[RequestHeadersUrn.String()] = req.Header
 
 		for k, v := range response.Header {
-			var key = RequestHeadersUrn.Name(strings.ToLower(k)).String()
+			var key = RequestHeadersUrn.Name(k).String()
 			result[key] = strings.Join(v, ",")
 		}
 
 		for k, v := range response.Header {
-			var key = ResponseHeadersUrn.Name(strings.ToLower(k)).String()
+			var key = ResponseHeadersUrn.Name(k).String()
 			result[key] = strings.Join(v, ",")
 		}
 

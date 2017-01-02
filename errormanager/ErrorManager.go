@@ -10,6 +10,15 @@ import (
 	"github.com/satori/go.uuid"
 )
 
+var (
+	panicNotRecover = false
+)
+
+//PanicNotRecover ...
+func PanicNotRecover() {
+	panicNotRecover = true
+}
+
 //Check ...
 func Check(err error) {
 	if err != nil {
@@ -55,7 +64,12 @@ func configure() {
 
 //HandlePanic ...
 func HandlePanic() {
+	if panicNotRecover {
+		return
+	}
+
 	if err := recover(); err != nil { //catch
+
 		for mapping, errorCode := range mappings {
 			if strings.Contains(fmt.Sprintf("%v", err), mapping) {
 				fmt.Println(errorCode.Message)

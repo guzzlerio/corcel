@@ -132,7 +132,17 @@ func (instance HTTPAction) Execute(ctx context.Context, executionContext core.Ex
 		result[RequestURLUrn.String()] = req.URL.String()
 		result[core.BytesSentCountUrn.String()] = len(requestBytes)
 		result[core.BytesReceivedCountUrn.String()] = len(responseBytes)
-		result[RequestHeadersUrn.String()] = req.Header
+		//result[RequestHeadersUrn.String()] = req.Header
+
+		for k, v := range response.Header {
+			var key = RequestHeadersUrn.Name(strings.ToLower(k)).String()
+			result[key] = strings.Join(v, ",")
+		}
+
+		for k, v := range response.Header {
+			var key = ResponseHeadersUrn.Name(strings.ToLower(k)).String()
+			result[key] = strings.Join(v, ",")
+		}
 
 		//TODO: We need a Response Headers key too
 		result[ResponseStatusUrn.String()] = response.StatusCode

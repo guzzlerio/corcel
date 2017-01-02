@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 
 	"github.com/guzzlerio/corcel/serialisation/yaml"
+	"github.com/guzzlerio/corcel/statistics"
+	"github.com/guzzlerio/corcel/utils"
 	"github.com/guzzlerio/rizo"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -17,10 +19,40 @@ var _ = Describe("ExecutionPlanHttpRequest", func() {
 	BeforeEach(func() {
 		TestServer.Clear()
 		factory := rizo.HTTPResponseFactory(func(w http.ResponseWriter) {
+			w.Header().Add("X-BOOM", "1")
 			w.WriteHeader(http.StatusOK)
 		})
 
 		TestServer.Use(factory).For(rizo.RequestWithPath("/people"))
+	})
+
+	It("Adds the response headers to the context", func() {
+
+		plan := fmt.Sprintf(`---
+workers: 1
+jobs:
+- name: "Job 1"
+  steps:
+  - name: "Step 1"
+    action:
+      type: HttpRequest
+      httpHeaders:
+        key: 1
+      method: GET
+      url: %s
+    assertions:
+    - type: ExactAssertion
+      key: urn:http:response:headers:x-boom
+      expected: "1"`, TestServer.CreateURL("/people"))
+
+		_, err := ExecutePlanFromData(plan)
+		Expect(err).To(BeNil())
+
+		var executionOutput statistics.AggregatorSnapShot
+		utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
+		var summary = statistics.CreateSummary(executionOutput)
+
+		Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 	})
 
 	It("Supplies a payload to the HTTP Request", func() {

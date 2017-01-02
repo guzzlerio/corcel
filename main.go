@@ -28,11 +28,17 @@ var (
 	cpuprofile = ""
 
 	memprofile = ""
+
+	panicNotRecover = ""
 )
 
 func main() {
 
 	defer errormanager.HandlePanic()
+
+	if panicNotRecover != "" {
+		errormanager.PanicNotRecover()
+	}
 
 	if cpuprofile != "" {
 		f, err := os.Create("./corcel.prof")

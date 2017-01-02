@@ -28,8 +28,10 @@ func (instance *ExactAssertion) Assert(executionResult core.ExecutionResult) cor
 	if actual == instance.Value {
 		result[core.AssertionResultUrn.String()] = true
 	} else {
+		var message = fmt.Sprintf("FAIL: %v does not match %v", actual, instance.Value)
+
 		result[core.AssertionResultUrn.String()] = false
-		result[core.AssertionMessageUrn.String()] = fmt.Sprintf("FAIL: %v does not match %v", actual, instance.Value)
+		result[core.AssertionMessageUrn.String()] = message
 	}
 	return result
 }

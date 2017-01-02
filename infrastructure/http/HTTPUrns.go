@@ -23,4 +23,7 @@ var (
 
 	//RequestHeadersUrn ...
 	RequestHeadersUrn = core.NewUrn("http").Name("request", "headers")
+
+	//ResponseHeadersUrn ...
+	ResponseHeadersUrn = core.NewUrn("http").Name("response", "headers")
 )

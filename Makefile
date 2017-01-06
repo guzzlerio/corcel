@@ -17,7 +17,7 @@ build:
 	#clean lint generate
 	#version=`grep -Po "(?<=version=)[0-9.]+" version`
 	#go build -ldflags="-X main.Version=${version}"
-	go build -ldflags "-X main.BuildTime=`date -u '+%Y-%m-%d_%I:%M:%S%p'` -X main.CommitHash=`git rev-parse HEAD` -X main.Version=`git describe --tags`"
+	go build -ldflags "-X panicNotRecover='1' -X main.BuildTime=`date -u '+%Y-%m-%d_%I:%M:%S%p'` -X main.CommitHash=`git rev-parse HEAD` -X main.Version=`git describe --tags`"
 
 test: build 
 	go get github.com/onsi/ginkgo/ginkgo

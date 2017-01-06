@@ -69,8 +69,8 @@ func (instance HTTPAction) Execute(ctx context.Context, executionContext core.Ex
 			headers.Set(k, instance.Headers.Get(k))
 		}
 		if executionContext["$httpHeaders"] != nil {
-			for hKey, hValue := range executionContext["$httpHeaders"].(map[interface{}]interface{}) {
-				headerKey := hKey.(string)
+			for hKey, hValue := range executionContext["$httpHeaders"].(map[string]interface{}) {
+				headerKey := hKey
 				headerValue := hValue.(string)
 
 				if headers.Get(headerKey) == "" {

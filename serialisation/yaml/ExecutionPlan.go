@@ -2,14 +2,14 @@ package yaml
 
 //ExecutionPlan ...
 type ExecutionPlan struct {
-	Iterations int                    `yaml:"iterations,omitempty"`
-	Random     bool                   `yaml:"random"`
-	Workers    int                    `yaml:"workers,omitempty"`
-	WaitTime   string                 `yaml:"waitTime,omitempty"`
-	Duration   string                 `yaml:"duration,omitempty"`
-	Name       string                 `yaml:"name,omitempty"`
-	Context    map[string]interface{} `yaml:"context,omitempty"`
-	Before     []Action               `yaml:"before,omitempty"`
-	Jobs       []ExecutionJob         `yaml:"jobs,omitempty"`
-	After      []Action               `yaml:"after,omitempty"`
+	Iterations int                    `json:"iterations,omitempty"`
+	Random     bool                   `json:"random"`
+	Workers    int                    `json:"workers,omitempty"`
+	WaitTime   string                 `json:"waitTime,omitempty"`
+	Duration   string                 `json:"duration,omitempty"`
+	Name       string                 `json:"name,omitempty"`
+	Context    map[string]interface{} `json:"context,omitempty"`
+	Before     []Action               `json:"before,omitempty"`
+	Jobs       []ExecutionJob         `json:"jobs,omitempty"`
+	After      []Action               `json:"after,omitempty"`
 }

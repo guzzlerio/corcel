@@ -106,16 +106,16 @@ func (instance Plan) Lists() HashMapList {
 	var lists = HashMapList{}
 
 	if instance.Context["lists"] != nil {
-		listKeys := instance.Context["lists"].(map[interface{}]interface{})
+		listKeys := instance.Context["lists"].(map[string]interface{})
 		for listKey, listValue := range listKeys {
-			var listKeyValue = listKey.(string)
+			var listKeyValue = listKey
 			lists[listKeyValue] = []map[string]interface{}{}
 			listValueItems := listValue.([]interface{})
 			for _, listValueItem := range listValueItems {
-				srcData := listValueItem.(map[interface{}]interface{})
+				srcData := listValueItem.(map[string]interface{})
 				stringKeyData := map[string]interface{}{}
 				for srcKey, srcValue := range srcData {
-					stringKeyData[srcKey.(string)] = srcValue
+					stringKeyData[srcKey] = srcValue
 				}
 				lists[listKeyValue] = append(lists[listKeyValue], stringKeyData)
 			}

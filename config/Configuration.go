@@ -14,23 +14,23 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	yamlFormat "github.com/ghodss/yaml"
 	"github.com/imdario/mergo"
 	"github.com/mitchellh/go-homedir"
 	"gopkg.in/alecthomas/kingpin.v2"
-	"gopkg.in/yaml.v2"
 )
 
 //Configuration ...
 type Configuration struct {
-	Iterations int           `yaml:"iterations"`
-	Random     bool          `yaml:"random"`
-	Summary    bool          `yaml:"summary"`
-	LogLevel   log.Level     `yaml:"log-level"`
-	Workers    int           `yaml:"workers"`
-	Duration   time.Duration `yaml:"duration"`
-	WaitTime   time.Duration `yaml:"wait-time"`
-	Progress   string        `yaml:"progress"`
-	Plan       bool          `yaml:"plan"`
+	Iterations int           `json:"iterations"`
+	Random     bool          `json:"random"`
+	Summary    bool          `json:"summary"`
+	LogLevel   log.Level     `json:"log-level"`
+	Workers    int           `json:"workers"`
+	Duration   time.Duration `json:"duration"`
+	WaitTime   time.Duration `json:"wait-time"`
+	Progress   string        `json:"progress"`
+	Plan       bool          `json:"plan"`
 	FilePath   string
 }
 
@@ -207,7 +207,7 @@ func (instance *Configuration) handleHTTPEndpointForURLFile() error {
 }
 
 func (instance *Configuration) parse(data []byte) error {
-	if err := yaml.Unmarshal(data, instance); err != nil {
+	if err := yamlFormat.Unmarshal(data, instance); err != nil {
 		log.Warn("Unable to parse config file")
 		return nil
 	}

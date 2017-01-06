@@ -40,7 +40,7 @@ var _ = Describe("ExactAssertion", func() {
 
 		result := assertion.Assert(executionResult)
 		Expect(result[core.AssertionResultUrn.String()]).To(Equal(false))
-		Expect(result[core.AssertionMessageUrn.String()]).To(Equal("FAIL: 8 does not match 7"))
+		Expect(result[core.AssertionMessageUrn.String()]).To(Equal("FAIL: 8 int does not match 7 int"))
 	})
 
 	//NOTHING is currently using the message when an assertion fails but we will need

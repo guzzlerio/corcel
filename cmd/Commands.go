@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 
 	"github.com/dustin/go-humanize"
+	yamlv2 "github.com/ghodss/yaml"
 	"gopkg.in/alecthomas/kingpin.v2"
-	yamlv2 "gopkg.in/yaml.v2"
 
 	"github.com/guzzlerio/corcel/config"
 	"github.com/guzzlerio/corcel/core"

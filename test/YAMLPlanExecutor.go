@@ -47,7 +47,7 @@ func ExecutePlanFromData(path string, planData string) ([]byte, error) {
 	args := []string{"--plan"}
 	cmd := exec.Command(exePath, append(append([]string{"run", "--progress", "none"}, args...), file.Name())...)
 	output, err := cmd.CombinedOutput()
-	//fmt.Println(string(output))
+	//fmt.Println(fmt.Sprintf("OUTPUT: %v\nERROR: %v\n", string(output), err))
 	logger.Log.Println(fmt.Sprintf("%s", output))
 	return output, err
 }

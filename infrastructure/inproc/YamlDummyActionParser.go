@@ -8,8 +8,8 @@ type YamlDummyActionParser struct{}
 //Parse ...
 func (instance YamlDummyActionParser) Parse(input map[string]interface{}) core.Action {
 	results := map[string]interface{}{}
-	for key, value := range input["results"].(map[interface{}]interface{}) {
-		results[key.(string)] = value
+	for key, value := range input["results"].(map[string]interface{}) {
+		results[key] = value
 	}
 
 	var logpath string

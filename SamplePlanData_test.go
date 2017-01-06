@@ -16,7 +16,7 @@ func GetHTTPRequestAction(url string) map[string]interface{} {
 }
 
 //HTTPStatusExactAssertion ...
-func HTTPStatusExactAssertion(code int) map[string]interface{} {
+func HTTPStatusExactAssertion(code float64) map[string]interface{} {
 	return map[string]interface{}{
 		"type":     "ExactAssertion",
 		"key":      http.ResponseStatusUrn.String(),

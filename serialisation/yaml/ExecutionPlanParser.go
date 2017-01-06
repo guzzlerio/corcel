@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ghodss/yaml"
 	"github.com/guzzlerio/corcel/core"
-	"gopkg.in/yaml.v2"
 )
 
 //ExecutionPlanParser ...
@@ -40,6 +40,7 @@ func (instance *ExecutionPlanParser) parseYamlActions(array []Action) []core.Act
 
 //Parse ...
 func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
+
 	var executionPlan core.Plan
 	var yamlExecutionPlan ExecutionPlan
 
@@ -51,6 +52,7 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 
 	executionPlan.Name = yamlExecutionPlan.Name
 	executionPlan.Context = yamlExecutionPlan.Context
+	fmt.Println(fmt.Sprintf("Parsing WaitTime %v", yamlExecutionPlan.WaitTime))
 	executionPlan.WaitTime, err = time.ParseDuration(yamlExecutionPlan.WaitTime)
 	if err != nil {
 		executionPlan.WaitTime = time.Duration(0)

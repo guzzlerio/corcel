@@ -131,9 +131,9 @@ func (instance *PlanExecutionContext) executeStep(ctx context.Context, step core
 	for jKey, jValue := range job.Context {
 		executionContext[jKey] = jValue
 		if jKey == "vars" {
-			vars := jValue.(map[interface{}]interface{})
+			vars := jValue.(map[string]interface{})
 			for varKey, varValue := range vars {
-				executionContext["$"+varKey.(string)] = varValue
+				executionContext["$"+varKey] = varValue
 			}
 		}
 	}
@@ -340,16 +340,15 @@ func (instance *PlanExecutor) Execute() error {
 	var planChannel = make(chan core.Plan)
 
 	for i := 0; i < instance.Config.Workers; i++ {
-
 		go func() {
 			defer errormanager.HandlePanic()
 			//var plan = instance.generatePlan()
 			var plan = <-planChannel
 			if plan.Context["vars"] != nil {
 				stringKeyData := map[string]interface{}{}
-				data := plan.Context["vars"].(map[interface{}]interface{})
+				data := plan.Context["vars"].(map[string]interface{})
 				for dataKey, dataValue := range data {
-					stringKeyData["$"+dataKey.(string)] = dataValue
+					stringKeyData["$"+dataKey] = dataValue
 				}
 				plan.Context["vars"] = stringKeyData
 			}
@@ -377,6 +376,7 @@ func (instance *PlanExecutor) Execute() error {
 	}
 
 	latch.Wait()
+
 	instance.aggregator.Start()
 	close(startingFence)
 	if instance.Config.Duration > time.Duration(0) {

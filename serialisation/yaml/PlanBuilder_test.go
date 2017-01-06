@@ -23,28 +23,28 @@ var _ = ginkgo.Describe("PlanBuilder", func() {
 		file, _ := planBuilder.Build()
 		planData, _ := ioutil.ReadFile(file.Name())
 
-		var expected = `random: false
-workers: 1
-waitTime: 0s
-duration: 0s
-name: Some Plan
+		var expected = `duration: 0s
 jobs:
 - name: Some Job
   steps:
-  - name: Some Step
-    action:
+  - action:
       results:
         value:1: talula 123 bang bang
       type: DummyAction
+    assertions:
+    - expected: "123"
+      key: regex:match:1
+      type: ExactAssertion
     extractors:
     - key: value:1
       match: \d+
       name: regex:match:1
       type: RegexExtractor
-    assertions:
-    - expected: "123"
-      key: regex:match:1
-      type: ExactAssertion
+    name: Some Step
+name: Some Plan
+random: false
+waitTime: 0s
+workers: 1
 `
 
 		Expect(string(planData)).To(Equal(expected))

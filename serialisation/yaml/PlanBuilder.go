@@ -9,8 +9,8 @@ import (
 	"github.com/guzzlerio/corcel/infrastructure/http"
 	"github.com/guzzlerio/corcel/utils"
 
+	yamlFormat "github.com/ghodss/yaml"
 	"github.com/satori/go.uuid"
-	yamlFormat "gopkg.in/yaml.v2"
 )
 
 //PlanBuilder ...
@@ -144,7 +144,6 @@ func (instance *PlanBuilder) Build() (*os.File, error) {
 		utils.CheckErr(file.Close())
 	}()
 	contents, err := yamlFormat.Marshal(&plan)
-	// fmt.Println(string(contents[:]))
 	if err != nil {
 		return nil, err
 	}

@@ -109,7 +109,6 @@ var _ = Describe("Plan Executor", func() {
 		executor.Execute()
 
 		duration := time.Since(start)
-		fmt.Println(fmt.Sprintf("%v %v", duration.String(), int(duration/time.Second)))
 		Expect(int(duration / time.Second)).To(Equal(expectedTotalTimeInMilliseconds / 1000))
 	})
 })

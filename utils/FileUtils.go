@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/ghodss/yaml"
 	"github.com/guzzlerio/corcel/errormanager"
-	"gopkg.in/yaml.v2"
 )
 
 //CreateFileFromLines ...

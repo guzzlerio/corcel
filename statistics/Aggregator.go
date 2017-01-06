@@ -31,12 +31,12 @@ type Aggregator struct {
 
 //AggregatorSnapShot ...
 type AggregatorSnapShot struct {
-	Times      []int64
-	Counters   map[string][]int64
-	Gauges     map[string][]float64
-	Histograms map[string]map[string][]int64
-	Meters     map[string]map[string][]float64
-	Timers     map[string]map[string][]float64
+	Times      []int64                         `json:"times,omitempty"`
+	Counters   map[string][]int64              `json:"counters,omitempty"`
+	Gauges     map[string][]float64            `json:"gauges,omitempty"`
+	Histograms map[string]map[string][]int64   `json:"histograms,omitempty"`
+	Meters     map[string]map[string][]float64 `json:"meters,omitempty"`
+	Timers     map[string]map[string][]float64 `json:"timers,omitempty"`
 }
 
 //NewAggregatorSnapShot ...

@@ -58,7 +58,7 @@ var _ = Describe("Bugs replication", func() {
 			fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
 		}
 
-		output, err := InvokeCorcel(list, "--workers", strconv.Itoa(numberOfWorkers))
+		output, err := SutExecute(list, "--workers", strconv.Itoa(numberOfWorkers))
 
 		Expect(err).ToNot(BeNil())
 		Expect(string(output)).To(ContainSubstring("Your workers value is set to high.  Either increase the system limit for open files or reduce the value of the workers"))
@@ -69,7 +69,7 @@ var _ = Describe("Bugs replication", func() {
 			fmt.Sprintf(`-Something`),
 		}
 
-		output, err := InvokeCorcel(list)
+		output, err := SutExecute(list)
 		Expect(err).ToNot(BeNil())
 		Expect(string(output)).To(ContainSubstring(errormanager.LogMessageVaidURLs))
 	})

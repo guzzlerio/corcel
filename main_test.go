@@ -11,8 +11,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"os/exec"
-	"path/filepath"
 	"strconv"
 	"time"
 
@@ -22,6 +20,7 @@ import (
 	"github.com/guzzlerio/corcel/global"
 	"github.com/guzzlerio/corcel/logger"
 	"github.com/guzzlerio/corcel/statistics"
+	"github.com/guzzlerio/corcel/test"
 	. "github.com/guzzlerio/corcel/utils"
 )
 
@@ -147,7 +146,8 @@ var _ = Describe("Main", func() {
 			w.WriteHeader(500)
 		})).For(rizo.RequestWithPath("/error"))
 
-		output := SutExecute(list, "--summary")
+		output, err := SutExecute(list, "--summary")
+		Expect(err).To(BeNil())
 
 		var executionOutput statistics.AggregatorSnapShot
 		UnmarshalYamlFromFile("./output.yml", &executionOutput)
@@ -259,7 +259,8 @@ var _ = Describe("Main", func() {
 			fmt.Sprintf(`%s -X POST -d @missing-file.json`, URLForTestServer("/success")),
 		}
 
-		output, _ := InvokeCorcel(list)
+		output, err := SutExecute(list)
+		Expect(err).ToNot(BeNil())
 
 		Expect(string(output)).To(ContainSubstring("Request body file not found: missing-file.json"))
 	})
@@ -388,31 +389,10 @@ var _ = Describe("Main", func() {
 	})
 })
 
-func InvokeCorcel(list []string, args ...string) ([]byte, error) {
-	exePath, exeErr := filepath.Abs("./corcel")
-	check(exeErr)
-	file := CreateFileFromLines(list)
-	defer func() {
-		err := os.Remove(file.Name())
-		if err != nil {
-			logger.Log.Printf("Error removing file %v", err)
-		}
-	}()
-	cmd := exec.Command(exePath, append(append([]string{"run", "--progress", "none"}, args...), file.Name())...)
-	output, err := cmd.CombinedOutput()
-	//fmt.Println(string(output))
-	if len(output) > 0 {
-		logger.Log.Println(fmt.Sprintf("%s", output))
-	}
+func SutExecute(list []string, args ...string) ([]byte, error) {
+	//output, err := InvokeCorcel(list, args...)
+	output, err := test.ExecuteList("./corcel", list, args...)
 	return output, err
-}
-
-func SutExecute(list []string, args ...string) []byte {
-	output, err := InvokeCorcel(list, args...)
-	if err != nil {
-		Fail(string(output))
-	}
-	return output
 }
 
 func Requests(recordedRequests []rizo.RecordedRequest) (result []*http.Request) {

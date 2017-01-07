@@ -9,7 +9,7 @@ import (
 
 	"github.com/guzzlerio/corcel/logger"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
-	"github.com/spf13/hugo/utils"
+	"github.com/guzzlerio/corcel/utils"
 )
 
 func planDataToFile(platData string) (*os.File, error) {
@@ -76,5 +76,27 @@ func ExecutePlanBuilder(path string, planBuilder *yaml.PlanBuilder) ([]byte, err
 	output, err := cmd.CombinedOutput()
 	//fmt.Println(fmt.Sprintf("OUTPUT: %v\nERROR: %v\n", string(output), err))
 	logger.Log.Println(fmt.Sprintf("%s", output))
+	return output, err
+}
+
+//ExecuteList ...
+func ExecuteList(path string, list []string, args ...string) ([]byte, error) {
+	exePath, exeErr := filepath.Abs("./corcel")
+	if exeErr != nil {
+		return []byte{}, exeErr
+	}
+	file := utils.CreateFileFromLines(list)
+	defer func() {
+		err := os.Remove(file.Name())
+		if err != nil {
+			logger.Log.Printf("Error removing file %v", err)
+		}
+	}()
+	cmd := exec.Command(exePath, append(append([]string{"run", "--progress", "none"}, args...), file.Name())...)
+	output, err := cmd.CombinedOutput()
+	//fmt.Println(string(output))
+	if len(output) > 0 {
+		logger.Log.Println(fmt.Sprintf("%s", output))
+	}
 	return output, err
 }

@@ -7,8 +7,11 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/guzzlerio/corcel/cmd"
+	"github.com/guzzlerio/corcel/config"
 	"github.com/guzzlerio/corcel/logger"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
+	"github.com/guzzlerio/corcel/statistics"
 	"github.com/guzzlerio/corcel/utils"
 )
 
@@ -79,8 +82,34 @@ func ExecutePlanBuilder(path string, planBuilder *yaml.PlanBuilder) ([]byte, err
 	return output, err
 }
 
+//ExecuteListForApplication ...
+func ExecuteListForApplication(path string, list []string, configuration config.Configuration) (statistics.AggregatorSnapShot, error) {
+
+	var appConfig, err = config.ParseConfiguration(&configuration)
+
+	if err != nil {
+		return statistics.AggregatorSnapShot{}, err
+	}
+
+	file := utils.CreateFileFromLines(list)
+	defer func() {
+		err := os.Remove(file.Name())
+		if err != nil {
+			logger.Log.Printf("Error removing file %v", err)
+		}
+	}()
+
+	appConfig.FilePath = file.Name()
+
+	app := cmd.Application{}
+	output := app.Execute(appConfig)
+
+	return output, nil
+}
+
 //ExecuteList ...
 func ExecuteList(path string, list []string, args ...string) ([]byte, error) {
+
 	exePath, exeErr := filepath.Abs("./corcel")
 	if exeErr != nil {
 		return []byte{}, exeErr

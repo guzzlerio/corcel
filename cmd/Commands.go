@@ -79,9 +79,7 @@ func (instance *RunCommand) run(c *kingpin.ParseContext) error {
 	logger.ConfigureLogging(configuration)
 
 	//This will not be anything other than a Console Host as we are working with Run command and Server command. In essence being in this method means we are inside the Console Host.
-	app := Application{
-		registry: instance.registry,
-	}
+	app := Application{}
 	output := app.Execute(configuration)
 
 	/*

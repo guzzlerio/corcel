@@ -16,6 +16,7 @@ import (
 
 	"github.com/guzzlerio/rizo"
 
+	"github.com/guzzlerio/corcel/config"
 	"github.com/guzzlerio/corcel/errormanager"
 	"github.com/guzzlerio/corcel/global"
 	"github.com/guzzlerio/corcel/logger"
@@ -78,7 +79,9 @@ var _ = Describe("Main", func() {
 			fmt.Sprintf(`%s -X POST `, URLForTestServer("/10")),
 		}
 
-		SutExecute(list, "--random")
+		SutExecuteApplication(list, config.Configuration{
+			Random: true,
+		})
 		requestsSet1 := Requests(TestServer.Requests[:])
 		TestServer.Clear()
 		SutExecute(list, "--random")
@@ -392,6 +395,12 @@ var _ = Describe("Main", func() {
 func SutExecute(list []string, args ...string) ([]byte, error) {
 	//output, err := InvokeCorcel(list, args...)
 	output, err := test.ExecuteList("./corcel", list, args...)
+	return output, err
+}
+
+func SutExecuteApplication(list []string, configuration config.Configuration) (statistics.AggregatorSnapShot, error) {
+
+	output, err := test.ExecuteListForApplication("./corcel", list, configuration)
 	return output, err
 }
 

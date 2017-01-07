@@ -3,6 +3,7 @@ package main
 import (
 	"io/ioutil"
 	"math"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -11,8 +12,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strconv"
-	"time"
 
 	"github.com/guzzlerio/rizo"
 
@@ -52,11 +51,10 @@ var _ = Describe("Main", func() {
 				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
 			}
 
-			SutExecute(list, "--duration", "5s")
+			output, err := SutExecuteApplication(list, config.Configuration{}.WithDuration("5s"))
+			Expect(err).To(BeNil())
 
-			var executionOutput statistics.AggregatorSnapShot
-			UnmarshalYamlFromFile("./output.yml", &executionOutput)
-			var summary = statistics.CreateSummary(executionOutput)
+			var summary = statistics.CreateSummary(output)
 
 			actual, _ := time.ParseDuration(summary.RunningTime)
 			seconds := actual.Seconds()
@@ -79,12 +77,16 @@ var _ = Describe("Main", func() {
 			fmt.Sprintf(`%s -X POST `, URLForTestServer("/10")),
 		}
 
-		SutExecuteApplication(list, config.Configuration{
+		_, err := SutExecuteApplication(list, config.Configuration{
 			Random: true,
 		})
+		Expect(err).To(BeNil())
 		requestsSet1 := Requests(TestServer.Requests[:])
 		TestServer.Clear()
-		SutExecute(list, "--random")
+		_, err = SutExecuteApplication(list, config.Configuration{
+			Random: true,
+		})
+		Expect(err).To(BeNil())
 		requestsSet2 := Requests(TestServer.Requests[:])
 
 		Expect(ConcatRequestPaths(requestsSet1)).ToNot(Equal(ConcatRequestPaths(requestsSet2)))
@@ -102,11 +104,12 @@ var _ = Describe("Main", func() {
 				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
 			}
 
-			SutExecute(list, "--workers", strconv.Itoa(numberOfWorkers))
+			output, err := SutExecuteApplication(list, config.Configuration{
+				Workers: numberOfWorkers,
+			})
+			Expect(err).To(BeNil())
 
-			var executionOutput statistics.AggregatorSnapShot
-			UnmarshalYamlFromFile("./output.yml", &executionOutput)
-			var summary = statistics.CreateSummary(executionOutput)
+			var summary = statistics.CreateSummary(output)
 
 			Expect(summary.TotalRequests).To(Equal(float64(len(list) * numberOfWorkers)))
 			Expect(summary.TotalErrors).To(Equal(float64(0)))
@@ -125,8 +128,9 @@ var _ = Describe("Main", func() {
 				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
 			}
 			start := time.Now()
-			SutExecute(list, "--wait-time", waitTime)
+			_, err := SutExecuteApplication(list, config.Configuration{}.WithWaitTime(waitTime))
 			duration := time.Since(start)
+			Expect(err).To(BeNil())
 
 			waitTimeValue, _ := time.ParseDuration(waitTime)
 			expected := int64(len(list)) * int64(waitTimeValue)
@@ -134,39 +138,6 @@ var _ = Describe("Main", func() {
 			Expect(int64(duration)).To(BeNumerically(">=", int64(expected)))
 		})
 	}
-
-	It("Outputs a summary to STDOUT", func() {
-		list := []string{
-			fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
-			fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
-			fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
-			fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
-			fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
-			fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
-		}
-
-		TestServer.Use(rizo.HTTPResponseFactory(func(w http.ResponseWriter) {
-			w.WriteHeader(500)
-		})).For(rizo.RequestWithPath("/error"))
-
-		output, err := SutExecute(list, "--summary")
-		Expect(err).To(BeNil())
-
-		var executionOutput statistics.AggregatorSnapShot
-		UnmarshalYamlFromFile("./output.yml", &executionOutput)
-		var summary = statistics.CreateSummary(executionOutput)
-
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Running Time: %v", summary.RunningTime)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Throughput: %.0f req/s", summary.Throughput)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Total Requests: %v", summary.TotalRequests)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Number of Errors: %v", summary.TotalErrors)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Availability: %v.0000%%", summary.Availability)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Bytes Sent: %v", summary.Bytes.TotalSent)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Bytes Received: %v", summary.Bytes.TotalReceived)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Mean Response Time: %.4f", summary.MeanResponseTime)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Min Response Time: %.4f ms", summary.MinResponseTime)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Max Response Time: %.4f ms", summary.MaxResponseTime)))
-	})
 
 	Describe("Generate statistics on throughput", func() {
 		var list []string
@@ -192,11 +163,10 @@ var _ = Describe("Main", func() {
 				}
 			}))
 
-			SutExecute(list)
+			output, err := SutExecuteApplication(list, config.Configuration{})
+			Expect(err).To(BeNil())
 
-			var executionOutput statistics.AggregatorSnapShot
-			UnmarshalYamlFromFile("./output.yml", &executionOutput)
-			var summary = statistics.CreateSummary(executionOutput)
+			var summary = statistics.CreateSummary(output)
 
 			Expect(summary.Availability).To(Equal(float64(60)))
 		})
@@ -207,11 +177,10 @@ var _ = Describe("Main", func() {
 					w.WriteHeader(code)
 				}))
 
-				SutExecute(list)
+				output, err := SutExecuteApplication(list, config.Configuration{})
+				Expect(err).To(BeNil())
 
-				var executionOutput statistics.AggregatorSnapShot
-				UnmarshalYamlFromFile("./output.yml", &executionOutput)
-				var summary = statistics.CreateSummary(executionOutput)
+				var summary = statistics.CreateSummary(output)
 
 				Expect(summary.TotalErrors).To(Equal(float64(len(list))))
 				Expect(summary.TotalRequests).To(Equal(float64(len(list))))
@@ -219,11 +188,10 @@ var _ = Describe("Main", func() {
 		}
 
 		It("Requests per second", func() {
-			SutExecute(list)
+			output, err := SutExecuteApplication(list, config.Configuration{})
+			Expect(err).To(BeNil())
 
-			var executionOutput statistics.AggregatorSnapShot
-			UnmarshalYamlFromFile("./output.yml", &executionOutput)
-			var summary = statistics.CreateSummary(executionOutput)
+			var summary = statistics.CreateSummary(output)
 
 			Expect(summary.Throughput).To(BeNumerically(">", 0))
 			Expect(summary.TotalRequests).To(Equal(float64(len(list))))
@@ -245,11 +213,10 @@ var _ = Describe("Main", func() {
 			count++
 		}))
 
-		SutExecute(list)
+		output, err := SutExecuteApplication(list, config.Configuration{})
+		Expect(err).To(BeNil())
 
-		var executionOutput statistics.AggregatorSnapShot
-		UnmarshalYamlFromFile("./output.yml", &executionOutput)
-		var summary = statistics.CreateSummary(executionOutput)
+		var summary = statistics.CreateSummary(output)
 
 		Expect(summary.MaxResponseTime).To(BeNumerically(">", 0))
 		Expect(summary.MeanResponseTime).To(BeNumerically(">", 0))
@@ -283,13 +250,10 @@ var _ = Describe("Main", func() {
 			responseBody = responseBody + "-"
 		}))
 
-		SutExecute(list)
+		output, err := SutExecuteApplication(list, config.Configuration{})
+		Expect(err).To(BeNil())
 
-		Expect(PathExists("./output.yml")).To(Equal(true))
-
-		var executionOutput statistics.AggregatorSnapShot
-		UnmarshalYamlFromFile("./output.yml", &executionOutput)
-		var summary = statistics.CreateSummary(executionOutput)
+		var summary = statistics.CreateSummary(output)
 
 		Expect(summary.Bytes.TotalSent).To(BeNumerically(">", 0))
 
@@ -299,22 +263,12 @@ var _ = Describe("Main", func() {
 
 	Describe("Support sending data with http request", func() {
 		for _, method := range global.HTTPMethodsWithRequestBody[:1] {
-			PIt(fmt.Sprintf("in the body for verb %s", method), func() {
-				data := "a=1&b=2&c=3"
-				list := []string{fmt.Sprintf(`%s -X %s -d %s`, URLForTestServer("/A"), method, data)}
-				SutExecute(list)
-
-				predicates := []rizo.HTTPRequestPredicate{}
-				predicates = append(predicates, rizo.RequestWithPath("/A"))
-				predicates = append(predicates, rizo.RequestWithMethod(method))
-				predicates = append(predicates, rizo.RequestWithBody(data))
-				Expect(TestServer.Find(predicates...)).To(Equal(true))
-			})
 
 			It(fmt.Sprintf("in the body from a file for verb %s", method), func() {
 				data := "@./list.txt"
 				list := []string{fmt.Sprintf(`%s -X %s -d %s`, URLForTestServer("/A"), method, data)}
-				SutExecute(list)
+				_, err := SutExecuteApplication(list, config.Configuration{})
+				Expect(err).To(BeNil())
 
 				predicates := []rizo.HTTPRequestPredicate{}
 				predicates = append(predicates, rizo.RequestWithPath("/A"))
@@ -331,7 +285,9 @@ var _ = Describe("Main", func() {
 			method := "GET"
 			data := "a=1&b=2&c=3"
 			list := []string{fmt.Sprintf(`%s -X %s -d %s"`, URLForTestServer("/A"), method, data)}
-			SutExecute(list)
+
+			_, err := SutExecuteApplication(list, config.Configuration{})
+			Expect(err).To(BeNil())
 
 			predicates := []rizo.HTTPRequestPredicate{}
 			predicates = append(predicates, rizo.RequestWithPath("/A"))
@@ -344,7 +300,8 @@ var _ = Describe("Main", func() {
 	for _, method := range global.SupportedHTTPMethods {
 		It(fmt.Sprintf("Makes a http %s request", method), func() {
 			list := []string{fmt.Sprintf(`%s -X %s`, URLForTestServer("/A"), method)}
-			SutExecute(list)
+			_, err := SutExecuteApplication(list, config.Configuration{})
+			Expect(err).To(BeNil())
 			Expect(TestServer.Find(rizo.RequestWithPath("/A"), rizo.RequestWithMethod(method))).To(Equal(true))
 		})
 
@@ -352,7 +309,9 @@ var _ = Describe("Main", func() {
 			applicationJSON := "Content-Type:application/json"
 			applicationSoapXML := "Accept:application/soap+xml"
 			list := []string{fmt.Sprintf(`%s -X %s -H "%s" -H "%s"`, URLForTestServer("/A"), method, applicationJSON, applicationSoapXML)}
-			SutExecute(list)
+
+			_, err := SutExecuteApplication(list, config.Configuration{})
+			Expect(err).To(BeNil())
 
 			predicates := []rizo.HTTPRequestPredicate{}
 			predicates = append(predicates, rizo.RequestWithPath("/A"))
@@ -368,7 +327,8 @@ var _ = Describe("Main", func() {
 
 		method := "POST"
 		list := []string{fmt.Sprintf(`%s -X %s -A "%s"`, URLForTestServer("/A"), method, userAgent)}
-		SutExecute(list)
+		_, err := SutExecuteApplication(list, config.Configuration{})
+		Expect(err).To(BeNil())
 
 		predicates := []rizo.HTTPRequestPredicate{}
 		predicates = append(predicates, rizo.RequestWithPath("/A"))
@@ -384,7 +344,8 @@ var _ = Describe("Main", func() {
 			URLForTestServer("/C"),
 		}
 
-		SutExecute(list)
+		_, err := SutExecuteApplication(list, config.Configuration{})
+		Expect(err).To(BeNil())
 
 		Expect(TestServer.Find(rizo.RequestWithPath("/A"))).To(Equal(true))
 		Expect(TestServer.Find(rizo.RequestWithPath("/B"))).To(Equal(true))

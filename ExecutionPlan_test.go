@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"github.com/guzzlerio/corcel/config"
 	"github.com/guzzlerio/corcel/global"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/statistics"
@@ -41,12 +42,10 @@ var _ = Describe("ExecutionPlan", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build())
 
-			_, err := ExecutePlanBuilder(planBuilder)
+			output, err := ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
 
-			var executionOutput statistics.AggregatorSnapShot
-			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-			var summary = statistics.CreateSummary(executionOutput)
+			var summary = statistics.CreateSummary(output)
 
 			Expect(summary.TotalRequests).To(Equal(float64(2)))
 		})
@@ -63,12 +62,10 @@ var _ = Describe("ExecutionPlan", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build())
 
-			_, err := ExecutePlanBuilder(planBuilder)
+			output, err := ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
 
-			var executionOutput statistics.AggregatorSnapShot
-			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-			var summary = statistics.CreateSummary(executionOutput)
+			var summary = statistics.CreateSummary(output)
 
 			Expect(summary.TotalRequests).To(Equal(float64(4)))
 		})
@@ -95,12 +92,10 @@ var _ = Describe("ExecutionPlan", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build())
 
-			_, err := ExecutePlanBuilder(planBuilder)
+			output, err := ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
 
-			var executionOutput statistics.AggregatorSnapShot
-			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-			var summary = statistics.CreateSummary(executionOutput)
+			var summary = statistics.CreateSummary(output)
 
 			Expect(summary.TotalRequests).To(Equal(float64(8)))
 		})
@@ -115,11 +110,12 @@ var _ = Describe("ExecutionPlan", func() {
 				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
 			}
 
-			SutExecute(list, "--iterations", "5")
+			output, err := ExecuteListForApplication(list, config.Configuration{
+				Iterations: 5,
+			})
+			Expect(err).To(BeNil())
 
-			var executionOutput statistics.AggregatorSnapShot
-			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-			var summary = statistics.CreateSummary(executionOutput)
+			var summary = statistics.CreateSummary(output)
 
 			Expect(summary.TotalRequests).To(Equal(float64(30)))
 		})
@@ -145,12 +141,10 @@ var _ = Describe("ExecutionPlan", func() {
 					CreateStep().
 					ToExecuteAction(GetHTTPRequestAction("/people"))
 
-				_, err := ExecutePlanBuilder(planBuilder)
+				output, err := ExecutePlanBuilderForApplication(planBuilder)
 				Expect(err).To(BeNil())
 
-				var executionOutput statistics.AggregatorSnapShot
-				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-				var summary = statistics.CreateSummary(executionOutput)
+				var summary = statistics.CreateSummary(output)
 
 				Expect(summary.TotalErrors).To(Equal(float64(0)))
 				Expect(summary.TotalRequests).To(Equal(float64(workers)))
@@ -171,12 +165,10 @@ var _ = Describe("ExecutionPlan", func() {
 			jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction("/people"))
 		}
 
-		_, err := ExecutePlanBuilder(planBuilder)
+		output, err := ExecutePlanBuilderForApplication(planBuilder)
 		Expect(err).To(BeNil())
 
-		var executionOutput statistics.AggregatorSnapShot
-		utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-		var summary = statistics.CreateSummary(executionOutput)
+		var summary = statistics.CreateSummary(output)
 
 		actual, _ := time.ParseDuration(summary.RunningTime)
 		seconds := actual.Seconds()
@@ -190,12 +182,11 @@ var _ = Describe("ExecutionPlan", func() {
 		planBuilder.SetDuration(duration)
 		jobBuilder := planBuilder.CreateJob()
 		jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction("/people"))
-		_, err := ExecutePlanBuilder(planBuilder)
+
+		output, err := ExecutePlanBuilderForApplication(planBuilder)
 		Expect(err).To(BeNil())
 
-		var executionOutput statistics.AggregatorSnapShot
-		utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-		var summary = statistics.CreateSummary(executionOutput)
+		var summary = statistics.CreateSummary(output)
 
 		actual, _ := time.ParseDuration(summary.RunningTime)
 		seconds := actual.Seconds()
@@ -214,12 +205,13 @@ var _ = Describe("ExecutionPlan", func() {
 			jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction(fmt.Sprintf("/%d", i+1)))
 		}
 
-		_, err := ExecutePlanBuilder(planBuilder)
+		_, err := ExecutePlanBuilderForApplication(planBuilder)
 		Expect(err).To(BeNil())
+
 		firstBatchOfRequests := utils.ConcatRequestPaths(utils.ToHTTPRequestArray(TestServer.Requests))
 		TestServer.Clear()
 
-		_, err = ExecutePlanBuilder(planBuilder)
+		_, err = ExecutePlanBuilderForApplication(planBuilder)
 		Expect(err).To(BeNil())
 		secondBatchOfRequests := utils.ConcatRequestPaths(utils.ToHTTPRequestArray(TestServer.Requests))
 
@@ -245,12 +237,10 @@ var _ = Describe("ExecutionPlan", func() {
 				ToExecuteAction(GetHTTPRequestAction("/boom")).
 				WithAssertion(HTTPStatusExactAssertion(201))
 
-			_, err := ExecutePlanBuilder(planBuilder)
-			utils.CheckErr(err)
+			output, err := ExecutePlanBuilderForApplication(planBuilder)
+			Expect(err).To(BeNil())
 
-			var executionOutput statistics.AggregatorSnapShot
-			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-			var summary = statistics.CreateSummary(executionOutput)
+			var summary = statistics.CreateSummary(output)
 
 			Expect(summary.TotalAssertions).To(Equal(int64(1)))
 			Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
@@ -264,12 +254,10 @@ var _ = Describe("ExecutionPlan", func() {
 				ToExecuteAction(GetHTTPRequestAction("/boom")).
 				WithAssertion(HTTPStatusExactAssertion(200))
 
-			_, err := ExecutePlanBuilder(planBuilder)
-			utils.CheckErr(err)
+			output, err := ExecutePlanBuilderForApplication(planBuilder)
+			Expect(err).To(BeNil())
 
-			var executionOutput statistics.AggregatorSnapShot
-			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-			var summary = statistics.CreateSummary(executionOutput)
+			var summary = statistics.CreateSummary(output)
 
 			Expect(summary.TotalAssertions).To(Equal(int64(1)))
 			Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
@@ -283,12 +271,10 @@ var _ = Describe("ExecutionPlan", func() {
 			ToExecuteAction(GetHTTPRequestAction("/people")).
 			WithAssertion(HTTPStatusExactAssertion(201))
 
-		_, err := ExecutePlanBuilder(planBuilder)
-		utils.CheckErr(err)
+		output, err := ExecutePlanBuilderForApplication(planBuilder)
+		Expect(err).To(BeNil())
 
-		var executionOutput statistics.AggregatorSnapShot
-		utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-		var summary = statistics.CreateSummary(executionOutput)
+		var summary = statistics.CreateSummary(output)
 
 		Expect(summary.TotalRequests).To(BeNumerically(">", 0))
 		Expect(summary.TotalErrors).To(Equal(float64(0)))

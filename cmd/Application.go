@@ -7,6 +7,8 @@ import (
 	"github.com/guzzlerio/corcel/infrastructure/inproc"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/statistics"
+
+	"github.com/rcrowley/go-metrics"
 )
 
 //Application ...
@@ -14,6 +16,9 @@ type Application struct{}
 
 //Execute ...
 func (instance Application) Execute(configuration *config.Configuration) statistics.AggregatorSnapShot {
+
+	metrics.DefaultRegistry.UnregisterAll()
+
 	registry := core.CreateRegistry().
 		AddActionParser(inproc.YamlDummyActionParser{}).
 		AddActionParser(inproc.YamlIPanicActionParser{}).

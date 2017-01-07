@@ -57,7 +57,6 @@ func ExecutePlanFromData(path string, planData string) ([]byte, error) {
 
 //ExecutePlanBuilder ...
 func ExecutePlanBuilder(path string, planBuilder *yaml.PlanBuilder) ([]byte, error) {
-
 	file, err := planBuilder.Build()
 	if err != nil {
 		return []byte{}, err
@@ -74,6 +73,7 @@ func ExecutePlanBuilder(path string, planBuilder *yaml.PlanBuilder) ([]byte, err
 			panic(fileErr)
 		}
 	}()
+
 	args := []string{"--plan"}
 	cmd := exec.Command(exePath, append(append([]string{"run", "--progress", "none"}, args...), file.Name())...)
 	output, err := cmd.CombinedOutput()
@@ -82,14 +82,38 @@ func ExecutePlanBuilder(path string, planBuilder *yaml.PlanBuilder) ([]byte, err
 	return output, err
 }
 
-//ExecuteListForApplication ...
-func ExecuteListForApplication(path string, list []string, configuration config.Configuration) (statistics.AggregatorSnapShot, error) {
+//ExecutePlanBuilderForApplication ...
+func ExecutePlanBuilderForApplication(path string, planBuilder *yaml.PlanBuilder, configuration config.Configuration) (statistics.AggregatorSnapShot, error) {
+	file, fileErr := planBuilder.Build()
+	if fileErr != nil {
+		return statistics.AggregatorSnapShot{}, fileErr
+	}
+
+	defer func() {
+		fileErr := os.Remove(file.Name())
+		if fileErr != nil {
+			panic(fileErr)
+		}
+	}()
+
+	configuration.Progress = "none"
+	configuration.FilePath = file.Name()
+	configuration.Plan = true
 
 	var appConfig, err = config.ParseConfiguration(&configuration)
 
 	if err != nil {
 		return statistics.AggregatorSnapShot{}, err
 	}
+
+	app := cmd.Application{}
+	output := app.Execute(appConfig)
+
+	return output, nil
+}
+
+//ExecuteListForApplication ...
+func ExecuteListForApplication(path string, list []string, configuration config.Configuration) (statistics.AggregatorSnapShot, error) {
 
 	file := utils.CreateFileFromLines(list)
 	defer func() {
@@ -99,7 +123,13 @@ func ExecuteListForApplication(path string, list []string, configuration config.
 		}
 	}()
 
-	appConfig.FilePath = file.Name()
+	configuration.Progress = "none"
+	configuration.FilePath = file.Name()
+	var appConfig, err = config.ParseConfiguration(&configuration)
+
+	if err != nil {
+		return statistics.AggregatorSnapShot{}, err
+	}
 
 	app := cmd.Application{}
 	output := app.Execute(appConfig)

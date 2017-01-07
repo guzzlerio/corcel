@@ -12,6 +12,7 @@ import (
 	"github.com/guzzlerio/corcel/global"
 	"github.com/guzzlerio/corcel/logger"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
+	"github.com/guzzlerio/corcel/statistics"
 	"github.com/guzzlerio/corcel/test"
 	"github.com/guzzlerio/rizo"
 )
@@ -26,12 +27,20 @@ func TestCorcel(t *testing.T) {
 	RunSpecs(t, "Corcel Suite")
 }
 
+func ExecutePlanBuilderForApplication(planBuilder *yaml.PlanBuilder) (statistics.AggregatorSnapShot, error) {
+	return test.ExecutePlanBuilderForApplication("./corcel", planBuilder, config.Configuration{})
+}
+
 func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) ([]byte, error) {
 	return test.ExecutePlanBuilder("./corcel", planBuilder)
 }
 
 func ExecutePlanFromData(plan string) ([]byte, error) {
 	return test.ExecutePlanFromData("./corcel", plan)
+}
+
+func ExecuteListForApplication(list []string, configuration config.Configuration) (statistics.AggregatorSnapShot, error) {
+	return test.ExecuteListForApplication("./corcel", list, configuration)
 }
 
 var _ = BeforeSuite(func() {

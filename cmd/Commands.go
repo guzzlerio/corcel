@@ -78,9 +78,17 @@ func (instance *RunCommand) run(c *kingpin.ParseContext) error {
 	}
 	logger.ConfigureLogging(configuration)
 
-	host := NewConsoleHost(configuration, *instance.registry)
-	id, _ := host.Control.Start(configuration) //will this block?
-	output := host.Control.Stop(id)
+	//This will not be anything other than a Console Host as we are working with Run command and Server command. In essence being in this method means we are inside the Console Host.
+	app := Application{
+		registry: instance.registry,
+	}
+	output := app.Execute(configuration)
+
+	/*
+		host := NewConsoleHost(configuration, *instance.registry)
+		id, _ := host.Control.Start(configuration) //will this block?
+		output := host.Control.Stop(id)
+	*/
 
 	//TODO these should probably be pushed behind the host.Control.Stop afterall the host is a cmd host
 	generateExecutionOutput("./output.yml", output)

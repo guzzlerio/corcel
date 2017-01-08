@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/logger"
 )
@@ -113,6 +114,7 @@ func (instance HTTPAction) Execute(ctx context.Context, executionContext core.Ex
 		response, err := instance.client.Do(req)
 		if err != nil {
 			result[core.ErrorUrn.String()] = err
+			logrus.Errorf("HTTP ERROR %v", err)
 			return result
 		}
 		defer func() {

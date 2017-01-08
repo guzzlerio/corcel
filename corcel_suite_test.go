@@ -39,6 +39,10 @@ func ExecutePlanFromData(plan string) ([]byte, error) {
 	return test.ExecutePlanFromData("./corcel", plan)
 }
 
+func ExecutePlanFromDataForApplication(plan string) (statistics.AggregatorSnapShot, error) {
+	return test.ExecutePlanFromDataForApplication("./corcel", plan, config.Configuration{})
+}
+
 func ExecuteListForApplication(list []string, configuration config.Configuration) (statistics.AggregatorSnapShot, error) {
 	return test.ExecuteListForApplication("./corcel", list, configuration)
 }

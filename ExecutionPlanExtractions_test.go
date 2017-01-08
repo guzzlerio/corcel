@@ -42,12 +42,10 @@ jobs:
            key: target
            expected: 12345`)
 
-				_, err := ExecutePlanFromData(plan)
+				output, err := ExecutePlanFromDataForApplication(plan)
 				Expect(err).To(BeNil())
 
-				var executionOutput statistics.AggregatorSnapShot
-				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-				var summary = statistics.CreateSummary(executionOutput)
+				var summary = statistics.CreateSummary(output)
 
 				Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 			})
@@ -77,12 +75,10 @@ jobs:
           key: target
           expected: 123456`)
 
-				_, err := ExecutePlanFromData(plan)
+				output, err := ExecutePlanFromDataForApplication(plan)
 				Expect(err).To(BeNil())
 
-				var executionOutput statistics.AggregatorSnapShot
-				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-				var summary = statistics.CreateSummary(executionOutput)
+				var summary = statistics.CreateSummary(output)
 
 				Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
 			})
@@ -116,12 +112,10 @@ jobs:
            expected: 12345
       `)
 
-				_, err := ExecutePlanFromData(plan)
+				output, err := ExecutePlanFromDataForApplication(plan)
 				Expect(err).To(BeNil())
 
-				var executionOutput statistics.AggregatorSnapShot
-				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-				var summary = statistics.CreateSummary(executionOutput)
+				var summary = statistics.CreateSummary(output)
 
 				Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 			})
@@ -154,12 +148,10 @@ jobs:
            expected: 12345
       `)
 
-				_, err := ExecutePlanFromData(plan)
+				output, err := ExecutePlanFromDataForApplication(plan)
 				Expect(err).To(BeNil())
 
-				var executionOutput statistics.AggregatorSnapShot
-				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-				var summary = statistics.CreateSummary(executionOutput)
+				var summary = statistics.CreateSummary(output)
 
 				Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
 			})
@@ -194,12 +186,10 @@ jobs:
            key: target
            expected: 12345`)
 
-				_, err := ExecutePlanFromData(plan)
+				output, err := ExecutePlanFromDataForApplication(plan)
 				Expect(err).To(BeNil())
 
-				var executionOutput statistics.AggregatorSnapShot
-				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-				var summary = statistics.CreateSummary(executionOutput)
+				var summary = statistics.CreateSummary(output)
 
 				Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 			})
@@ -232,12 +222,10 @@ jobs:
            key: target
            expected: 12345`)
 
-				_, err := ExecutePlanFromData(plan)
+				output, err := ExecutePlanFromDataForApplication(plan)
 				Expect(err).To(BeNil())
 
-				var executionOutput statistics.AggregatorSnapShot
-				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-				var summary = statistics.CreateSummary(executionOutput)
+				var summary = statistics.CreateSummary(output)
 
 				Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
 			})
@@ -257,12 +245,10 @@ jobs:
 						WithExtractor(planBuilder.RegexExtractor().Name("regex:match:1").Key("value:1").Match("\\d+").Build()).
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
-					_, err := ExecutePlanBuilder(planBuilder)
+					output, err := ExecutePlanBuilderForApplication(planBuilder)
 					Expect(err).To(BeNil())
 
-					var executionOutput statistics.AggregatorSnapShot
-					utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-					var summary = statistics.CreateSummary(executionOutput)
+					var summary = statistics.CreateSummary(output)
 
 					Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 				})
@@ -278,12 +264,10 @@ jobs:
 						WithExtractor(planBuilder.RegexExtractor().Name("regex:match:1").Key("value:1").Match("boom").Build()).
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
-					_, err := ExecutePlanBuilder(planBuilder)
+					output, err := ExecutePlanBuilderForApplication(planBuilder)
 					Expect(err).To(BeNil())
 
-					var executionOutput statistics.AggregatorSnapShot
-					utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-					var summary = statistics.CreateSummary(executionOutput)
+					var summary = statistics.CreateSummary(output)
 
 					Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
 				})
@@ -311,12 +295,10 @@ jobs:
 						CreateStep().
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
-					_, err := ExecutePlanBuilder(planBuilder)
+					output, err := ExecutePlanBuilderForApplication(planBuilder)
 					Expect(err).To(BeNil())
 
-					var executionOutput statistics.AggregatorSnapShot
-					utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-					var summary = statistics.CreateSummary(executionOutput)
+					var summary = statistics.CreateSummary(output)
 
 					Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 				})
@@ -337,12 +319,10 @@ jobs:
 						CreateStep().
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
-					_, err := ExecutePlanBuilder(planBuilder)
+					output, err := ExecutePlanBuilderForApplication(planBuilder)
 					Expect(err).To(BeNil())
 
-					var executionOutput statistics.AggregatorSnapShot
-					utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-					var summary = statistics.CreateSummary(executionOutput)
+					var summary = statistics.CreateSummary(output)
 
 					Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
 				})
@@ -367,12 +347,10 @@ jobs:
 						CreateStep().
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
-					_, err := ExecutePlanBuilder(planBuilder)
+					output, err := ExecutePlanBuilderForApplication(planBuilder)
 					Expect(err).To(BeNil())
 
-					var executionOutput statistics.AggregatorSnapShot
-					utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-					var summary = statistics.CreateSummary(executionOutput)
+					var summary = statistics.CreateSummary(output)
 
 					Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 				})
@@ -394,12 +372,10 @@ jobs:
 						CreateStep().
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
-					_, err := ExecutePlanBuilder(planBuilder)
+					output, err := ExecutePlanBuilderForApplication(planBuilder)
 					Expect(err).To(BeNil())
 
-					var executionOutput statistics.AggregatorSnapShot
-					utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-					var summary = statistics.CreateSummary(executionOutput)
+					var summary = statistics.CreateSummary(output)
 
 					Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
 				})
@@ -456,12 +432,10 @@ jobs:
 						WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath(testCase).Build()).
 						WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
-					_, err := ExecutePlanBuilder(planBuilder)
+					output, err := ExecutePlanBuilderForApplication(planBuilder)
 					Expect(err).To(BeNil())
 
-					var executionOutput statistics.AggregatorSnapShot
-					utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-					var summary = statistics.CreateSummary(executionOutput)
+					var summary = statistics.CreateSummary(output)
 
 					Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 				})
@@ -476,12 +450,10 @@ jobs:
 					WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath("fubar").Build()).
 					WithAssertion(planBuilder.ExactAssertion("xpath:match:1", "123"))
 
-				_, err := ExecutePlanBuilder(planBuilder)
+				output, err := ExecutePlanBuilderForApplication(planBuilder)
 				Expect(err).To(BeNil())
 
-				var executionOutput statistics.AggregatorSnapShot
-				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-				var summary = statistics.CreateSummary(executionOutput)
+				var summary = statistics.CreateSummary(output)
 
 				Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
 			})
@@ -502,12 +474,10 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
-						_, err := ExecutePlanBuilder(planBuilder)
+						output, err := ExecutePlanBuilderForApplication(planBuilder)
 						Expect(err).To(BeNil())
 
-						var executionOutput statistics.AggregatorSnapShot
-						utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-						var summary = statistics.CreateSummary(executionOutput)
+						var summary = statistics.CreateSummary(output)
 
 						Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 					})
@@ -528,12 +498,10 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
-						_, err := ExecutePlanBuilder(planBuilder)
+						output, err := ExecutePlanBuilderForApplication(planBuilder)
 						Expect(err).To(BeNil())
 
-						var executionOutput statistics.AggregatorSnapShot
-						utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-						var summary = statistics.CreateSummary(executionOutput)
+						var summary = statistics.CreateSummary(output)
 
 						Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
 					})
@@ -558,12 +526,10 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
-						_, err := ExecutePlanBuilder(planBuilder)
+						output, err := ExecutePlanBuilderForApplication(planBuilder)
 						Expect(err).To(BeNil())
 
-						var executionOutput statistics.AggregatorSnapShot
-						utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-						var summary = statistics.CreateSummary(executionOutput)
+						var summary = statistics.CreateSummary(output)
 
 						Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 					})
@@ -585,12 +551,10 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
-						_, err := ExecutePlanBuilder(planBuilder)
+						output, err := ExecutePlanBuilderForApplication(planBuilder)
 						Expect(err).To(BeNil())
 
-						var executionOutput statistics.AggregatorSnapShot
-						utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-						var summary = statistics.CreateSummary(executionOutput)
+						var summary = statistics.CreateSummary(output)
 
 						Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
 					})

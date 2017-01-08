@@ -55,6 +55,35 @@ func ExecutePlanFromData(path string, planData string) ([]byte, error) {
 	return output, err
 }
 
+//ExecutePlanFromDataForApplication ...
+func ExecutePlanFromDataForApplication(path string, planData string, configuration config.Configuration) (statistics.AggregatorSnapShot, error) {
+	file, fileErr := planDataToFile(planData)
+	if fileErr != nil {
+		return statistics.AggregatorSnapShot{}, fileErr
+	}
+
+	defer func() {
+		fileErr := os.Remove(file.Name())
+		if fileErr != nil {
+			panic(fileErr)
+		}
+	}()
+	configuration.Progress = "none"
+	configuration.FilePath = file.Name()
+	configuration.Plan = true
+
+	var appConfig, err = config.ParseConfiguration(&configuration)
+
+	if err != nil {
+		return statistics.AggregatorSnapShot{}, err
+	}
+
+	app := cmd.Application{}
+	output := app.Execute(appConfig)
+
+	return output, nil
+}
+
 //ExecutePlanBuilder ...
 func ExecutePlanBuilder(path string, planBuilder *yaml.PlanBuilder) ([]byte, error) {
 	file, err := planBuilder.Build()

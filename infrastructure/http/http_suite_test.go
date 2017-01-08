@@ -2,7 +2,6 @@ package http_test
 
 import (
 	"io/ioutil"
-	"os"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -36,9 +35,6 @@ var _ = BeforeSuite(func() {
 	logger.Log.Out = ioutil.Discard
 	TestServer = rizo.CreateRequestRecordingServer(global.TestPort)
 	TestServer.Start()
-
-	os.Remove("./output.yml")
-	os.Remove("./history.yml")
 })
 
 var _ = AfterSuite(func() {

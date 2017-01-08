@@ -103,8 +103,8 @@ var _ = Describe("Main", func() {
 
 			var summary = statistics.CreateSummary(output)
 
-			Expect(summary.TotalRequests).To(Equal(float64(len(list) * numberOfWorkers)))
 			Expect(summary.TotalErrors).To(Equal(float64(0)))
+			Expect(summary.TotalRequests).To(Equal(float64(len(list) * numberOfWorkers)))
 
 		})
 	}

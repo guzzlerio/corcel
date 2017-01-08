@@ -6,7 +6,6 @@ import (
 	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/statistics"
 	"github.com/guzzlerio/corcel/test"
-	"github.com/guzzlerio/corcel/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -45,7 +44,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 					CreateStep().
 					ToExecuteAction(planBuilder.DummyAction().LogToFile(contextsDebugPath).Build())
 
-				_, err := ExecutePlanBuilder(planBuilder)
+				_, err := ExecutePlanBuilderForApplication(planBuilder)
 				Expect(err).To(BeNil())
 
 				contexts := test.GetExecutionContexts(contextsDebugPath)
@@ -72,12 +71,10 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				WithAssertion(planBuilder.ExactAssertion("$value:3", "3")).
 				WithAssertion(planBuilder.ExactAssertion("something", "1"))
 
-			_, err := ExecutePlanBuilder(planBuilder)
+			output, err := ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
 
-			var executionOutput statistics.AggregatorSnapShot
-			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-			var summary = statistics.CreateSummary(executionOutput)
+			var summary = statistics.CreateSummary(output)
 
 			Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 		})
@@ -92,12 +89,10 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
 				WithAssertion(planBuilder.ExactAssertion("$value:3", "3"))
 
-			_, err := ExecutePlanBuilder(planBuilder)
+			output, err := ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
 
-			var executionOutput statistics.AggregatorSnapShot
-			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-			var summary = statistics.CreateSummary(executionOutput)
+			var summary = statistics.CreateSummary(output)
 
 			Expect(summary.TotalAssertionFailures).To(Equal(int64(3)))
 		})
@@ -116,12 +111,10 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
 				WithAssertion(planBuilder.ExactAssertion("$value:3", "3"))
 
-			_, err := ExecutePlanBuilder(planBuilder)
+			output, err := ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
 
-			var executionOutput statistics.AggregatorSnapShot
-			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-			var summary = statistics.CreateSummary(executionOutput)
+			var summary = statistics.CreateSummary(output)
 
 			Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 		})
@@ -141,12 +134,10 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
 				WithAssertion(planBuilder.ExactAssertion("$value:3", "3"))
 
-			_, err := ExecutePlanBuilder(planBuilder)
+			output, err := ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
 
-			var executionOutput statistics.AggregatorSnapShot
-			utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-			var summary = statistics.CreateSummary(executionOutput)
+			var summary = statistics.CreateSummary(output)
 
 			Expect(summary.TotalAssertionFailures).To(Equal(int64(3)))
 		})

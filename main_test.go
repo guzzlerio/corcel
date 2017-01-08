@@ -11,14 +11,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 
 	"github.com/guzzlerio/rizo"
 
 	"github.com/guzzlerio/corcel/config"
 	"github.com/guzzlerio/corcel/errormanager"
 	"github.com/guzzlerio/corcel/global"
-	"github.com/guzzlerio/corcel/logger"
 	"github.com/guzzlerio/corcel/statistics"
 	"github.com/guzzlerio/corcel/test"
 	. "github.com/guzzlerio/corcel/utils"
@@ -29,12 +27,6 @@ func URLForTestServer(path string) string {
 }
 
 var _ = Describe("Main", func() {
-	BeforeEach(func() {
-		err := os.Remove("./output.yml")
-		if err != nil {
-			logger.Log.Printf("Error removing file %v", err)
-		}
-	})
 
 	AfterEach(func() {
 		TestServer.Clear()

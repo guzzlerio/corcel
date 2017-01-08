@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/guzzlerio/rizo"
@@ -12,18 +11,10 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/guzzlerio/corcel/config"
-	"github.com/guzzlerio/corcel/logger"
 	"github.com/guzzlerio/corcel/statistics"
 )
 
 var _ = Describe("Bugs replication", func() {
-
-	BeforeEach(func() {
-		err := os.Remove("./output.yml")
-		if err != nil {
-			logger.Log.Printf("Error removing file %v", err)
-		}
-	})
 
 	AfterEach(func() {
 		TestServer.Clear()

@@ -9,10 +9,8 @@ import (
 	. "github.com/guzzlerio/corcel"
 	"github.com/guzzlerio/corcel/errormanager"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
-	"github.com/guzzlerio/corcel/statistics"
 	"github.com/guzzlerio/rizo"
 
-	. "github.com/guzzlerio/corcel/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -36,20 +34,7 @@ var _ = Describe("Acceptance", func() {
 		output, err := SutExecute(list, "--summary")
 		Expect(err).To(BeNil())
 
-		var executionOutput statistics.AggregatorSnapShot
-		UnmarshalYamlFromFile("./output.yml", &executionOutput)
-		var summary = statistics.CreateSummary(executionOutput)
-
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Running Time: %v", summary.RunningTime)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Throughput: %.0f req/s", summary.Throughput)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Total Requests: %v", summary.TotalRequests)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Number of Errors: %v", summary.TotalErrors)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Availability: %v.0000%%", summary.Availability)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Bytes Sent: %v", summary.Bytes.TotalSent)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Bytes Received: %v", summary.Bytes.TotalReceived)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Mean Response Time: %.4f", summary.MeanResponseTime)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Min Response Time: %.4f ms", summary.MinResponseTime)))
-		Expect(string(output)).To(ContainSubstring(fmt.Sprintf("Max Response Time: %.4f ms", summary.MaxResponseTime)))
+		Expect(string(output)).To(ContainSubstring("Summary"))
 	})
 
 	It("Error non-http url in the urls file causes a run time exception #21", func() {

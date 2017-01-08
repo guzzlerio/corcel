@@ -7,7 +7,6 @@ import (
 	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/statistics"
-	"github.com/guzzlerio/corcel/utils"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -626,12 +625,10 @@ jobs:
 						WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath(testCase).Build()).
 						WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
 
-					_, err := ExecutePlanBuilder(planBuilder)
+					output, err := ExecutePlanBuilderForApplication(planBuilder)
 					Expect(err).To(BeNil())
 
-					var executionOutput statistics.AggregatorSnapShot
-					utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-					var summary = statistics.CreateSummary(executionOutput)
+					var summary = statistics.CreateSummary(output)
 
 					Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 				})
@@ -646,12 +643,10 @@ jobs:
 					WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath("fubar").Build()).
 					WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", "123"))
 
-				_, err := ExecutePlanBuilder(planBuilder)
+				output, err := ExecutePlanBuilderForApplication(planBuilder)
 				Expect(err).To(BeNil())
 
-				var executionOutput statistics.AggregatorSnapShot
-				utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-				var summary = statistics.CreateSummary(executionOutput)
+				var summary = statistics.CreateSummary(output)
 
 				Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
 			})
@@ -672,12 +667,10 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
 
-						_, err := ExecutePlanBuilder(planBuilder)
+						output, err := ExecutePlanBuilderForApplication(planBuilder)
 						Expect(err).To(BeNil())
 
-						var executionOutput statistics.AggregatorSnapShot
-						utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-						var summary = statistics.CreateSummary(executionOutput)
+						var summary = statistics.CreateSummary(output)
 
 						Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 					})
@@ -698,12 +691,10 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
 
-						_, err := ExecutePlanBuilder(planBuilder)
+						output, err := ExecutePlanBuilderForApplication(planBuilder)
 						Expect(err).To(BeNil())
 
-						var executionOutput statistics.AggregatorSnapShot
-						utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-						var summary = statistics.CreateSummary(executionOutput)
+						var summary = statistics.CreateSummary(output)
 
 						Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
 					})
@@ -728,12 +719,10 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
 
-						_, err := ExecutePlanBuilder(planBuilder)
+						output, err := ExecutePlanBuilderForApplication(planBuilder)
 						Expect(err).To(BeNil())
 
-						var executionOutput statistics.AggregatorSnapShot
-						utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-						var summary = statistics.CreateSummary(executionOutput)
+						var summary = statistics.CreateSummary(output)
 
 						Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 					})
@@ -755,12 +744,10 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
 
-						_, err := ExecutePlanBuilder(planBuilder)
+						output, err := ExecutePlanBuilderForApplication(planBuilder)
 						Expect(err).To(BeNil())
 
-						var executionOutput statistics.AggregatorSnapShot
-						utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-						var summary = statistics.CreateSummary(executionOutput)
+						var summary = statistics.CreateSummary(output)
 
 						Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
 					})

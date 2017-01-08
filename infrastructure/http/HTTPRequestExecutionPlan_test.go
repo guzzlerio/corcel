@@ -9,7 +9,6 @@ import (
 
 	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/statistics"
-	"github.com/guzzlerio/corcel/utils"
 	"github.com/guzzlerio/rizo"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -45,12 +44,10 @@ jobs:
       key: urn:http:response:headers:x-boom
       expected: "1"`, TestServer.CreateURL("/people"))
 
-		_, err := ExecutePlanFromData(plan)
+		output, err := ExecutePlanFromDataForApplication(plan)
 		Expect(err).To(BeNil())
 
-		var executionOutput statistics.AggregatorSnapShot
-		utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-		var summary = statistics.CreateSummary(executionOutput)
+		var summary = statistics.CreateSummary(output)
 
 		Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 	})

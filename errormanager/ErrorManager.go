@@ -95,7 +95,6 @@ func Log(err interface{}) {
 			//		os.Exit(errorCode.Code)
 		}
 	}
-	//panic(err)
-	panic("BOOM")
+	panic(err)
 	//logger.Log.Fatalf("UNKNOWN ERROR: %v", err)
 }

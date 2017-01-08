@@ -36,23 +36,15 @@ func ExecutePlanFromData(path string, planData string) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	//path := "./corcel"
-	exePath, err := filepath.Abs(path)
-	if err != nil {
-		return []byte{}, err
-	}
 	defer func() {
 		fileErr := os.Remove(file.Name())
 		if fileErr != nil {
 			panic(fileErr)
 		}
 	}()
+
 	args := []string{"--plan"}
-	cmd := exec.Command(exePath, append(append([]string{"run", "--progress", "none"}, args...), file.Name())...)
-	output, err := cmd.CombinedOutput()
-	//fmt.Println(fmt.Sprintf("OUTPUT: %v\nERROR: %v\n", string(output), err))
-	logger.Log.Println(fmt.Sprintf("%s", output))
-	return output, err
+	return executeShell(path, file, args...)
 }
 
 //ExecutePlanFromDataForApplication ...
@@ -90,12 +82,6 @@ func ExecutePlanBuilder(path string, planBuilder *yaml.PlanBuilder) ([]byte, err
 	if err != nil {
 		return []byte{}, err
 	}
-
-	//path := "./corcel"
-	exePath, err := filepath.Abs(path)
-	if err != nil {
-		return []byte{}, err
-	}
 	defer func() {
 		fileErr := os.Remove(file.Name())
 		if fileErr != nil {
@@ -104,11 +90,7 @@ func ExecutePlanBuilder(path string, planBuilder *yaml.PlanBuilder) ([]byte, err
 	}()
 
 	args := []string{"--plan"}
-	cmd := exec.Command(exePath, append(append([]string{"run", "--progress", "none"}, args...), file.Name())...)
-	output, err := cmd.CombinedOutput()
-	//fmt.Println(fmt.Sprintf("OUTPUT: %v\nERROR: %v\n", string(output), err))
-	logger.Log.Println(fmt.Sprintf("%s", output))
-	return output, err
+	return executeShell(path, file, args...)
 }
 
 //ExecutePlanBuilderForApplication ...
@@ -169,10 +151,6 @@ func ExecuteListForApplication(path string, list []string, configuration config.
 //ExecuteList ...
 func ExecuteList(path string, list []string, args ...string) ([]byte, error) {
 
-	exePath, exeErr := filepath.Abs("./corcel")
-	if exeErr != nil {
-		return []byte{}, exeErr
-	}
 	file := utils.CreateFileFromLines(list)
 	defer func() {
 		err := os.Remove(file.Name())
@@ -180,6 +158,15 @@ func ExecuteList(path string, list []string, args ...string) ([]byte, error) {
 			logger.Log.Printf("Error removing file %v", err)
 		}
 	}()
+
+	return executeShell(path, file, args...)
+}
+
+func executeShell(path string, file *os.File, args ...string) ([]byte, error) {
+	exePath, exeErr := filepath.Abs(path)
+	if exeErr != nil {
+		return []byte{}, exeErr
+	}
 	cmd := exec.Command(exePath, append(append([]string{"run", "--progress", "none"}, args...), file.Name())...)
 	output, err := cmd.CombinedOutput()
 	//fmt.Println(string(output))

@@ -9,7 +9,7 @@ func GetHTTPRequestAction(url string) map[string]interface{} {
 		"requestTimeout": 150,
 		"method":         "GET",
 		"url":            TestServer.CreateURL(url),
-		"httpHeaders": map[string]string{
+		"headers": map[string]string{
 			"Content-Type": "application/json",
 		},
 	}

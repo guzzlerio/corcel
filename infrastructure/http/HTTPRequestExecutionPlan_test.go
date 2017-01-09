@@ -36,7 +36,7 @@ jobs:
   - name: "Step 1"
     action:
       type: HttpRequest
-      httpHeaders:
+      headers:
         key: 1
       method: GET
       url: %s
@@ -84,7 +84,7 @@ jobs:
   - name: ""
     action:
       body: Zee Body
-      httpHeaders:
+      headers:
         key: 1
       method: GET
       type: HttpRequest

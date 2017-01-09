@@ -86,7 +86,7 @@ var _ = Describe("Main", func() {
 
 	for _, numberOfWorkers := range global.NumberOfWorkersToTest {
 		name := fmt.Sprintf("Support %v workers", numberOfWorkers)
-		FIt(name, func() {
+		It(name, func() {
 			func(workers int) {
 				list := []string{
 					fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
@@ -98,7 +98,7 @@ var _ = Describe("Main", func() {
 				}
 
 				output, err := SutExecuteApplication(list, config.Configuration{
-					Workers: numberOfWorkers,
+					Workers: workers,
 				})
 				Expect(err).To(BeNil())
 

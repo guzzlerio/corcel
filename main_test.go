@@ -85,9 +85,9 @@ var _ = Describe("Main", func() {
 	})
 
 	for _, numberOfWorkers := range global.NumberOfWorkersToTest {
-		name := fmt.Sprintf("Support %v workers", numberOfWorkers)
-		It(name, func() {
-			func(workers int) {
+		func(workers int) {
+			name := fmt.Sprintf("Support %v workers", workers)
+			It(name, func() {
 				list := []string{
 					fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
 					fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
@@ -106,8 +106,8 @@ var _ = Describe("Main", func() {
 
 				Expect(summary.TotalErrors).To(Equal(float64(0)))
 				Expect(summary.TotalRequests).To(Equal(float64(len(list) * workers)))
-			}(numberOfWorkers)
-		})
+			})
+		}(numberOfWorkers)
 	}
 
 	for _, waitTime := range global.WaitTimeTests {

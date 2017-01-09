@@ -86,26 +86,27 @@ var _ = Describe("Main", func() {
 
 	for _, numberOfWorkers := range global.NumberOfWorkersToTest {
 		name := fmt.Sprintf("Support %v workers", numberOfWorkers)
-		It(name, func() {
-			list := []string{
-				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
-				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
-				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
-				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
-				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
-				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
-			}
+		FIt(name, func() {
+			func(workers int) {
+				list := []string{
+					fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+					fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+					fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+					fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+					fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+					fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+				}
 
-			output, err := SutExecuteApplication(list, config.Configuration{
-				Workers: numberOfWorkers,
-			})
-			Expect(err).To(BeNil())
+				output, err := SutExecuteApplication(list, config.Configuration{
+					Workers: numberOfWorkers,
+				})
+				Expect(err).To(BeNil())
 
-			var summary = statistics.CreateSummary(output)
+				var summary = statistics.CreateSummary(output)
 
-			Expect(summary.TotalErrors).To(Equal(float64(0)))
-			Expect(summary.TotalRequests).To(Equal(float64(len(list) * numberOfWorkers)))
-
+				Expect(summary.TotalErrors).To(Equal(float64(0)))
+				Expect(summary.TotalRequests).To(Equal(float64(len(list) * workers)))
+			}(numberOfWorkers)
 		})
 	}
 

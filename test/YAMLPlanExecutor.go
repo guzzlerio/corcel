@@ -94,7 +94,7 @@ func ExecutePlanBuilder(path string, planBuilder *yaml.PlanBuilder) ([]byte, err
 }
 
 //ExecutePlanBuilderForApplication ...
-func ExecutePlanBuilderForApplication(path string, planBuilder *yaml.PlanBuilder, configuration config.Configuration) (statistics.AggregatorSnapShot, error) {
+func ExecutePlanBuilderForApplication(planBuilder *yaml.PlanBuilder, configuration config.Configuration) (statistics.AggregatorSnapShot, error) {
 	file, fileErr := planBuilder.Build()
 	if fileErr != nil {
 		return statistics.AggregatorSnapShot{}, fileErr

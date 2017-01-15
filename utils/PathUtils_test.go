@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Acceptance", func() {
+var _ = Describe("Utils", func() {
 
 	var dir string
 
@@ -42,6 +42,10 @@ var _ = Describe("Acceptance", func() {
 
 		os.MkdirAll(startingPath, os.ModePerm)
 
+		wd, _ := os.Getwd()
+		defer func() {
+			os.Chdir(wd)
+		}()
 		os.Chdir(startingPath)
 
 		createTestFile(targetPath)
@@ -58,6 +62,10 @@ var _ = Describe("Acceptance", func() {
 
 		os.MkdirAll(startingPath, os.ModePerm)
 
+		wd, _ := os.Getwd()
+		defer func() {
+			os.Chdir(wd)
+		}()
 		os.Chdir(startingPath)
 
 		createTestFile(targetPath)
@@ -74,6 +82,10 @@ var _ = Describe("Acceptance", func() {
 
 		os.MkdirAll(startingPath, os.ModePerm)
 
+		wd, _ := os.Getwd()
+		defer func() {
+			os.Chdir(wd)
+		}()
 		os.Chdir(startingPath)
 
 		createTestFile(targetPath)

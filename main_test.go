@@ -216,18 +216,6 @@ var _ = Describe("Main", func() {
 		Expect(summary.MinResponseTime).To(BeNumerically(">", 0))
 	})
 
-	It("Halts execution if a payload input file is not found", func() {
-		list := []string{
-			fmt.Sprintf(`%s -X POST -d '{"name":"talula"}'`, URLForTestServer("/success")),
-			fmt.Sprintf(`%s -X POST -d @missing-file.json`, URLForTestServer("/success")),
-		}
-
-		output, err := SutExecute(list)
-		Expect(err).ToNot(BeNil())
-
-		Expect(string(output)).To(ContainSubstring("Request body file not found: missing-file.json"))
-	})
-
 	It("Generate statistics of data from the execution", func() {
 		list := []string{
 			fmt.Sprintf(`%s -X POST -H "Content-type:application/json" -d '{"name":"talula"}'`, URLForTestServer("/A")),
@@ -345,12 +333,6 @@ var _ = Describe("Main", func() {
 		Expect(TestServer.Find(rizo.RequestWithPath("/C"))).To(Equal(true))
 	})
 })
-
-func SutExecute(list []string, args ...string) ([]byte, error) {
-	//output, err := InvokeCorcel(list, args...)
-	output, err := test.ExecuteList("./corcel", list, args...)
-	return output, err
-}
 
 func SutExecuteApplication(list []string, configuration config.Configuration) (statistics.AggregatorSnapShot, error) {
 

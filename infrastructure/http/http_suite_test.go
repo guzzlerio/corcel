@@ -54,5 +54,5 @@ func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) ([]byte, error) {
 }
 
 func ExecutePlanBuilderForApplication(planBuilder *yaml.PlanBuilder) (statistics.AggregatorSnapShot, error) {
-	return test.ExecutePlanBuilderForApplication("../.././corcel", planBuilder, config.Configuration{})
+	return test.ExecutePlanBuilderForApplication(planBuilder, config.Configuration{})
 }

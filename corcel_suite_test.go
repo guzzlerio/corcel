@@ -28,7 +28,7 @@ func TestCorcel(t *testing.T) {
 }
 
 func ExecutePlanBuilderForApplication(planBuilder *yaml.PlanBuilder) (statistics.AggregatorSnapShot, error) {
-	return test.ExecutePlanBuilderForApplication("./corcel", planBuilder, config.Configuration{})
+	return test.ExecutePlanBuilderForApplication(planBuilder, config.Configuration{})
 }
 
 func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) ([]byte, error) {

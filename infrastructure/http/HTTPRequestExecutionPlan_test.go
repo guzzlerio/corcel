@@ -64,7 +64,7 @@ jobs:
 			CreateStep().
 			ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-		_, err := ExecutePlanBuilder(planBuilder)
+		_, err := test.ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())
 		Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithBody(body))).To(Equal(true))
 	})
@@ -123,7 +123,7 @@ jobs:
 			CreateStep().
 			ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-		_, err = ExecutePlanBuilder(planBuilder)
+		_, err = test.ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())
 		Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithBody(string(content)))).To(Equal(true))
 	})

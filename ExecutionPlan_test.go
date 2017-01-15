@@ -111,7 +111,7 @@ var _ = Describe("ExecutionPlan", func() {
 				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
 			}
 
-			output, err := ExecuteListForApplication(list, config.Configuration{
+			output, err := test.ExecuteListForApplication(list, config.Configuration{
 				Iterations: 5,
 			})
 			Expect(err).To(BeNil())

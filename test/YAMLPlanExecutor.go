@@ -78,7 +78,7 @@ func ExecutePlanFromDataForApplication(planData string) (statistics.AggregatorSn
 }
 
 //ExecutePlanBuilder ...
-func ExecutePlanBuilder(path string, planBuilder *yaml.PlanBuilder) ([]byte, error) {
+func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) ([]byte, error) {
 	file, err := planBuilder.Build()
 	if err != nil {
 		return []byte{}, err
@@ -91,7 +91,7 @@ func ExecutePlanBuilder(path string, planBuilder *yaml.PlanBuilder) ([]byte, err
 	}()
 
 	args := []string{"--plan"}
-	return executeShell(path, file, args...)
+	return executeShell(utils.FindFileUp("corcel"), file, args...)
 }
 
 //ExecutePlanBuilderForApplication ...

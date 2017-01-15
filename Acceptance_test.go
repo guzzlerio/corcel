@@ -69,7 +69,7 @@ var _ = Describe("Acceptance", func() {
 			CreateStep().
 			ToExecuteAction(planBuilder.IPanicAction().Build())
 
-		output, err := ExecutePlanBuilder(planBuilder)
+		output, err := test.ExecutePlanBuilder(planBuilder)
 		Expect(err).ToNot(BeNil())
 
 		Expect(string(output)).To(ContainSubstring("An unexpected error has occurred.  The error has been logged to /tmp/"))

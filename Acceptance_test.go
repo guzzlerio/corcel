@@ -24,7 +24,6 @@ var _ = Describe("Acceptance", func() {
 			fmt.Sprintf(`%s -X POST -d @missing-file.json`, URLForTestServer("/success")),
 		}
 
-		//output, err := SutExecute(list)
 		output, err := test.ExecuteList("./corcel", list)
 		Expect(err).ToNot(BeNil())
 
@@ -56,7 +55,6 @@ var _ = Describe("Acceptance", func() {
 			fmt.Sprintf(`-Something`),
 		}
 
-		//output, err := SutExecute(list)
 		output, err := test.ExecuteList("./corcel", list)
 		Expect(err).ToNot(BeNil())
 		Expect(string(output)).To(ContainSubstring(errormanager.LogMessageVaidURLs))

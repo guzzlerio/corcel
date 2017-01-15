@@ -48,7 +48,8 @@ func ExecutePlanFromData(path string, planData string) ([]byte, error) {
 }
 
 //ExecutePlanFromDataForApplication ...
-func ExecutePlanFromDataForApplication(path string, planData string, configuration config.Configuration) (statistics.AggregatorSnapShot, error) {
+func ExecutePlanFromDataForApplication(planData string) (statistics.AggregatorSnapShot, error) {
+	var configuration = config.Configuration{}
 	file, fileErr := planDataToFile(planData)
 	if fileErr != nil {
 		return statistics.AggregatorSnapShot{}, fileErr

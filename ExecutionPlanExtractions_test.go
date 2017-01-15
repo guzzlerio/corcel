@@ -42,7 +42,7 @@ jobs:
            key: target
            expected: 12345`)
 
-				output, err := ExecutePlanFromDataForApplication(plan)
+				output, err := test.ExecutePlanFromDataForApplication(plan)
 				Expect(err).To(BeNil())
 
 				var summary = statistics.CreateSummary(output)
@@ -75,7 +75,7 @@ jobs:
           key: target
           expected: 123456`)
 
-				output, err := ExecutePlanFromDataForApplication(plan)
+				output, err := test.ExecutePlanFromDataForApplication(plan)
 				Expect(err).To(BeNil())
 
 				var summary = statistics.CreateSummary(output)
@@ -112,7 +112,7 @@ jobs:
            expected: 12345
       `)
 
-				output, err := ExecutePlanFromDataForApplication(plan)
+				output, err := test.ExecutePlanFromDataForApplication(plan)
 				Expect(err).To(BeNil())
 
 				var summary = statistics.CreateSummary(output)
@@ -148,7 +148,7 @@ jobs:
            expected: 12345
       `)
 
-				output, err := ExecutePlanFromDataForApplication(plan)
+				output, err := test.ExecutePlanFromDataForApplication(plan)
 				Expect(err).To(BeNil())
 
 				var summary = statistics.CreateSummary(output)
@@ -186,7 +186,7 @@ jobs:
            key: target
            expected: 12345`)
 
-				output, err := ExecutePlanFromDataForApplication(plan)
+				output, err := test.ExecutePlanFromDataForApplication(plan)
 				Expect(err).To(BeNil())
 
 				var summary = statistics.CreateSummary(output)
@@ -222,7 +222,7 @@ jobs:
            key: target
            expected: 12345`)
 
-				output, err := ExecutePlanFromDataForApplication(plan)
+				output, err := test.ExecutePlanFromDataForApplication(plan)
 				Expect(err).To(BeNil())
 
 				var summary = statistics.CreateSummary(output)

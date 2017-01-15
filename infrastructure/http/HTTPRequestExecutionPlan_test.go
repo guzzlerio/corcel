@@ -89,7 +89,7 @@ jobs:
       url: %s
 `, TestServer.CreateURL("/people"))
 
-		_, err := ExecutePlanFromData(plan)
+		_, err := test.ExecutePlanFromData(plan)
 		Expect(err).To(BeNil())
 		Expect(TestServer.Find(rizo.RequestWithHeader("key", "1"))).To(Equal(true))
 	})

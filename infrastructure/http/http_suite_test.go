@@ -13,7 +13,6 @@ import (
 	"github.com/guzzlerio/corcel/config"
 	"github.com/guzzlerio/corcel/global"
 	"github.com/guzzlerio/corcel/logger"
-	"github.com/guzzlerio/corcel/test"
 )
 
 var (
@@ -38,7 +37,3 @@ var _ = BeforeSuite(func() {
 var _ = AfterSuite(func() {
 	TestServer.Stop()
 })
-
-func ExecutePlanFromData(plan string) ([]byte, error) {
-	return test.ExecutePlanFromData("../.././corcel", plan)
-}

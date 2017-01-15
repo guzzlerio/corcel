@@ -30,7 +30,7 @@ func planDataToFile(platData string) (*os.File, error) {
 }
 
 //ExecutePlanFromData ...
-func ExecutePlanFromData(path string, planData string) ([]byte, error) {
+func ExecutePlanFromData(planData string) ([]byte, error) {
 	file, err := planDataToFile(planData)
 	if err != nil {
 		return []byte{}, err
@@ -44,7 +44,7 @@ func ExecutePlanFromData(path string, planData string) ([]byte, error) {
 	}()
 
 	args := []string{"--plan"}
-	return executeShell(path, file, args...)
+	return executeShell(utils.FindFileUp("corcel"), file, args...)
 }
 
 //ExecutePlanFromDataForApplication ...

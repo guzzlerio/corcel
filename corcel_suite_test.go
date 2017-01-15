@@ -44,7 +44,7 @@ func ExecutePlanFromDataForApplication(plan string) (statistics.AggregatorSnapSh
 }
 
 func ExecuteListForApplication(list []string, configuration config.Configuration) (statistics.AggregatorSnapShot, error) {
-	return test.ExecuteListForApplication("./corcel", list, configuration)
+	return test.ExecuteListForApplication(list, configuration)
 }
 
 var _ = BeforeSuite(func() {

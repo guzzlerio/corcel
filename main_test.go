@@ -335,8 +335,7 @@ var _ = Describe("Main", func() {
 })
 
 func SutExecuteApplication(list []string, configuration config.Configuration) (statistics.AggregatorSnapShot, error) {
-
-	output, err := test.ExecuteListForApplication("./corcel", list, configuration)
+	output, err := test.ExecuteListForApplication(list, configuration)
 	return output, err
 }
 

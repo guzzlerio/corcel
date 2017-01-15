@@ -124,7 +124,7 @@ func ExecutePlanBuilderForApplication(planBuilder *yaml.PlanBuilder, configurati
 }
 
 //ExecuteListForApplication ...
-func ExecuteListForApplication(path string, list []string, configuration config.Configuration) (statistics.AggregatorSnapShot, error) {
+func ExecuteListForApplication(list []string, configuration config.Configuration) (statistics.AggregatorSnapShot, error) {
 
 	file := utils.CreateFileFromLines(list)
 	defer func() {

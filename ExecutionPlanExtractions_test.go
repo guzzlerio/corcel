@@ -7,6 +7,7 @@ import (
 	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/statistics"
+	"github.com/guzzlerio/corcel/test"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -244,7 +245,7 @@ jobs:
 						WithExtractor(planBuilder.RegexExtractor().Name("regex:match:1").Key("value:1").Match("\\d+").Build()).
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
-					output, err := ExecutePlanBuilderForApplication(planBuilder)
+					output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 					Expect(err).To(BeNil())
 
 					var summary = statistics.CreateSummary(output)
@@ -263,7 +264,7 @@ jobs:
 						WithExtractor(planBuilder.RegexExtractor().Name("regex:match:1").Key("value:1").Match("boom").Build()).
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
-					output, err := ExecutePlanBuilderForApplication(planBuilder)
+					output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 					Expect(err).To(BeNil())
 
 					var summary = statistics.CreateSummary(output)
@@ -294,7 +295,7 @@ jobs:
 						CreateStep().
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
-					output, err := ExecutePlanBuilderForApplication(planBuilder)
+					output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 					Expect(err).To(BeNil())
 
 					var summary = statistics.CreateSummary(output)
@@ -318,7 +319,7 @@ jobs:
 						CreateStep().
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
-					output, err := ExecutePlanBuilderForApplication(planBuilder)
+					output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 					Expect(err).To(BeNil())
 
 					var summary = statistics.CreateSummary(output)
@@ -346,7 +347,7 @@ jobs:
 						CreateStep().
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
-					output, err := ExecutePlanBuilderForApplication(planBuilder)
+					output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 					Expect(err).To(BeNil())
 
 					var summary = statistics.CreateSummary(output)
@@ -371,7 +372,7 @@ jobs:
 						CreateStep().
 						WithAssertion(planBuilder.ExactAssertion("regex:match:1", "123"))
 
-					output, err := ExecutePlanBuilderForApplication(planBuilder)
+					output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 					Expect(err).To(BeNil())
 
 					var summary = statistics.CreateSummary(output)
@@ -431,7 +432,7 @@ jobs:
 						WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath(testCase).Build()).
 						WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
-					output, err := ExecutePlanBuilderForApplication(planBuilder)
+					output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 					Expect(err).To(BeNil())
 
 					var summary = statistics.CreateSummary(output)
@@ -449,7 +450,7 @@ jobs:
 					WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath("fubar").Build()).
 					WithAssertion(planBuilder.ExactAssertion("xpath:match:1", "123"))
 
-				output, err := ExecutePlanBuilderForApplication(planBuilder)
+				output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 				Expect(err).To(BeNil())
 
 				var summary = statistics.CreateSummary(output)
@@ -473,7 +474,7 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
-						output, err := ExecutePlanBuilderForApplication(planBuilder)
+						output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 						Expect(err).To(BeNil())
 
 						var summary = statistics.CreateSummary(output)
@@ -497,7 +498,7 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
-						output, err := ExecutePlanBuilderForApplication(planBuilder)
+						output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 						Expect(err).To(BeNil())
 
 						var summary = statistics.CreateSummary(output)
@@ -525,7 +526,7 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
-						output, err := ExecutePlanBuilderForApplication(planBuilder)
+						output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 						Expect(err).To(BeNil())
 
 						var summary = statistics.CreateSummary(output)
@@ -550,7 +551,7 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
-						output, err := ExecutePlanBuilderForApplication(planBuilder)
+						output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 						Expect(err).To(BeNil())
 
 						var summary = statistics.CreateSummary(output)
@@ -625,7 +626,7 @@ jobs:
 						WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath(testCase).Build()).
 						WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
 
-					output, err := ExecutePlanBuilderForApplication(planBuilder)
+					output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 					Expect(err).To(BeNil())
 
 					var summary = statistics.CreateSummary(output)
@@ -643,7 +644,7 @@ jobs:
 					WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath("fubar").Build()).
 					WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", "123"))
 
-				output, err := ExecutePlanBuilderForApplication(planBuilder)
+				output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 				Expect(err).To(BeNil())
 
 				var summary = statistics.CreateSummary(output)
@@ -667,7 +668,7 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
 
-						output, err := ExecutePlanBuilderForApplication(planBuilder)
+						output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 						Expect(err).To(BeNil())
 
 						var summary = statistics.CreateSummary(output)
@@ -691,7 +692,7 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
 
-						output, err := ExecutePlanBuilderForApplication(planBuilder)
+						output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 						Expect(err).To(BeNil())
 
 						var summary = statistics.CreateSummary(output)
@@ -719,7 +720,7 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
 
-						output, err := ExecutePlanBuilderForApplication(planBuilder)
+						output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 						Expect(err).To(BeNil())
 
 						var summary = statistics.CreateSummary(output)
@@ -744,7 +745,7 @@ jobs:
 							CreateStep().
 							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
 
-						output, err := ExecutePlanBuilderForApplication(planBuilder)
+						output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 						Expect(err).To(BeNil())
 
 						var summary = statistics.CreateSummary(output)

@@ -27,10 +27,6 @@ func TestCorcel(t *testing.T) {
 	RunSpecs(t, "Corcel Suite")
 }
 
-func ExecutePlanBuilderForApplication(planBuilder *yaml.PlanBuilder) (statistics.AggregatorSnapShot, error) {
-	return test.ExecutePlanBuilderForApplication(planBuilder, config.Configuration{})
-}
-
 func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) ([]byte, error) {
 	return test.ExecutePlanBuilder("./corcel", planBuilder)
 }

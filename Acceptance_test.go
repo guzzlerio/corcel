@@ -9,6 +9,7 @@ import (
 	. "github.com/guzzlerio/corcel"
 	"github.com/guzzlerio/corcel/errormanager"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
+	"github.com/guzzlerio/corcel/test"
 	"github.com/guzzlerio/rizo"
 
 	. "github.com/onsi/ginkgo"
@@ -16,6 +17,19 @@ import (
 )
 
 var _ = Describe("Acceptance", func() {
+
+	It("Halts execution if a payload input file is not found", func() {
+		list := []string{
+			fmt.Sprintf(`%s -X POST -d '{"name":"talula"}'`, URLForTestServer("/success")),
+			fmt.Sprintf(`%s -X POST -d @missing-file.json`, URLForTestServer("/success")),
+		}
+
+		//output, err := SutExecute(list)
+		output, err := test.ExecuteList("./corcel", list)
+		Expect(err).ToNot(BeNil())
+
+		Expect(string(output)).To(ContainSubstring("Request body file not found: missing-file.json"))
+	})
 
 	It("Outputs a summary to STDOUT", func() {
 		list := []string{
@@ -31,7 +45,7 @@ var _ = Describe("Acceptance", func() {
 			w.WriteHeader(500)
 		})).For(rizo.RequestWithPath("/error"))
 
-		output, err := SutExecute(list, "--summary")
+		output, err := test.ExecuteList("./corcel", list, "--summary")
 		Expect(err).To(BeNil())
 
 		Expect(string(output)).To(ContainSubstring("Summary"))
@@ -42,7 +56,8 @@ var _ = Describe("Acceptance", func() {
 			fmt.Sprintf(`-Something`),
 		}
 
-		output, err := SutExecute(list)
+		//output, err := SutExecute(list)
+		output, err := test.ExecuteList("./corcel", list)
 		Expect(err).ToNot(BeNil())
 		Expect(string(output)).To(ContainSubstring(errormanager.LogMessageVaidURLs))
 	})
@@ -68,5 +83,32 @@ var _ = Describe("Acceptance", func() {
 		data, err := ioutil.ReadFile(location)
 		Expect(err).To(BeNil())
 		Expect(string(data)).To(ContainSubstring("IPanicAction has caused this panic"))
+	})
+
+	Describe("Shell", func() {
+
+		Describe("run", func() {
+
+			PIt("setting iterations", func() {
+
+			})
+
+			PIt("setting duration", func() {
+
+			})
+
+			PIt("setting workers", func() {
+
+			})
+
+			PIt("setting plan", func() {
+
+			})
+
+			PIt("setting summary", func() {
+
+			})
+		})
+
 	})
 })

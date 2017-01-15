@@ -44,7 +44,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 					CreateStep().
 					ToExecuteAction(planBuilder.DummyAction().LogToFile(contextsDebugPath).Build())
 
-				_, err := ExecutePlanBuilderForApplication(planBuilder)
+				_, err := test.ExecutePlanBuilderForApplication(planBuilder)
 				Expect(err).To(BeNil())
 
 				contexts := test.GetExecutionContexts(contextsDebugPath)
@@ -71,7 +71,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				WithAssertion(planBuilder.ExactAssertion("$value:3", "3")).
 				WithAssertion(planBuilder.ExactAssertion("something", "1"))
 
-			output, err := ExecutePlanBuilderForApplication(planBuilder)
+			output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
 
 			var summary = statistics.CreateSummary(output)
@@ -89,7 +89,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
 				WithAssertion(planBuilder.ExactAssertion("$value:3", "3"))
 
-			output, err := ExecutePlanBuilderForApplication(planBuilder)
+			output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
 
 			var summary = statistics.CreateSummary(output)
@@ -111,7 +111,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
 				WithAssertion(planBuilder.ExactAssertion("$value:3", "3"))
 
-			output, err := ExecutePlanBuilderForApplication(planBuilder)
+			output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
 
 			var summary = statistics.CreateSummary(output)
@@ -134,7 +134,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
 				WithAssertion(planBuilder.ExactAssertion("$value:3", "3"))
 
-			output, err := ExecutePlanBuilderForApplication(planBuilder)
+			output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
 
 			var summary = statistics.CreateSummary(output)

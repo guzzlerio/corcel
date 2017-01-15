@@ -14,6 +14,7 @@ import (
 	"github.com/guzzlerio/corcel/global"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/statistics"
+	"github.com/guzzlerio/corcel/test"
 	"github.com/guzzlerio/corcel/utils"
 )
 
@@ -42,7 +43,7 @@ var _ = Describe("ExecutionPlan", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build())
 
-			output, err := ExecutePlanBuilderForApplication(planBuilder)
+			output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
 
 			var summary = statistics.CreateSummary(output)
@@ -62,7 +63,7 @@ var _ = Describe("ExecutionPlan", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build())
 
-			output, err := ExecutePlanBuilderForApplication(planBuilder)
+			output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
 
 			var summary = statistics.CreateSummary(output)
@@ -92,7 +93,7 @@ var _ = Describe("ExecutionPlan", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build())
 
-			output, err := ExecutePlanBuilderForApplication(planBuilder)
+			output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
 
 			var summary = statistics.CreateSummary(output)
@@ -141,7 +142,7 @@ var _ = Describe("ExecutionPlan", func() {
 					CreateStep().
 					ToExecuteAction(GetHTTPRequestAction("/people"))
 
-				output, err := ExecutePlanBuilderForApplication(planBuilder)
+				output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 				Expect(err).To(BeNil())
 
 				var summary = statistics.CreateSummary(output)
@@ -165,7 +166,7 @@ var _ = Describe("ExecutionPlan", func() {
 			jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction("/people"))
 		}
 
-		output, err := ExecutePlanBuilderForApplication(planBuilder)
+		output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 		Expect(err).To(BeNil())
 
 		var summary = statistics.CreateSummary(output)
@@ -183,7 +184,7 @@ var _ = Describe("ExecutionPlan", func() {
 		jobBuilder := planBuilder.CreateJob()
 		jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction("/people"))
 
-		output, err := ExecutePlanBuilderForApplication(planBuilder)
+		output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 		Expect(err).To(BeNil())
 
 		var summary = statistics.CreateSummary(output)
@@ -205,13 +206,13 @@ var _ = Describe("ExecutionPlan", func() {
 			jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction(fmt.Sprintf("/%d", i+1)))
 		}
 
-		_, err := ExecutePlanBuilderForApplication(planBuilder)
+		_, err := test.ExecutePlanBuilderForApplication(planBuilder)
 		Expect(err).To(BeNil())
 
 		firstBatchOfRequests := utils.ConcatRequestPaths(utils.ToHTTPRequestArray(TestServer.Requests))
 		TestServer.Clear()
 
-		_, err = ExecutePlanBuilderForApplication(planBuilder)
+		_, err = test.ExecutePlanBuilderForApplication(planBuilder)
 		Expect(err).To(BeNil())
 		secondBatchOfRequests := utils.ConcatRequestPaths(utils.ToHTTPRequestArray(TestServer.Requests))
 
@@ -237,7 +238,7 @@ var _ = Describe("ExecutionPlan", func() {
 				ToExecuteAction(GetHTTPRequestAction("/boom")).
 				WithAssertion(HTTPStatusExactAssertion(201))
 
-			output, err := ExecutePlanBuilderForApplication(planBuilder)
+			output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
 
 			var summary = statistics.CreateSummary(output)
@@ -254,7 +255,7 @@ var _ = Describe("ExecutionPlan", func() {
 				ToExecuteAction(GetHTTPRequestAction("/boom")).
 				WithAssertion(HTTPStatusExactAssertion(200))
 
-			output, err := ExecutePlanBuilderForApplication(planBuilder)
+			output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
 
 			var summary = statistics.CreateSummary(output)
@@ -271,7 +272,7 @@ var _ = Describe("ExecutionPlan", func() {
 			ToExecuteAction(GetHTTPRequestAction("/people")).
 			WithAssertion(HTTPStatusExactAssertion(201))
 
-		output, err := ExecutePlanBuilderForApplication(planBuilder)
+		output, err := test.ExecutePlanBuilderForApplication(planBuilder)
 		Expect(err).To(BeNil())
 
 		var summary = statistics.CreateSummary(output)

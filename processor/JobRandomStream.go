@@ -31,7 +31,7 @@ func (instance *JobRandomStream) Next() core.Job {
 	if max == 0 {
 		max = 1
 	}
-	randomIndex := Random.Intn(max)
+	randomIndex := RandomMax(max)
 	element := instance.items[randomIndex]
 
 	instance.count++

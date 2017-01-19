@@ -108,12 +108,12 @@ func (instance Adapter) Create(line string) Func {
 var loadRequestBodyFromFile = func(filepath string) *bytes.Buffer {
 	if _, err := os.Stat(filepath); os.IsNotExist(err) {
 		logger.Log.Fatalf("Request body file not found: %s\n", filepath)
-		return nil
+		os.Exit(1)
 	}
 	data, err := ioutil.ReadFile(filepath)
 	if err != nil {
 		logger.Log.Fatalf("Unable to read Request body file: %s\n", filepath)
-		return nil
+		os.Exit(1)
 	}
 	return bytes.NewBuffer(data)
 }

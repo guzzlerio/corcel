@@ -11,8 +11,6 @@ import (
 	"github.com/guzzlerio/corcel/config"
 	"github.com/guzzlerio/corcel/global"
 	"github.com/guzzlerio/corcel/logger"
-	"github.com/guzzlerio/corcel/serialisation/yaml"
-	"github.com/guzzlerio/corcel/test"
 	"github.com/guzzlerio/rizo"
 )
 
@@ -24,14 +22,6 @@ var (
 func TestCorcel(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Corcel Suite")
-}
-
-func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) ([]byte, error) {
-	return test.ExecutePlanBuilder("./corcel", planBuilder)
-}
-
-func ExecutePlanFromData(plan string) ([]byte, error) {
-	return test.ExecutePlanFromData("./corcel", plan)
 }
 
 var _ = BeforeSuite(func() {

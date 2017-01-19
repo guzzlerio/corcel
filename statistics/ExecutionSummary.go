@@ -106,7 +106,6 @@ func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
 	if totalAssertionsFailed != nil {
 		totalAssertionFailuresCount = totalAssertionsFailed[len(totalAssertionsFailed)-1]
 	}
-
 	responseMeanTimes := snapshot.Timers[core.DurationUrn.Timer().String()]["mean"]
 	responseMeanTime := responseMeanTimes[len(responseMeanTimes)-1]
 

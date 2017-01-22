@@ -30,10 +30,11 @@ func planDataToFile(platData string) (*os.File, error) {
 }
 
 //ExecutePlanFromData ...
-func ExecutePlanFromData(planData string) ([]byte, error) {
+func ExecutePlanFromData(planData string, args ...string) (statistics.ExecutionSummary, error) {
+	var parser = statistics.CreateExecutionSummaryCliParser()
 	file, err := planDataToFile(planData)
 	if err != nil {
-		return []byte{}, err
+		return statistics.ExecutionSummary{}, err
 	}
 
 	defer func() {
@@ -43,8 +44,12 @@ func ExecutePlanFromData(planData string) ([]byte, error) {
 		}
 	}()
 
-	args := []string{"--plan"}
-	return executeShell(utils.FindFileUp("corcel"), file, args...)
+	args = append([]string{"--plan"}, args...)
+	output, err := executeShell(utils.FindFileUp("corcel"), file, args...)
+	if err != nil {
+		return statistics.ExecutionSummary{}, err
+	}
+	return parser.Parse(string(output)), err
 }
 
 //ExecutePlanFromDataForApplication ...

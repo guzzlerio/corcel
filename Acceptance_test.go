@@ -18,6 +18,53 @@ import (
 
 var _ = Describe("Acceptance", func() {
 
+	BeforeEach(func() {
+		TestServer.Clear()
+		factory := rizo.HTTPResponseFactory(func(w http.ResponseWriter) {
+			w.Header().Add("done", "1")
+			w.WriteHeader(http.StatusOK)
+		})
+
+		TestServer.Use(factory).For(rizo.RequestWithPath("/people"))
+	})
+
+	AfterEach(func() {
+		TestServer.Clear()
+	})
+
+	Describe("Core Command Line Usage", func() {
+
+		Describe("Plan Usage", func() {
+
+			It("Iterations", func() {
+
+				var plan = fmt.Sprintf(`---
+name: Some Plan
+iterations: 0
+random: false
+workers: 1
+waitTime: 0s
+duration: 0s
+jobs:
+    - name: Some Job
+      steps:
+      - name: Some Step
+        action:
+          type: HttpRequest
+          httpHeaders:
+            key: 1
+          method: GET
+          url: %s`, TestServer.CreateURL("/people"))
+
+				summary, err := test.ExecutePlanFromData(plan, "--summary")
+
+				Expect(err).To(BeNil())
+
+				Expect(summary.TotalRequests).To(Equal(float64(1)))
+			})
+		})
+	})
+
 	It("Halts execution if a payload input file is not found", func() {
 		list := []string{
 			fmt.Sprintf(`%s -X POST -d '{"name":"talula"}'`, URLForTestServer("/success")),

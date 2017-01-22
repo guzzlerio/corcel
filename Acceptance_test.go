@@ -3,8 +3,11 @@ package main_test
 import (
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"regexp"
+	"strconv"
+	"strings"
 
 	. "github.com/guzzlerio/corcel"
 	"github.com/guzzlerio/corcel/errormanager"
@@ -34,13 +37,13 @@ var _ = Describe("Acceptance", func() {
 
 	Describe("Core Command Line Usage", func() {
 
-		Describe("Plan Usage", func() {
+		Describe("Iterations", func() {
 
-			It("Iterations", func() {
+			It("Plan Usage", func() {
 
 				var plan = fmt.Sprintf(`---
 name: Some Plan
-iterations: 0
+iterations: 5
 random: false
 workers: 1
 waitTime: 0s
@@ -60,7 +63,145 @@ jobs:
 
 				Expect(err).To(BeNil())
 
-				Expect(summary.TotalRequests).To(Equal(float64(1)))
+				Expect(summary.TotalRequests).To(Equal(float64(5)))
+			})
+
+			It("List Usage", func() {
+				list := []string{
+					fmt.Sprintf(`%s -X GET'`, TestServer.CreateURL("/people")),
+				}
+				summary, err := test.ExecuteList(list, "--summary", "--iterations", "5")
+				Expect(err).To(BeNil())
+
+				Expect(summary.TotalRequests).To(Equal(float64(5)))
+			})
+		})
+
+		Describe("Workers", func() {
+
+			It("Plan Usage", func() {
+
+				var plan = fmt.Sprintf(`---
+name: Some Plan
+iterations: 0
+random: false
+workers: 5
+waitTime: 0s
+duration: 0s
+jobs:
+    - name: Some Job
+      steps:
+      - name: Some Step
+        action:
+          type: HttpRequest
+          httpHeaders:
+            key: 1
+          method: GET
+          url: %s`, TestServer.CreateURL("/people"))
+
+				summary, err := test.ExecutePlanFromData(plan, "--summary")
+
+				Expect(err).To(BeNil())
+
+				Expect(summary.TotalRequests).To(Equal(float64(5)))
+			})
+
+			It("List Usage", func() {
+				list := []string{
+					fmt.Sprintf(`%s -X GET'`, TestServer.CreateURL("/people")),
+				}
+				summary, err := test.ExecuteList(list, "--summary", "--workers", "5")
+				Expect(err).To(BeNil())
+
+				Expect(summary.TotalRequests).To(Equal(float64(5)))
+			})
+		})
+
+		Describe("Wait Time", func() {
+
+			It("Plan Usage", func() {
+
+				var plan = fmt.Sprintf(`---
+name: Some Plan
+iterations: 5
+random: false
+workers: 1
+waitTime: 1s
+duration: 0s
+jobs:
+    - name: Some Job
+      steps:
+      - name: Some Step
+        action:
+          type: HttpRequest
+          httpHeaders:
+            key: 1
+          method: GET
+          url: %s`, TestServer.CreateURL("/people"))
+
+				summary, err := test.ExecutePlanFromData(plan, "--summary")
+
+				Expect(err).To(BeNil())
+
+				var runningTimeToParse = strings.Replace(summary.RunningTime, "s", "", -1)
+				runningTimeValue, _ := strconv.ParseFloat(runningTimeToParse, 64)
+				Expect(math.Floor(runningTimeValue)).To(Equal(float64(5)))
+			})
+
+			It("List Usage", func() {
+				list := []string{
+					fmt.Sprintf(`%s -X GET'`, TestServer.CreateURL("/people")),
+				}
+				summary, err := test.ExecuteList(list, "--summary", "--wait-time", "1s", "--iterations", "5")
+				Expect(err).To(BeNil())
+
+				var runningTimeToParse = strings.Replace(summary.RunningTime, "s", "", -1)
+				runningTimeValue, _ := strconv.ParseFloat(runningTimeToParse, 64)
+				Expect(math.Floor(runningTimeValue)).To(Equal(float64(5)))
+			})
+		})
+
+		Describe("Duration", func() {
+
+			It("Plan Usage", func() {
+
+				var plan = fmt.Sprintf(`---
+name: Some Plan
+iterations: 0
+random: false
+workers: 1
+waitTime: 0s
+duration: 5s
+jobs:
+    - name: Some Job
+      steps:
+      - name: Some Step
+        action:
+          type: HttpRequest
+          httpHeaders:
+            key: 1
+          method: GET
+          url: %s`, TestServer.CreateURL("/people"))
+
+				summary, err := test.ExecutePlanFromData(plan, "--summary")
+
+				Expect(err).To(BeNil())
+
+				var runningTimeToParse = strings.Replace(summary.RunningTime, "s", "", -1)
+				runningTimeValue, _ := strconv.ParseFloat(runningTimeToParse, 64)
+				Expect(math.Floor(runningTimeValue)).To(Equal(float64(5)))
+			})
+
+			It("List Usage", func() {
+				list := []string{
+					fmt.Sprintf(`%s -X GET'`, TestServer.CreateURL("/people")),
+				}
+				summary, err := test.ExecuteList(list, "--summary", "--duration", "5s")
+				Expect(err).To(BeNil())
+
+				var runningTimeToParse = strings.Replace(summary.RunningTime, "s", "", -1)
+				runningTimeValue, _ := strconv.ParseFloat(runningTimeToParse, 64)
+				Expect(math.Floor(runningTimeValue)).To(Equal(float64(5)))
 			})
 		})
 	})
@@ -71,30 +212,10 @@ jobs:
 			fmt.Sprintf(`%s -X POST -d @missing-file.json`, URLForTestServer("/success")),
 		}
 
-		output, err := test.ExecuteList("./corcel", list)
+		summary, err := test.ExecuteList(list, "--summary")
 		Expect(err).ToNot(BeNil())
 
-		Expect(string(output)).To(ContainSubstring("Request body file not found: missing-file.json"))
-	})
-
-	It("Outputs a summary to STDOUT", func() {
-		list := []string{
-			fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
-			fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
-			fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
-			fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
-			fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
-			fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
-		}
-
-		TestServer.Use(rizo.HTTPResponseFactory(func(w http.ResponseWriter) {
-			w.WriteHeader(500)
-		})).For(rizo.RequestWithPath("/error"))
-
-		output, err := test.ExecuteList("./corcel", list, "--summary")
-		Expect(err).To(BeNil())
-
-		Expect(string(output)).To(ContainSubstring("Summary"))
+		Expect(summary.Error).To(ContainSubstring("Request body file not found: missing-file.json"))
 	})
 
 	It("Error non-http url in the urls file causes a run time exception #21", func() {
@@ -102,9 +223,9 @@ jobs:
 			fmt.Sprintf(`-Something`),
 		}
 
-		output, err := test.ExecuteList("./corcel", list)
+		summary, err := test.ExecuteList(list, "--summary")
 		Expect(err).ToNot(BeNil())
-		Expect(string(output)).To(ContainSubstring(errormanager.LogMessageVaidURLs))
+		Expect(summary.Error).To(ContainSubstring(errormanager.LogMessageVaidURLs))
 	})
 
 	It("Issue - Should write out panics to a log file and not std out", func() {
@@ -128,32 +249,5 @@ jobs:
 		data, err := ioutil.ReadFile(location)
 		Expect(err).To(BeNil())
 		Expect(string(data)).To(ContainSubstring("IPanicAction has caused this panic"))
-	})
-
-	Describe("Shell", func() {
-
-		Describe("run", func() {
-
-			PIt("setting iterations", func() {
-
-			})
-
-			PIt("setting duration", func() {
-
-			})
-
-			PIt("setting workers", func() {
-
-			})
-
-			PIt("setting plan", func() {
-
-			})
-
-			PIt("setting summary", func() {
-
-			})
-		})
-
 	})
 })

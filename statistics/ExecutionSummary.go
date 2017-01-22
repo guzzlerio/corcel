@@ -31,6 +31,7 @@ type ExecutionSummary struct {
 	TotalAssertions        int64
 	TotalAssertionFailures int64
 	Bytes                  ByteSummary
+	Error                  string
 }
 
 //CreateSummary ...

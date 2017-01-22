@@ -156,7 +156,10 @@ func ExecuteListForApplication(list []string, configuration config.Configuration
 }
 
 //ExecuteList ...
-func ExecuteList(path string, list []string, args ...string) ([]byte, error) {
+func ExecuteList(list []string, args ...string) (statistics.ExecutionSummary, error) {
+
+	var parser = statistics.CreateExecutionSummaryCliParser()
+	path := utils.FindFileUp("corcel")
 
 	file := utils.CreateFileFromLines(list)
 	defer func() {
@@ -166,7 +169,11 @@ func ExecuteList(path string, list []string, args ...string) ([]byte, error) {
 		}
 	}()
 
-	return executeShell(path, file, args...)
+	output, err := executeShell(path, file, args...)
+	if err != nil {
+		return statistics.ExecutionSummary{Error: string(output)}, err
+	}
+	return parser.Parse(string(output)), err
 }
 
 func executeShell(path string, file *os.File, args ...string) ([]byte, error) {

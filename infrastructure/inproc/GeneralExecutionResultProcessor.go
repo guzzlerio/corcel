@@ -12,6 +12,9 @@ import (
 //Throughput ...
 var Throughput = 0
 
+//ProcessEventsSubscribed ...
+var ProcessEventsSubscribed = 0
+
 //NewGeneralExecutionResultProcessor ...
 func NewGeneralExecutionResultProcessor() GeneralExecutionResultProcessor {
 	return GeneralExecutionResultProcessor{}

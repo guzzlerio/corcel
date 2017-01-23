@@ -99,6 +99,8 @@ var _ = Describe("Main", func() {
 				}
 
 				inproc.Throughput = 0
+				inproc.ProcessEventsSubscribed = 0
+
 				output, err := SutExecuteApplication(list, config.Configuration{
 					Workers: workers,
 				})
@@ -106,7 +108,13 @@ var _ = Describe("Main", func() {
 
 				var summary = statistics.CreateSummary(output)
 				//if summary.TotalRequests != float64(len(list)*workers) {
-				fmt.Println(fmt.Sprintf("Expected %v Total Requests %v", float64(len(list)*workers), inproc.Throughput))
+				fmt.Println(fmt.Sprintf(`
+				Expected %v 
+				Total Requests %v
+				Process Events Subscribed %v
+				`, float64(len(list)*workers),
+					inproc.Throughput,
+					inproc.ProcessEventsSubscribed))
 				//}
 
 				Expect(summary.TotalErrors).To(Equal(float64(0)))

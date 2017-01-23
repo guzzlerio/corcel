@@ -8,6 +8,7 @@ import (
 	"github.com/guzzlerio/corcel/config"
 	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/errormanager"
+	"github.com/guzzlerio/corcel/infrastructure/inproc"
 	"github.com/guzzlerio/corcel/statistics"
 )
 
@@ -43,6 +44,7 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 	go func() {
 		defer errormanager.HandlePanic()
 		for executionResult := range subscription.Channel {
+			inproc.ProcessEventsSubscribed = inproc.ProcessEventsSubscribed + 1
 			result := executionResult.(core.ExecutionResult)
 			for _, processor := range instance.registry.ResultProcessors {
 				processor.Process(result, metricsRegistry)

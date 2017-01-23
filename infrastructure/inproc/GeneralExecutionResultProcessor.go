@@ -9,6 +9,9 @@ import (
 	"github.com/rcrowley/go-metrics"
 )
 
+//Throughput ...
+var Throughput = 0
+
 //NewGeneralExecutionResultProcessor ...
 func NewGeneralExecutionResultProcessor() GeneralExecutionResultProcessor {
 	return GeneralExecutionResultProcessor{}
@@ -31,6 +34,8 @@ func (instance GeneralExecutionResultProcessor) Process(result core.ExecutionRes
 
 	throughput := metrics.GetOrRegisterMeter(core.ThroughputUrn.Meter().String(), registry)
 	throughput.Mark(1)
+
+	Throughput = Throughput + 1
 
 	errors := metrics.GetOrRegisterMeter(core.ErrorUrn.Meter().String(), registry)
 

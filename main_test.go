@@ -17,6 +17,7 @@ import (
 	"github.com/guzzlerio/corcel/config"
 	"github.com/guzzlerio/corcel/errormanager"
 	"github.com/guzzlerio/corcel/global"
+	"github.com/guzzlerio/corcel/infrastructure/inproc"
 	"github.com/guzzlerio/corcel/statistics"
 	"github.com/guzzlerio/corcel/test"
 	. "github.com/guzzlerio/corcel/utils"
@@ -103,6 +104,9 @@ var _ = Describe("Main", func() {
 				Expect(err).To(BeNil())
 
 				var summary = statistics.CreateSummary(output)
+				if summary.TotalRequests != float64(len(list)*workers) {
+					fmt.Println(fmt.Sprintf("Total Requests %v", inproc.Throughput))
+				}
 
 				Expect(summary.TotalErrors).To(Equal(float64(0)))
 				Expect(summary.TotalRequests).To(Equal(float64(len(list) * workers)))

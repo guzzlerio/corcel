@@ -15,6 +15,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	yamlFormat "github.com/ghodss/yaml"
+	"github.com/guzzlerio/corcel/core"
 	"github.com/imdario/mergo"
 	"github.com/mitchellh/go-homedir"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -22,16 +23,18 @@ import (
 
 //Configuration ...
 type Configuration struct {
-	Iterations int           `json:"iterations"`
-	Random     bool          `json:"random"`
-	Summary    bool          `json:"summary"`
-	LogLevel   log.Level     `json:"log-level"`
-	Workers    int           `json:"workers"`
-	Duration   time.Duration `json:"duration"`
-	WaitTime   time.Duration `json:"wait-time"`
-	Progress   string        `json:"progress"`
-	Plan       bool          `json:"plan"`
-	FilePath   string
+	Iterations     int
+	Random         bool
+	Summary        bool
+	SummaryFormat  string `json:"summary-format"`
+	SummaryBuilder core.SummaryBuilder
+	LogLevel       log.Level `json:"log-level"`
+	Workers        int
+	Duration       time.Duration
+	WaitTime       time.Duration `json:"wait-time"`
+	Progress       string
+	Plan           bool
+	FilePath       string
 }
 
 func (instance *Configuration) validate() error {
@@ -173,15 +176,18 @@ func UserDirConfig() (*Configuration, error) {
 func DefaultConfig() Configuration {
 	waitTime := time.Duration(0)
 	duration := time.Duration(0)
+	summaryBuilder := cmd.NewConsoleSummaryBuilder()
 	return Configuration{
-		Duration: duration,
-		Plan:     false,
-		Random:   false,
-		Summary:  false,
-		Workers:  1,
-		WaitTime: waitTime,
-		LogLevel: log.FatalLevel,
-		Progress: "logo",
+		Duration:       duration,
+		Plan:           false,
+		Random:         false,
+		Summary:        false,
+		SummaryFormat:  "console",
+		SummaryBuilder: summaryBuilder,
+		Workers:        1,
+		WaitTime:       waitTime,
+		LogLevel:       log.FatalLevel,
+		Progress:       "logo",
 	}
 }
 

@@ -91,7 +91,9 @@ func (instance *RunCommand) run(c *kingpin.ParseContext) error {
 	reporter.Generate(output)
 
 	if configuration.Summary {
-		outputSummary(output)
+		summary := statistics.CreateSummary(snapshot)
+		configuration.SummaryBuilder.Write(summary)
+		// outputSummary(output)
 	}
 	return nil
 }
@@ -130,37 +132,6 @@ func addExecutionToHistory(file string, output statistics.AggregatorSnapShot) {
 	check(err)
 	err = ioutil.WriteFile(outputPath, yamlOutput, 0644)
 	check(err)
-}
-
-func outputSummary(snapshot statistics.AggregatorSnapShot) {
-	summary := statistics.CreateSummary(snapshot)
-
-	top(os.Stdout)
-	line(os.Stdout, "Running Time", summary.RunningTime)
-	line(os.Stdout, "Throughput", fmt.Sprintf("%-.0f req/s", summary.Throughput))
-	line(os.Stdout, "Total Requests", fmt.Sprintf("%-.0f", summary.TotalRequests))
-	line(os.Stdout, "Number of Errors", fmt.Sprintf("%-.0f", summary.TotalErrors))
-	line(os.Stdout, "Availability", fmt.Sprintf("%-.4f%%", summary.Availability))
-	line(os.Stdout, "Bytes Sent", fmt.Sprintf("%v", humanize.Bytes(uint64(summary.Bytes.TotalSent))))
-	line(os.Stdout, "Bytes Received", fmt.Sprintf("%v", humanize.Bytes(uint64(summary.Bytes.TotalReceived))))
-	line(os.Stdout, "Mean Response Time", fmt.Sprintf("%.4f ms", summary.MeanResponseTime))
-	line(os.Stdout, "Min Response Time", fmt.Sprintf("%.4f ms", summary.MinResponseTime))
-	line(os.Stdout, "Max Response Time", fmt.Sprintf("%.4f ms", summary.MaxResponseTime))
-	tail(os.Stdout)
-}
-
-func top(writer io.Writer) {
-	fmt.Fprintln(writer, "╔═══════════════════════════════════════════════════════════════════╗")
-	fmt.Fprintln(writer, "║                           Summary                                 ║")
-	fmt.Fprintln(writer, "╠═══════════════════════════════════════════════════════════════════╣")
-}
-
-func tail(writer io.Writer) {
-	fmt.Fprintln(writer, "╚═══════════════════════════════════════════════════════════════════╝")
-}
-
-func line(writer io.Writer, label string, value string) {
-	fmt.Fprintf(writer, "║ %20s: %-43s ║\n", label, value)
 }
 
 func check(err error) {

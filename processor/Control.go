@@ -32,7 +32,8 @@ type Controller struct {
 func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, error) {
 	id := NewExecutionID()
 
-	instance.aggregator = statistics.NewAggregator(metrics.DefaultRegistry)
+	var metricsRegistry = metrics.NewRegistry()
+	instance.aggregator = statistics.NewAggregator(metricsRegistry)
 
 	executor := CreatePlanExecutor(config, instance.bar, instance.registry, instance.aggregator)
 
@@ -44,7 +45,7 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 		for executionResult := range subscription.Channel {
 			result := executionResult.(core.ExecutionResult)
 			for _, processor := range instance.registry.ResultProcessors {
-				processor.Process(result, metrics.DefaultRegistry)
+				processor.Process(result, metricsRegistry)
 			}
 		}
 		wg.Done()

@@ -2,7 +2,6 @@ package http_test
 
 import (
 	"io/ioutil"
-	"os"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -14,8 +13,6 @@ import (
 	"github.com/guzzlerio/corcel/config"
 	"github.com/guzzlerio/corcel/global"
 	"github.com/guzzlerio/corcel/logger"
-	"github.com/guzzlerio/corcel/serialisation/yaml"
-	"github.com/guzzlerio/corcel/test"
 )
 
 var (
@@ -35,19 +32,8 @@ var _ = BeforeSuite(func() {
 	logger.Log.Out = ioutil.Discard
 	TestServer = rizo.CreateRequestRecordingServer(global.TestPort)
 	TestServer.Start()
-
-	os.Remove("./output.yml")
-	os.Remove("./history.yml")
 })
 
 var _ = AfterSuite(func() {
 	TestServer.Stop()
 })
-
-func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) ([]byte, error) {
-	return test.ExecutePlanBuilder("../.././corcel", planBuilder)
-}
-
-func ExecutePlanFromData(plan string) ([]byte, error) {
-	return test.ExecutePlanFromData("../.././corcel", plan)
-}

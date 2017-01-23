@@ -3,12 +3,9 @@ package cmd
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
-	"path/filepath"
 
 	"github.com/dustin/go-humanize"
-	yamlv2 "github.com/ghodss/yaml"
 	"gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/guzzlerio/corcel/config"
@@ -78,14 +75,9 @@ func (instance *RunCommand) run(c *kingpin.ParseContext) error {
 	}
 	logger.ConfigureLogging(configuration)
 
-	host := NewConsoleHost(configuration, *instance.registry)
-	id, _ := host.Control.Start(configuration) //will this block?
-	output := host.Control.Stop(id)
-
-	//TODO these should probably be pushed behind the host.Control.Stop afterall the host is a cmd host
-	generateExecutionOutput("./output.yml", output)
-
-	addExecutionToHistory("./history.yml", output)
+	//This will not be anything other than a Console Host as we are working with Run command and Server command. In essence being in this method means we are inside the Console Host.
+	app := Application{}
+	output := app.Execute(configuration)
 
 	reporter := report.CreateHTMLReporter()
 	reporter.Generate(output)
@@ -94,42 +86,6 @@ func (instance *RunCommand) run(c *kingpin.ParseContext) error {
 		outputSummary(output)
 	}
 	return nil
-}
-
-func generateExecutionOutput(file string, output statistics.AggregatorSnapShot) {
-	outputPath, err := filepath.Abs(file)
-	check(err)
-	yamlOutput, err := yamlv2.Marshal(&output)
-	check(err)
-	err = ioutil.WriteFile(outputPath, yamlOutput, 0644)
-	check(err)
-}
-
-func addExecutionToHistory(file string, output statistics.AggregatorSnapShot) {
-
-	var summary statistics.AggregatorSnapShot
-
-	outputPath, err := filepath.Abs(file)
-	check(err)
-
-	if _, err = os.Stat(outputPath); os.IsNotExist(err) {
-		summary = *statistics.NewAggregatorSnapShot()
-	} else {
-		data, dataErr := ioutil.ReadFile(outputPath)
-		if dataErr != nil {
-			panic(dataErr)
-		}
-		yamlErr := yamlv2.Unmarshal(data, &summary)
-		if yamlErr != nil {
-			panic(yamlErr)
-		}
-	}
-	summary.Update(output)
-
-	yamlOutput, err := yamlv2.Marshal(&summary)
-	check(err)
-	err = ioutil.WriteFile(outputPath, yamlOutput, 0644)
-	check(err)
 }
 
 func outputSummary(snapshot statistics.AggregatorSnapShot) {

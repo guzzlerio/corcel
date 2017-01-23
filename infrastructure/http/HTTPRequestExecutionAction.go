@@ -113,6 +113,10 @@ func (instance HTTPAction) Execute(ctx context.Context, executionContext core.Ex
 		response, err := instance.client.Do(req)
 		if err != nil {
 			result[core.ErrorUrn.String()] = err
+
+			//TODO: ONLY log the error if it is not a cancellation error.
+			//This is the only condition so far when NOT to log the error!
+			//logrus.Errorf("HTTP ERROR %v", err)
 			return result
 		}
 		defer func() {

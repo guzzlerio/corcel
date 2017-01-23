@@ -359,7 +359,7 @@ func (instance *Aggregator) createSnapshot() {
 		case metrics.Counter:
 			counter := metric.Snapshot()
 			instance.logCounter(name, counter.Count())
-			metric.Clear()
+			//metric.Clear()
 		case metrics.Gauge:
 			instance.logGuage(name, float64(metric.Snapshot().Value()))
 		case metrics.GaugeFloat64:

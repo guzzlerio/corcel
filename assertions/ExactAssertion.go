@@ -49,7 +49,9 @@ func (instance *ExactAssertion) Assert(executionResult core.ExecutionResult) cor
 	//       Without doing this you will need to check for actual and expected types, look at the greater than assertion
 	//       for an example.   Since the yaml library change and the fact that everything ends up in json, the types it uses
 	//       are string, bool and float64 but not int.
-	if fmt.Sprintf("%v", actual) == fmt.Sprintf("%v", instance.Value) {
+	var actualFormatted = fmt.Sprintf("%v", actual)
+	var valueFormatted = fmt.Sprintf("%v", instance.Value)
+	if actualFormatted != "" && valueFormatted != "" && actualFormatted == valueFormatted {
 		return instance.pass(executionResult)
 	}
 	return instance.fail(executionResult)

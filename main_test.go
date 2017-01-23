@@ -100,6 +100,7 @@ var _ = Describe("Main", func() {
 
 				inproc.Throughput = 0
 				inproc.ProcessEventsSubscribed = 0
+				inproc.ProcessEventsPublished = 0
 
 				output, err := SutExecuteApplication(list, config.Configuration{
 					Workers: workers,
@@ -112,9 +113,11 @@ var _ = Describe("Main", func() {
 				Expected %v 
 				Total Requests %v
 				Process Events Subscribed %v
+				Process Events Published %v
 				`, float64(len(list)*workers),
 					inproc.Throughput,
-					inproc.ProcessEventsSubscribed))
+					inproc.ProcessEventsSubscribed,
+					inproc.ProcessEventsPublished))
 				//}
 
 				Expect(summary.TotalErrors).To(Equal(float64(0)))

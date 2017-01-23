@@ -98,6 +98,7 @@ var _ = Describe("Main", func() {
 					fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
 				}
 
+				inproc.Throughput = 0
 				output, err := SutExecuteApplication(list, config.Configuration{
 					Workers: workers,
 				})
@@ -105,7 +106,7 @@ var _ = Describe("Main", func() {
 
 				var summary = statistics.CreateSummary(output)
 				//if summary.TotalRequests != float64(len(list)*workers) {
-				fmt.Println(fmt.Sprintf("Total Requests %v", inproc.Throughput))
+				fmt.Println(fmt.Sprintf("Expected %v Total Requests %v", float64(len(list)*workers), inproc.Throughput))
 				//}
 
 				Expect(summary.TotalErrors).To(Equal(float64(0)))

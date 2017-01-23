@@ -9,7 +9,7 @@ import (
 
 	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/statistics"
-	"github.com/guzzlerio/corcel/utils"
+	"github.com/guzzlerio/corcel/test"
 	"github.com/guzzlerio/rizo"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -45,12 +45,10 @@ jobs:
       key: urn:http:response:headers:x-boom
       expected: "1"`, TestServer.CreateURL("/people"))
 
-		_, err := ExecutePlanFromData(plan)
+		output, err := test.ExecutePlanFromDataForApplication(plan)
 		Expect(err).To(BeNil())
 
-		var executionOutput statistics.AggregatorSnapShot
-		utils.UnmarshalYamlFromFile("./output.yml", &executionOutput)
-		var summary = statistics.CreateSummary(executionOutput)
+		var summary = statistics.CreateSummary(output)
 
 		Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 	})
@@ -66,7 +64,7 @@ jobs:
 			CreateStep().
 			ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-		_, err := ExecutePlanBuilder(planBuilder)
+		_, err := test.ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())
 		Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithBody(body))).To(Equal(true))
 	})
@@ -91,7 +89,7 @@ jobs:
       url: %s
 `, TestServer.CreateURL("/people"))
 
-		_, err := ExecutePlanFromData(plan)
+		_, err := test.ExecutePlanFromData(plan)
 		Expect(err).To(BeNil())
 		Expect(TestServer.Find(rizo.RequestWithHeader("key", "1"))).To(Equal(true))
 	})
@@ -125,7 +123,7 @@ jobs:
 			CreateStep().
 			ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-		_, err = ExecutePlanBuilder(planBuilder)
+		_, err = test.ExecutePlanBuilder(planBuilder)
 		Expect(err).To(BeNil())
 		Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithBody(string(content)))).To(Equal(true))
 	})

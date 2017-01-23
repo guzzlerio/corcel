@@ -37,6 +37,26 @@ type Configuration struct {
 	FilePath       string
 }
 
+//WithDuration converts a string duration into a time value and adds it to the configuration
+func (instance Configuration) WithDuration(duration string) Configuration {
+	value, err := time.ParseDuration(duration)
+	if err != nil {
+		panic(err)
+	}
+	instance.Duration = value
+	return instance
+}
+
+//WithWaitTime ...
+func (instance Configuration) WithWaitTime(waitTime string) Configuration {
+	value, err := time.ParseDuration(waitTime)
+	if err != nil {
+		panic(err)
+	}
+	instance.WaitTime = value
+	return instance
+}
+
 func (instance *Configuration) validate() error {
 	if err := instance.handleHTTPEndpointForURLFile(); err != nil {
 		return err

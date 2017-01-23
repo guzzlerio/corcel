@@ -391,5 +391,7 @@ func (instance *PlanExecutor) Execute() error {
 		_ = action.Execute(ctx, nil)
 	}
 
+	cancel()
+
 	return nil
 }

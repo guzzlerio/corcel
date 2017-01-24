@@ -10,7 +10,6 @@ import (
 	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/errormanager"
 	"github.com/guzzlerio/corcel/infrastructure/http"
-	"github.com/guzzlerio/corcel/infrastructure/inproc"
 	"github.com/guzzlerio/corcel/request"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/statistics"
@@ -99,7 +98,7 @@ func (instance *PlanExecutionContext) workerExecuteJob(ctx context.Context, job 
 			_ = action.Execute(ctx, nil)
 		}
 
-		inproc.ProcessEventsPublished = inproc.ProcessEventsPublished + 1
+		//inproc.ProcessEventsPublished = inproc.ProcessEventsPublished + 1
 		instance.Publisher.Publish(executionResult)
 	}
 }
@@ -393,8 +392,6 @@ func (instance *PlanExecutor) Execute() error {
 	for _, action := range mainPlan.After {
 		_ = action.Execute(ctx, nil)
 	}
-
-	cancel()
 
 	return nil
 }

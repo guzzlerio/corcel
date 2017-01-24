@@ -17,7 +17,6 @@ import (
 	"github.com/guzzlerio/corcel/config"
 	"github.com/guzzlerio/corcel/errormanager"
 	"github.com/guzzlerio/corcel/global"
-	"github.com/guzzlerio/corcel/infrastructure/inproc"
 	"github.com/guzzlerio/corcel/statistics"
 	"github.com/guzzlerio/corcel/test"
 	. "github.com/guzzlerio/corcel/utils"
@@ -98,9 +97,9 @@ var _ = Describe("Main", func() {
 					fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
 				}
 
-				inproc.Throughput = 0
-				inproc.ProcessEventsSubscribed = 0
-				inproc.ProcessEventsPublished = 0
+				//inproc.Throughput = 0
+				//inproc.ProcessEventsSubscribed = 0
+				//inproc.ProcessEventsPublished = 0
 
 				output, err := SutExecuteApplication(list, config.Configuration{
 					Workers: workers,
@@ -109,15 +108,17 @@ var _ = Describe("Main", func() {
 
 				var summary = statistics.CreateSummary(output)
 				//if summary.TotalRequests != float64(len(list)*workers) {
-				fmt.Println(fmt.Sprintf(`
-				Expected %v 
-				Total Requests %v
-				Process Events Subscribed %v
-				Process Events Published %v
-				`, float64(len(list)*workers),
-					inproc.Throughput,
-					inproc.ProcessEventsSubscribed,
-					inproc.ProcessEventsPublished))
+				/*
+					fmt.Println(fmt.Sprintf(`
+					Expected %v
+					Total Requests %v
+					Process Events Subscribed %v
+					Process Events Published %v
+					`, float64(len(list)*workers),
+						inproc.Throughput,
+						inproc.ProcessEventsSubscribed,
+						inproc.ProcessEventsPublished))
+				*/
 				//}
 
 				Expect(summary.TotalErrors).To(Equal(float64(0)))

@@ -20,8 +20,4 @@ var _ = Describe("EmptyAssertionParser", func() {
 
 		Expect(assertion.Key).To(Equal(expected))
 	})
-
-	It("Returns the correct key", func() {
-
-	})
 })

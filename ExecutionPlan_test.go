@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"net/http"
-	"time"
 
 	"github.com/guzzlerio/rizo"
 	. "github.com/onsi/ginkgo"
@@ -171,7 +170,7 @@ var _ = Describe("ExecutionPlan", func() {
 
 		var summary = statistics.CreateSummary(output)
 
-		actual, _ := time.ParseDuration(summary.RunningTime)
+		actual := summary.RunningTime
 		seconds := actual.Seconds()
 		seconds = math.Floor(seconds)
 		Expect(seconds).To(Equal(float64(3)))
@@ -189,7 +188,7 @@ var _ = Describe("ExecutionPlan", func() {
 
 		var summary = statistics.CreateSummary(output)
 
-		actual, _ := time.ParseDuration(summary.RunningTime)
+		actual := summary.RunningTime
 		seconds := actual.Seconds()
 		seconds = math.Floor(seconds)
 		Expect(seconds).To(Equal(float64(3)))

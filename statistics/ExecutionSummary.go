@@ -23,7 +23,7 @@ type ExecutionSummary struct {
 	TotalRequests          float64
 	TotalErrors            float64
 	Availability           float64
-	RunningTime            string
+	RunningTime            time.Duration
 	Throughput             float64
 	MeanResponseTime       float64
 	MinResponseTime        float64
@@ -117,7 +117,7 @@ func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
 	responseMaxTime := responseMaxTimes[len(responseMaxTimes)-1]
 
 	return ExecutionSummary{
-		RunningTime:            duration.String(),
+		RunningTime:            duration,
 		TotalRequests:          count,
 		TotalErrors:            errorCount,
 		Availability:           availability,

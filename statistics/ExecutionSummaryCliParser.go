@@ -3,6 +3,7 @@ package statistics
 import (
 	"regexp"
 	"strconv"
+	"time"
 )
 
 //ExecutionSummaryCliParser ...
@@ -50,9 +51,17 @@ func checkMatchInt64(match []string) int64 {
 	return int64(value)
 }
 
-func parseRunningTime(data string) string {
+func checkMatchTime(match []string) time.Duration {
+	if len(match) != 2 {
+		return time.Duration(-1)
+	}
+	value, _ := time.ParseDuration(match[1])
+	return value
+}
+
+func parseRunningTime(data string) time.Duration {
 	var runningTime = regexp.MustCompile(`Running Time: ([\d\w\.]+)`)
-	return checkMatchString(runningTime.FindStringSubmatch(data))
+	return checkMatchTime(runningTime.FindStringSubmatch(data))
 }
 
 func parseThroughput(data string) float64 {

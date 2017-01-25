@@ -6,8 +6,6 @@ import (
 	"math"
 	"net/http"
 	"regexp"
-	"strconv"
-	"strings"
 
 	. "github.com/guzzlerio/corcel"
 	"github.com/guzzlerio/corcel/errormanager"
@@ -143,9 +141,7 @@ jobs:
 
 				Expect(err).To(BeNil())
 
-				var runningTimeToParse = strings.Replace(summary.RunningTime, "s", "", -1)
-				runningTimeValue, _ := strconv.ParseFloat(runningTimeToParse, 64)
-				Expect(math.Floor(runningTimeValue)).To(Equal(float64(5)))
+				Expect(math.Floor(summary.RunningTime.Seconds())).To(Equal(float64(5)))
 			})
 
 			It("List Usage", func() {
@@ -155,9 +151,7 @@ jobs:
 				summary, err := test.ExecuteList(list, "--summary", "--wait-time", "1s", "--iterations", "5")
 				Expect(err).To(BeNil())
 
-				var runningTimeToParse = strings.Replace(summary.RunningTime, "s", "", -1)
-				runningTimeValue, _ := strconv.ParseFloat(runningTimeToParse, 64)
-				Expect(math.Floor(runningTimeValue)).To(Equal(float64(5)))
+				Expect(math.Floor(summary.RunningTime.Seconds())).To(Equal(float64(5)))
 			})
 		})
 
@@ -187,9 +181,7 @@ jobs:
 
 				Expect(err).To(BeNil())
 
-				var runningTimeToParse = strings.Replace(summary.RunningTime, "s", "", -1)
-				runningTimeValue, _ := strconv.ParseFloat(runningTimeToParse, 64)
-				Expect(math.Floor(runningTimeValue)).To(Equal(float64(5)))
+				Expect(math.Floor(summary.RunningTime.Seconds())).To(Equal(float64(5)))
 			})
 
 			It("List Usage", func() {
@@ -199,9 +191,7 @@ jobs:
 				summary, err := test.ExecuteList(list, "--summary", "--duration", "5s")
 				Expect(err).To(BeNil())
 
-				var runningTimeToParse = strings.Replace(summary.RunningTime, "s", "", -1)
-				runningTimeValue, _ := strconv.ParseFloat(runningTimeToParse, 64)
-				Expect(math.Floor(runningTimeValue)).To(Equal(float64(5)))
+				Expect(math.Floor(summary.RunningTime.Seconds())).To(Equal(float64(5)))
 			})
 		})
 	})

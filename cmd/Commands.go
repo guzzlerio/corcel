@@ -92,7 +92,7 @@ func outputSummary(snapshot statistics.AggregatorSnapShot) {
 	summary := statistics.CreateSummary(snapshot)
 
 	top(os.Stdout)
-	line(os.Stdout, "Running Time", summary.RunningTime)
+	line(os.Stdout, "Running Time", summary.RunningTime.String())
 	line(os.Stdout, "Throughput", fmt.Sprintf("%-.0f req/s", summary.Throughput))
 	line(os.Stdout, "Total Requests", fmt.Sprintf("%-.0f", summary.TotalRequests))
 	line(os.Stdout, "Number of Errors", fmt.Sprintf("%-.0f", summary.TotalErrors))

@@ -48,7 +48,7 @@ var _ = Describe("Main", func() {
 
 			var summary = statistics.CreateSummary(output)
 
-			actual, _ := time.ParseDuration(summary.RunningTime)
+			actual := summary.RunningTime
 			seconds := actual.Seconds()
 			seconds = math.Floor(seconds)
 			Expect(seconds).To(Equal(float64(5)))

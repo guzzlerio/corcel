@@ -57,7 +57,7 @@ var _ = Describe("Bugs replication", func() {
 
 		var summary = statistics.CreateSummary(output)
 
-		runningTime, _ := time.ParseDuration(summary.RunningTime)
+		runningTime := summary.RunningTime
 		Expect(math.Floor(runningTime.Seconds())).To(Equal(float64(1)))
 	})
 })

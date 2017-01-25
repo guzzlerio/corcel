@@ -1,6 +1,9 @@
 package statistics
 
 import (
+	"math"
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -17,7 +20,7 @@ var _ = Describe("ExecutionSummaryCliParser", func() {
 		})
 
 		It("Parses Running Time", func() {
-			Expect(executionSummary.RunningTime).To(Equal(""))
+			Expect(executionSummary.RunningTime).To(Equal(time.Duration(-1)))
 		})
 
 		It("Parses Throughput", func() {
@@ -62,7 +65,7 @@ var _ = Describe("ExecutionSummaryCliParser", func() {
 ╔═══════════════════════════════════════════════════════════════════╗
 ║                           Summary                                 ║
 ╠═══════════════════════════════════════════════════════════════════╣
-║         Running Time: 2.993643ms                                  ║
+║         Running Time: 3.093643s                                   ║
 ║           Throughput: 232288 req/s                                ║
 ║       Total Requests: 1                                           ║
 ║     Number of Errors: 0                                           ║
@@ -82,7 +85,7 @@ var _ = Describe("ExecutionSummaryCliParser", func() {
 		})
 
 		It("Parses Running Time", func() {
-			Expect(executionSummary.RunningTime).To(Equal("2.993643ms"))
+			Expect(math.Floor(executionSummary.RunningTime.Seconds())).To(Equal(float64(3)))
 		})
 
 		It("Parses Throughput", func() {

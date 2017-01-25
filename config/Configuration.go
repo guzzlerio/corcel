@@ -15,7 +15,6 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	yamlFormat "github.com/ghodss/yaml"
-	"github.com/guzzlerio/corcel/core"
 	"github.com/imdario/mergo"
 	"github.com/mitchellh/go-homedir"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -23,18 +22,17 @@ import (
 
 //Configuration ...
 type Configuration struct {
-	Iterations     int
-	Random         bool
-	Summary        bool
-	SummaryFormat  string `json:"summary-format"`
-	SummaryBuilder core.SummaryBuilder
-	LogLevel       log.Level `json:"log-level"`
-	Workers        int
-	Duration       time.Duration
-	WaitTime       time.Duration `json:"wait-time"`
-	Progress       string
-	Plan           bool
-	FilePath       string
+	Iterations    int
+	Random        bool
+	Summary       bool
+	SummaryFormat string    `json:"summary-format"`
+	LogLevel      log.Level `json:"log-level"`
+	Workers       int
+	Duration      time.Duration
+	WaitTime      time.Duration `json:"wait-time"`
+	Progress      string
+	Plan          bool
+	FilePath      string
 }
 
 //WithDuration converts a string duration into a time value and adds it to the configuration
@@ -95,7 +93,6 @@ func ParseConfiguration(cfg *Configuration) (*Configuration, error) {
 			return nil, err
 		}
 	}
-	configuration.SummaryBuilder = core.NewSummaryBuilder(configuration.SummaryFormat)
 	SetLogLevel(configuration, eachConfig)
 	//log.WithFields(log.Fields{"config": config}).Info("Configuration")
 

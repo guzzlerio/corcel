@@ -19,6 +19,8 @@ func NewSummaryBuilder(format string) SummaryBuilder {
 	switch format {
 	case "json":
 		return &JSONSummaryBuilder{}
+	case "yaml":
+		return &YAMLSummaryBuilder{}
 	default:
 		return NewConsoleSummaryBuilder()
 	}
@@ -47,7 +49,6 @@ func NewConsoleSummaryBuilder() *ConsoleSummaryBuilder {
 
 func (i *ConsoleSummaryBuilder) Write(summary ExecutionSummary) {
 
-	fmt.Fprintf(i.writer, "w: %v h: %v\n", i.width, i.height)
 	i.top()
 	i.line("Running Time", summary.RunningTime)
 	i.line("Throughput", fmt.Sprintf("%-.0f req/s", summary.Throughput))
@@ -56,9 +57,9 @@ func (i *ConsoleSummaryBuilder) Write(summary ExecutionSummary) {
 	i.line("Availability", fmt.Sprintf("%-.4f%%", summary.Availability))
 	i.line("Bytes Sent", fmt.Sprintf("%v", humanize.Bytes(uint64(summary.Bytes.Sent.Total))))
 	i.line("Bytes Received", fmt.Sprintf("%v", humanize.Bytes(uint64(summary.Bytes.Received.Total))))
-	i.line("Mean Response Time", fmt.Sprintf("%.4f ms", summary.MeanResponseTime))
-	i.line("Min Response Time", fmt.Sprintf("%.4f ms", summary.MinResponseTime))
-	i.line("Max Response Time", fmt.Sprintf("%.4f ms", summary.MaxResponseTime))
+	i.line("Mean Response Time", fmt.Sprintf("%.4f ms", summary.ResponseTime.Mean))
+	i.line("Min Response Time", fmt.Sprintf("%.4f ms", summary.ResponseTime.Min))
+	i.line("Max Response Time", fmt.Sprintf("%.4f ms", summary.ResponseTime.Max))
 	i.tail()
 }
 
@@ -76,6 +77,14 @@ func (i *ConsoleSummaryBuilder) line(label string, value string) {
 	data := fmt.Sprintf("%23s: %-22s", label, value)
 	// fmt.Fprintf(i.writer, "data len: %v\n", len(label+": "+value))
 	fmt.Fprintf(i.writer, "║ %s ║\n", data)
+}
+
+type YAMLSummaryBuilder struct {
+}
+
+func (this *YAMLSummaryBuilder) Write(summary ExecutionSummary) {
+	yamlData, _ := yaml.Marshal(summary)
+	fmt.Println(string(yamlData))
 }
 
 type JSONSummaryBuilder struct {

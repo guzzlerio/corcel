@@ -211,9 +211,9 @@ var _ = Describe("Main", func() {
 
 		var summary = statistics.CreateSummary(output)
 
-		Expect(summary.MaxResponseTime).To(BeNumerically(">", 0))
-		Expect(summary.MeanResponseTime).To(BeNumerically(">", 0))
-		Expect(summary.MinResponseTime).To(BeNumerically(">", 0))
+		Expect(summary.ResponseTime.Max).To(BeNumerically(">", 0))
+		Expect(summary.ResponseTime.Mean).To(BeNumerically(">", 0))
+		Expect(summary.ResponseTime.Min).To(BeNumerically(">", 0))
 	})
 
 	It("Generate statistics of data from the execution", func() {

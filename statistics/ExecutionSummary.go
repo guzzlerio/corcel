@@ -56,20 +56,20 @@ func CreateSummary(snapshot AggregatorSnapShot) core.ExecutionSummary {
 
 	bytesReceivedHistogram := snapshot.Histograms[core.BytesReceivedCountUrn.Histogram().String()]
 	if bytesReceivedHistogram != nil {
-		bytes.Received = core.MinMaxMeanTotalInt{
-			Min:   valueFromHistogram(bytesReceivedHistogram["min"]),
-			Max:   valueFromHistogram(bytesReceivedHistogram["max"]),
-			Mean:  valueFromHistogram(bytesReceivedHistogram["mean"]),
+		bytes.Received = core.ByteStat{
+			Min:   int64FromHistogram(bytesReceivedHistogram["min"]),
+			Max:   int64FromHistogram(bytesReceivedHistogram["max"]),
+			Mean:  int64FromHistogram(bytesReceivedHistogram["mean"]),
 			Total: totalReceived,
 		}
 	}
 
 	bytesSentHistogram := snapshot.Histograms[core.BytesSentCountUrn.Histogram().String()]
 	if bytesSentHistogram != nil {
-		bytes.Sent = core.MinMaxMeanTotalInt{
-			Min:   valueFromHistogram(bytesSentHistogram["min"]),
-			Max:   valueFromHistogram(bytesSentHistogram["max"]),
-			Mean:  valueFromHistogram(bytesSentHistogram["mean"]),
+		bytes.Sent = core.ByteStat{
+			Min:   int64FromHistogram(bytesSentHistogram["min"]),
+			Max:   int64FromHistogram(bytesSentHistogram["max"]),
+			Mean:  int64FromHistogram(bytesSentHistogram["mean"]),
 			Total: totalSent,
 		}
 	}
@@ -93,20 +93,22 @@ func CreateSummary(snapshot AggregatorSnapShot) core.ExecutionSummary {
 	responseMaxTime := responseMaxTimes[len(responseMaxTimes)-1]
 
 	return core.ExecutionSummary{
-		RunningTime:            duration.String(),
-		TotalRequests:          count,
-		TotalErrors:            errorCount,
-		Availability:           availability,
-		Throughput:             rate,
-		MeanResponseTime:       responseMeanTime,
-		MinResponseTime:        responseMinTime,
-		MaxResponseTime:        responseMaxTime,
+		RunningTime:   duration.String(),
+		TotalRequests: count,
+		TotalErrors:   errorCount,
+		Availability:  availability,
+		Throughput:    rate,
+		ResponseTime: core.ResponseTimeStat{
+			Mean: responseMeanTime,
+			Min:  responseMinTime,
+			Max:  responseMaxTime,
+		},
 		TotalAssertions:        totalAssertionsCount,
 		TotalAssertionFailures: totalAssertionFailuresCount,
 		Bytes: bytes,
 	}
 }
 
-func valueFromHistogram(b []int64) int64 {
+func int64FromHistogram(b []int64) int64 {
 	return b[len(b)-1]
 }

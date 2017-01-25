@@ -83,7 +83,8 @@ func (instance *RunCommand) run(c *kingpin.ParseContext) error {
 
 	if configuration.Summary {
 		summary := statistics.CreateSummary(output)
-		configuration.SummaryBuilder.Write(summary)
+		summaryBuilder := core.NewSummaryBuilder(configuration.SummaryFormat)
+		summaryBuilder.Write(summary)
 	}
 	return nil
 }

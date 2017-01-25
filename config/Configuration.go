@@ -95,6 +95,7 @@ func ParseConfiguration(cfg *Configuration) (*Configuration, error) {
 			return nil, err
 		}
 	}
+	configuration.SummaryBuilder = core.NewSummaryBuilder(configuration.SummaryFormat)
 	SetLogLevel(configuration, eachConfig)
 	//log.WithFields(log.Fields{"config": config}).Info("Configuration")
 
@@ -196,18 +197,16 @@ func UserDirConfig() (*Configuration, error) {
 func DefaultConfig() Configuration {
 	waitTime := time.Duration(0)
 	duration := time.Duration(0)
-	summaryBuilder := cmd.NewConsoleSummaryBuilder()
 	return Configuration{
-		Duration:       duration,
-		Plan:           false,
-		Random:         false,
-		Summary:        false,
-		SummaryFormat:  "console",
-		SummaryBuilder: summaryBuilder,
-		Workers:        1,
-		WaitTime:       waitTime,
-		LogLevel:       log.FatalLevel,
-		Progress:       "logo",
+		Duration:      duration,
+		Plan:          false,
+		Random:        false,
+		Summary:       false,
+		SummaryFormat: "console",
+		Workers:       1,
+		WaitTime:      waitTime,
+		LogLevel:      log.FatalLevel,
+		Progress:      "logo",
 	}
 }
 

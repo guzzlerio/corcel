@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"io"
 	"os"
 
-	"github.com/dustin/go-humanize"
 	"gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/guzzlerio/corcel/config"
@@ -56,6 +54,7 @@ func NewRunCommand(app *kingpin.Application, registry *core.Registry) {
 	run := app.Command("run", "Execute performance test thing").Action(c.run)
 	run.Arg("file", "Corcel file contains URLs or an ExecutionPlan (see the --plan argument)").Required().StringVar(&configuration.FilePath)
 	run.Flag("summary", "Output summary to STDOUT").BoolVar(&configuration.Summary)
+	run.Flag("summary-format", "Format for the summary").Default("console").EnumVar(&configuration.SummaryFormat, "console", "json", "yaml")
 	run.Flag("iterations", "The number of iterations to run").Short('i').Default("0").IntVar(&configuration.Iterations)
 	run.Flag("duration", "The duration of the run e.g. 10s 10m 10h etc... valid values are  ms, s, m, h").Short('d').Default("0s").DurationVar(&configuration.Duration)
 	run.Flag("wait-time", "Time to wait between each execution").Default("0s").Short('t').DurationVar(&configuration.WaitTime)
@@ -83,47 +82,10 @@ func (instance *RunCommand) run(c *kingpin.ParseContext) error {
 	reporter.Generate(output)
 
 	if configuration.Summary {
-		outputSummary(output)
+		summary := statistics.CreateSummary(output)
+		configuration.SummaryBuilder.Write(summary)
 	}
 	return nil
-}
-
-func outputSummary(snapshot statistics.AggregatorSnapShot) {
-	summary := statistics.CreateSummary(snapshot)
-
-	top(os.Stdout)
-	line(os.Stdout, "Running Time", summary.RunningTime)
-	line(os.Stdout, "Throughput", fmt.Sprintf("%-.0f req/s", summary.Throughput))
-	line(os.Stdout, "Total Requests", fmt.Sprintf("%-.0f", summary.TotalRequests))
-	line(os.Stdout, "Number of Errors", fmt.Sprintf("%-.0f", summary.TotalErrors))
-	line(os.Stdout, "Availability", fmt.Sprintf("%-.4f%%", summary.Availability))
-	line(os.Stdout, "Bytes Sent", fmt.Sprintf("%v", humanize.Bytes(uint64(summary.Bytes.TotalSent))))
-	line(os.Stdout, "Bytes Received", fmt.Sprintf("%v", humanize.Bytes(uint64(summary.Bytes.TotalReceived))))
-	line(os.Stdout, "Mean Response Time", fmt.Sprintf("%.4f ms", summary.MeanResponseTime))
-	line(os.Stdout, "Min Response Time", fmt.Sprintf("%.4f ms", summary.MinResponseTime))
-	line(os.Stdout, "Max Response Time", fmt.Sprintf("%.4f ms", summary.MaxResponseTime))
-	tail(os.Stdout)
-}
-
-func top(writer io.Writer) {
-	fmt.Fprintln(writer, "╔═══════════════════════════════════════════════════════════════════╗")
-	fmt.Fprintln(writer, "║                           Summary                                 ║")
-	fmt.Fprintln(writer, "╠═══════════════════════════════════════════════════════════════════╣")
-}
-
-func tail(writer io.Writer) {
-	fmt.Fprintln(writer, "╚═══════════════════════════════════════════════════════════════════╝")
-}
-
-func line(writer io.Writer, label string, value string) {
-	fmt.Fprintf(writer, "║ %20s: %-43s ║\n", label, value)
-}
-
-func check(err error) {
-	if err != nil {
-		errormanager.Log(err)
-	}
-}
 }
 
 func check(err error) {

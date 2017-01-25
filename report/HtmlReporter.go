@@ -115,15 +115,15 @@ func (instance HTMLReporter) Generate(output statistics.AggregatorSnapShot) {
 		"total_requests":     fmt.Sprintf("%.0f", executionSummary.TotalRequests),
 		"number_of_errors":   fmt.Sprintf("%.0f", executionSummary.TotalErrors),
 		"availability":       fmt.Sprintf("%.4f %%", executionSummary.Availability),
-		"bytes_sent":         humanize.Bytes(uint64(executionSummary.Bytes.TotalSent)),
-		"bytes_received":     humanize.Bytes(uint64(executionSummary.Bytes.TotalReceived)),
+		"bytes_sent":         humanize.Bytes(uint64(executionSummary.Bytes.Sent.Total)),
+		"bytes_received":     humanize.Bytes(uint64(executionSummary.Bytes.Received.Total)),
 		"min_latency":        fmt.Sprintf("%.0f ms", executionSummary.MinResponseTime),
 		"mean_latency":       fmt.Sprintf("%.0f ms", executionSummary.MeanResponseTime),
 		"max_latency":        fmt.Sprintf("%.0f ms", executionSummary.MaxResponseTime),
-		"max_bytes_received": humanize.Bytes(uint64(executionSummary.Bytes.MaxReceived)),
-		"min_bytes_received": humanize.Bytes(uint64(executionSummary.Bytes.MinReceived)),
-		"max_bytes_sent":     humanize.Bytes(uint64(executionSummary.Bytes.MaxSent)),
-		"min_bytes_sent":     humanize.Bytes(uint64(executionSummary.Bytes.MinSent)),
+		"max_bytes_received": humanize.Bytes(uint64(executionSummary.Bytes.Received.Max)),
+		"min_bytes_received": humanize.Bytes(uint64(executionSummary.Bytes.Received.Min)),
+		"max_bytes_sent":     humanize.Bytes(uint64(executionSummary.Bytes.Sent.Max)),
+		"min_bytes_sent":     humanize.Bytes(uint64(executionSummary.Bytes.Sent.Min)),
 	})
 
 	throughputValues := float64ArrayToStringArray(output.Meters["urn:action:meter:throughput"]["rateMean"])

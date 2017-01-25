@@ -1,28 +1,29 @@
 package core
 
+type MinMaxMeanTotalInt struct {
+	Min   int64 `json:"min"`
+	Max   int64 `json:"max"`
+	Mean  int64 `json:"mean"`
+	Total int64 `json:"total"`
+}
+
 //ByteSummary ...
 type ByteSummary struct {
-	MinReceived   int64
-	MaxReceived   int64
-	MeanReceived  int64
-	MinSent       int64
-	MaxSent       int64
-	MeanSent      int64
-	TotalSent     int64
-	TotalReceived int64
+	Received MinMaxMeanTotalInt `json:"received"`
+	Sent     MinMaxMeanTotalInt `json:"sent"`
 }
 
 //ExecutionSummary ...
 type ExecutionSummary struct {
-	TotalRequests          float64
-	TotalErrors            float64
-	Availability           float64
-	RunningTime            string
-	Throughput             float64
-	MeanResponseTime       float64
-	MinResponseTime        float64
-	MaxResponseTime        float64
-	TotalAssertions        int64
-	TotalAssertionFailures int64
-	Bytes                  ByteSummary
+	TotalRequests          float64     `json:"totalRequests"`
+	TotalErrors            float64     `json:"totalErrors"`
+	Availability           float64     `json:"availability"`
+	RunningTime            string      `json:"runningTime"`
+	Throughput             float64     `json:"throughput"`
+	MeanResponseTime       float64     `json:"meanResponseTime"`
+	MinResponseTime        float64     `json:"minResponseTime"`
+	MaxResponseTime        float64     `json:"maxResponseTime"`
+	TotalAssertions        int64       `json:"totalAssertions"`
+	TotalAssertionFailures int64       `json:"totalAssertionFailures"`
+	Bytes                  ByteSummary `json:"bytes"`
 }

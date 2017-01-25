@@ -31,6 +31,8 @@ func CreateSummary(snapshot AggregatorSnapShot) core.ExecutionSummary {
 
 	var totalAssertionsCount = int64(0)
 	var totalAssertionFailuresCount = int64(0)
+	var totalReceived = int64(0)
+	var totalSent = int64(0)
 
 	bytes := core.ByteSummary{}
 
@@ -40,7 +42,7 @@ func CreateSummary(snapshot AggregatorSnapShot) core.ExecutionSummary {
 		//bytesSentCount = bytesSent[len(bytesSent)-1]
 
 		for _, value := range bytesSent {
-			bytes.TotalSent += value
+			totalSent += value
 		}
 	}
 
@@ -48,26 +50,28 @@ func CreateSummary(snapshot AggregatorSnapShot) core.ExecutionSummary {
 	if bytesReceived != nil {
 		//bytesReceivedCount = bytesReceived[len(bytesReceived)-1]
 		for _, value := range bytesReceived {
-			bytes.TotalReceived += value
+			totalReceived += value
 		}
 	}
 
 	bytesReceivedHistogram := snapshot.Histograms[core.BytesReceivedCountUrn.Histogram().String()]
 	if bytesReceivedHistogram != nil {
-		maxBytes := bytesReceivedHistogram["max"]
-		bytes.MaxReceived = maxBytes[len(maxBytes)-1]
-
-		minBytes := bytesReceivedHistogram["min"]
-		bytes.MinReceived = minBytes[len(minBytes)-1]
+		bytes.Received = core.MinMaxMeanTotalInt{
+			Min:   valueFromHistogram(bytesReceivedHistogram["min"]),
+			Max:   valueFromHistogram(bytesReceivedHistogram["max"]),
+			Mean:  valueFromHistogram(bytesReceivedHistogram["mean"]),
+			Total: totalReceived,
+		}
 	}
 
 	bytesSentHistogram := snapshot.Histograms[core.BytesSentCountUrn.Histogram().String()]
 	if bytesSentHistogram != nil {
-		maxBytes := bytesSentHistogram["max"]
-		bytes.MaxSent = maxBytes[len(maxBytes)-1]
-
-		minBytes := bytesSentHistogram["min"]
-		bytes.MinSent = minBytes[len(minBytes)-1]
+		bytes.Sent = core.MinMaxMeanTotalInt{
+			Min:   valueFromHistogram(bytesSentHistogram["min"]),
+			Max:   valueFromHistogram(bytesSentHistogram["max"]),
+			Mean:  valueFromHistogram(bytesSentHistogram["mean"]),
+			Total: totalSent,
+		}
 	}
 
 	totalAssertions := snapshot.Counters[core.AssertionsTotalUrn.Counter().String()]
@@ -101,4 +105,8 @@ func CreateSummary(snapshot AggregatorSnapShot) core.ExecutionSummary {
 		TotalAssertionFailures: totalAssertionFailuresCount,
 		Bytes: bytes,
 	}
+}
+
+func valueFromHistogram(b []int64) int64 {
+	return b[len(b)-1]
 }

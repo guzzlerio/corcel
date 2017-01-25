@@ -236,10 +236,8 @@ var _ = Describe("Main", func() {
 
 		var summary = statistics.CreateSummary(output)
 
-		Expect(summary.Bytes.TotalSent).To(BeNumerically(">", 0))
-
-		Expect(summary.Bytes.TotalSent).To(BeNumerically(">", 0))
-		Expect(summary.Bytes.TotalReceived).To(BeNumerically(">", 0))
+		Expect(summary.Bytes.Sent.Total).To(BeNumerically(">", 0))
+		Expect(summary.Bytes.Received.Total).To(BeNumerically(">", 0))
 	})
 
 	Describe("Support sending data with http request", func() {

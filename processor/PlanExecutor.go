@@ -99,7 +99,9 @@ func (instance *PlanExecutionContext) workerExecuteJob(ctx context.Context, job 
 			_ = action.Execute(ctx, nil)
 		}
 
+		inproc.Lock.Lock()
 		inproc.ProcessEventsPublished = inproc.ProcessEventsPublished + 1
+		inproc.Lock.Unlock()
 		instance.Publisher.Publish(executionResult)
 	}
 }

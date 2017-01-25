@@ -2,12 +2,16 @@ package inproc
 
 import (
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/statistics"
 	"github.com/rcrowley/go-metrics"
 )
+
+//Lock ...
+var Lock = &sync.Mutex{}
 
 //Throughput ...
 var Throughput = 0

@@ -36,10 +36,10 @@ func (instance RequestBuilder) URL(value string) RequestBuilder {
 
 //Header ...
 func (instance RequestBuilder) Header(key string, value string) RequestBuilder {
-	if _, ok := instance.data["httpHeaders"]; !ok {
-		instance.data["httpHeaders"] = map[string]string{}
+	if _, ok := instance.data["headers"]; !ok {
+		instance.data["headers"] = map[string]string{}
 	}
-	instance.data["httpHeaders"].(map[string]string)[key] = value
+	instance.data["headers"].(map[string]string)[key] = value
 	return instance
 }
 

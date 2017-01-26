@@ -79,7 +79,7 @@ func ExecutePlanFromDataForApplication(planData string) (statistics.AggregatorSn
 
 //ExecutePlanBuilder ...
 func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) ([]byte, error) {
-	file, err := planBuilder.Build()
+	file, err := planBuilder.BuildAndSave()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -97,7 +97,7 @@ func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) ([]byte, error) {
 //ExecutePlanBuilderForApplication ...
 func ExecutePlanBuilderForApplication(planBuilder *yaml.PlanBuilder) (statistics.AggregatorSnapShot, error) {
 	var configuration = config.Configuration{}
-	file, fileErr := planBuilder.Build()
+	file, fileErr := planBuilder.BuildAndSave()
 	if fileErr != nil {
 		return statistics.AggregatorSnapShot{}, fileErr
 	}

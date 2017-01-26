@@ -15,24 +15,31 @@ type SummaryBuilder interface {
 	Write(summary ExecutionSummary)
 }
 
+//NewSummaryBuilder ...
 func NewSummaryBuilder(format string) SummaryBuilder {
 	switch format {
 	case "json":
-		return &JSONSummaryBuilder{}
+		return &JSONSummaryBuilder{
+			writer: os.Stdout,
+		}
 	case "yaml":
-		return &YAMLSummaryBuilder{}
+		return &YAMLSummaryBuilder{
+			writer: os.Stdout,
+		}
 	default:
-		return NewConsoleSummaryBuilder()
+		return NewConsoleSummaryBuilder(os.Stdout)
 	}
 }
 
+//ConsoleSummaryBuilder ...
 type ConsoleSummaryBuilder struct {
 	writer io.Writer
 	width  int
 	height int
 }
 
-func NewConsoleSummaryBuilder() *ConsoleSummaryBuilder {
+//NewConsoleSummaryBuilder ...
+func NewConsoleSummaryBuilder(writer io.Writer) *ConsoleSummaryBuilder {
 
 	if err := termbox.Init(); err != nil {
 		panic(err)
@@ -41,57 +48,63 @@ func NewConsoleSummaryBuilder() *ConsoleSummaryBuilder {
 	termbox.Close()
 
 	return &ConsoleSummaryBuilder{
-		writer: os.Stdout,
+		writer: writer,
 		width:  w,
 		height: h,
 	}
 }
 
-func (i *ConsoleSummaryBuilder) Write(summary ExecutionSummary) {
+//Write ...
+func (this *ConsoleSummaryBuilder) Write(summary ExecutionSummary) {
 
-	i.top()
-	i.line("Running Time", summary.RunningTime)
-	i.line("Throughput", fmt.Sprintf("%-.0f req/s", summary.Throughput))
-	i.line("Total Requests", fmt.Sprintf("%-.0f", summary.TotalRequests))
-	i.line("Number of Errors", fmt.Sprintf("%-.0f", summary.TotalErrors))
-	i.line("Availability", fmt.Sprintf("%-.4f%%", summary.Availability))
-	i.line("Bytes Sent", fmt.Sprintf("%v", humanize.Bytes(uint64(summary.Bytes.Sent.Total))))
-	i.line("Bytes Received", fmt.Sprintf("%v", humanize.Bytes(uint64(summary.Bytes.Received.Total))))
-	i.line("Mean Response Time", fmt.Sprintf("%.4f ms", summary.ResponseTime.Mean))
-	i.line("Min Response Time", fmt.Sprintf("%.4f ms", summary.ResponseTime.Min))
-	i.line("Max Response Time", fmt.Sprintf("%.4f ms", summary.ResponseTime.Max))
-	i.tail()
+	this.top()
+	this.line("Running Time", summary.RunningTime)
+	this.line("Throughput", fmt.Sprintf("%-.0f req/s", summary.Throughput))
+	this.line("Total Requests", fmt.Sprintf("%-.0f", summary.TotalRequests))
+	this.line("Number of Errors", fmt.Sprintf("%-.0f", summary.TotalErrors))
+	this.line("Availability", fmt.Sprintf("%-.4f%%", summary.Availability))
+	this.line("Bytes Sent", fmt.Sprintf("%v", humanize.Bytes(uint64(summary.Bytes.Sent.Total))))
+	this.line("Bytes Received", fmt.Sprintf("%v", humanize.Bytes(uint64(summary.Bytes.Received.Total))))
+	this.line("Mean Response Time", fmt.Sprintf("%.4f ms", summary.ResponseTime.Mean))
+	this.line("Min Response Time", fmt.Sprintf("%.4f ms", summary.ResponseTime.Min))
+	this.line("Max Response Time", fmt.Sprintf("%.4f ms", summary.ResponseTime.Max))
+	this.tail()
 }
 
-func (i *ConsoleSummaryBuilder) top() {
-	fmt.Fprintln(i.writer, "╔═════════════════════════════════════════════════╗")
-	fmt.Fprintln(i.writer, "║                     Summary                     ║")
-	fmt.Fprintln(i.writer, "╠═════════════════════════════════════════════════╣")
+func (this *ConsoleSummaryBuilder) top() {
+	fmt.Fprintln(this.writer, "╔═════════════════════════════════════════════════╗")
+	fmt.Fprintln(this.writer, "║                     Summary                     ║")
+	fmt.Fprintln(this.writer, "╠═════════════════════════════════════════════════╣")
 }
 
-func (i *ConsoleSummaryBuilder) tail() {
-	fmt.Fprintln(i.writer, "╚═════════════════════════════════════════════════╝")
+func (this *ConsoleSummaryBuilder) tail() {
+	fmt.Fprintln(this.writer, "╚═════════════════════════════════════════════════╝")
 }
 
-func (i *ConsoleSummaryBuilder) line(label string, value string) {
+func (this *ConsoleSummaryBuilder) line(label string, value string) {
 	data := fmt.Sprintf("%23s: %-22s", label, value)
-	// fmt.Fprintf(i.writer, "data len: %v\n", len(label+": "+value))
-	fmt.Fprintf(i.writer, "║ %s ║\n", data)
+	fmt.Fprintf(this.writer, "║ %s ║\n", data)
 }
 
+//YAMLSummaryBuilder ...
 type YAMLSummaryBuilder struct {
+	writer io.Writer
 }
 
+//Write ...
 func (this *YAMLSummaryBuilder) Write(summary ExecutionSummary) {
 	yamlData, _ := yaml.Marshal(summary)
-	fmt.Println(string(yamlData))
+	fmt.Fprintln(this.writer, string(yamlData))
 }
 
+//JSONSummaryBuilder ...
 type JSONSummaryBuilder struct {
+	writer io.Writer
 }
 
+//Write ...
 func (this *JSONSummaryBuilder) Write(summary ExecutionSummary) {
 	y, _ := yaml.Marshal(summary)
 	jsonData, _ := yaml.YAMLToJSON(y)
-	fmt.Println(string(jsonData))
+	fmt.Fprintln(this.writer, string(jsonData))
 }

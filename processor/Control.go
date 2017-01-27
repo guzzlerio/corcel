@@ -2,13 +2,13 @@ package processor
 
 import (
 	"sync"
+	"time"
 
 	"github.com/rcrowley/go-metrics"
 
 	"github.com/guzzlerio/corcel/config"
 	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/errormanager"
-	"github.com/guzzlerio/corcel/infrastructure/inproc"
 	"github.com/guzzlerio/corcel/statistics"
 )
 
@@ -44,7 +44,7 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 	go func() {
 		defer errormanager.HandlePanic()
 		for executionResult := range subscription.Channel {
-			inproc.ProcessEventsSubscribed = inproc.ProcessEventsSubscribed + 1
+			//			inproc.ProcessEventsSubscribed = inproc.ProcessEventsSubscribed + 1
 			result := executionResult.(core.ExecutionResult)
 			for _, processor := range instance.registry.ResultProcessors {
 				processor.Process(result, metricsRegistry)
@@ -55,6 +55,7 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 	instance.executions[&id] = executor
 	//instance.aggregator.Start()
 	err := executor.Execute()
+	time.Sleep(10 * time.Millisecond)
 	subscription.RemoveFrom(executor.Publisher)
 	wg.Wait()
 	return &id, err

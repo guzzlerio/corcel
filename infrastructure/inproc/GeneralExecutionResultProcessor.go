@@ -2,7 +2,6 @@ package inproc
 
 import (
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/guzzlerio/corcel/core"
@@ -11,16 +10,16 @@ import (
 )
 
 //Lock ...
-var Lock = &sync.Mutex{}
+//var Lock = &sync.Mutex{}
 
 //Throughput ...
-var Throughput = 0
+//var Throughput = 0
 
 //ProcessEventsSubscribed ...
-var ProcessEventsSubscribed = 0
+//var ProcessEventsSubscribed = 0
 
 //ProcessEventsPublished ...
-var ProcessEventsPublished = 0
+//var ProcessEventsPublished = 0
 
 //NewGeneralExecutionResultProcessor ...
 func NewGeneralExecutionResultProcessor() GeneralExecutionResultProcessor {
@@ -45,7 +44,7 @@ func (instance GeneralExecutionResultProcessor) Process(result core.ExecutionRes
 	throughput := metrics.GetOrRegisterMeter(core.ThroughputUrn.Meter().String(), registry)
 	throughput.Mark(1)
 
-	Throughput = Throughput + 1
+	//	Throughput = Throughput + 1
 
 	errors := metrics.GetOrRegisterMeter(core.ErrorUrn.Meter().String(), registry)
 

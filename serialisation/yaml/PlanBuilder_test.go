@@ -76,6 +76,100 @@ duration: 0s
 
 		Expect(string(planData)).To(MatchYAML(expected))
 	})
+	It("builds a plan with random", func() {
+		planBuilder := NewPlanBuilder()
+
+		planBuilder.SetRandom(true)
+
+		plan := planBuilder.Build()
+		planData, _ := yaml.Marshal(&plan)
+
+		var expected = `
+random: true
+waitTime: 0s
+workers: 1
+duration: 0s
+`
+
+		Expect(string(planData)).To(MatchYAML(expected))
+	})
+	It("builds a plan with workers", func() {
+		planBuilder := NewPlanBuilder()
+
+		planBuilder.SetWorkers(10)
+
+		plan := planBuilder.Build()
+		planData, _ := yaml.Marshal(&plan)
+
+		var expected = `
+random: false
+waitTime: 0s
+workers: 10
+duration: 0s
+`
+
+		Expect(string(planData)).To(MatchYAML(expected))
+	})
+	It("builds a plan with iterations", func() {
+		planBuilder := NewPlanBuilder()
+
+		planBuilder.SetIterations(10)
+
+		plan := planBuilder.Build()
+		planData, _ := yaml.Marshal(&plan)
+
+		var expected = `
+iterations: 10
+random: false
+waitTime: 0s
+workers: 1
+duration: 0s
+`
+
+		Expect(string(planData)).To(MatchYAML(expected))
+	})
+	It("builds a plan with duration", func() {
+		planBuilder := NewPlanBuilder()
+
+		planBuilder.SetDuration("10s")
+
+		plan := planBuilder.Build()
+		planData, _ := yaml.Marshal(&plan)
+
+		var expected = `
+random: false
+waitTime: 0s
+workers: 1
+duration: 10s
+`
+
+		Expect(string(planData)).To(MatchYAML(expected))
+	})
+	It("builds a plan with context", func() {
+		planBuilder := NewPlanBuilder()
+
+		planBuilder.SetDuration("10s").
+			WithContext(planBuilder.BuildContext().SetList("People", []map[string]interface{}{
+				{"name": "bob", "age": 52},
+			}).Build())
+
+		plan := planBuilder.Build()
+		planData, _ := yaml.Marshal(&plan)
+
+		var expected = `
+random: false
+waitTime: 0s
+workers: 1
+duration: 10s
+context:
+  lists:
+    People:
+    - age: 52
+      name: bob
+`
+
+		Expect(string(planData)).To(MatchYAML(expected))
+	})
 	It("builds a plan with a before", func() {
 		planBuilder := NewPlanBuilder()
 
@@ -151,10 +245,55 @@ after:
 		Expect(string(planData)).To(MatchYAML(expected))
 	})
 	Describe("jobs", func() {
-		It("builds a plan with a job", func() {
+		It("builds a plan with a job with a name", func() {
 			planBuilder := NewPlanBuilder()
 
 			planBuilder.CreateJob().WithName("Some Job")
+
+			plan := planBuilder.Build()
+			planData, _ := yaml.Marshal(&plan)
+
+			var expected = `
+random: false
+waitTime: 0s
+workers: 1
+duration: 0s
+jobs:
+- name: Some Job
+`
+
+			Expect(string(planData)).To(MatchYAML(expected))
+		})
+		It("builds a plan with a job with a context", func() {
+			planBuilder := NewPlanBuilder()
+
+			planBuilder.CreateJob().
+				WithContext(planBuilder.BuildContext().SetList("People", []map[string]interface{}{
+					{"name": "bob", "age": 52},
+				}).Build())
+
+			plan := planBuilder.Build()
+			planData, _ := yaml.Marshal(&plan)
+
+			var expected = `
+random: false
+waitTime: 0s
+workers: 1
+duration: 0s
+jobs:
+- context:
+    lists:
+      People:
+      - age: 52
+        name: bob
+`
+
+			Expect(string(planData)).To(MatchYAML(expected))
+		})
+		It("builds a plan with a job", func() {
+			planBuilder := NewPlanBuilder()
+
+			planBuilder.CreateJob("Some Job")
 
 			plan := planBuilder.Build()
 			planData, _ := yaml.Marshal(&plan)

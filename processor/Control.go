@@ -55,7 +55,7 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 	instance.executions[&id] = executor
 	//instance.aggregator.Start()
 	err := executor.Execute()
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 	subscription.RemoveFrom(executor.Publisher)
 	wg.Wait()
 	return &id, err

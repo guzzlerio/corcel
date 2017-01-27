@@ -87,7 +87,7 @@ var _ = Describe("Main", func() {
 	for _, numberOfWorkers := range global.NumberOfWorkersToTest {
 		func(workers int) {
 			name := fmt.Sprintf("Support %v workers", workers)
-			FIt(name, func() {
+			It(name, func() {
 				list := []string{
 					fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
 					fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),

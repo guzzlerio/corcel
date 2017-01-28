@@ -1,16 +1,11 @@
 package yaml
 
 import (
-	"io/ioutil"
 	"os"
-	"path"
 	"time"
 
 	"github.com/guzzlerio/corcel/infrastructure/http"
 	"github.com/guzzlerio/corcel/utils"
-
-	yamlFormat "github.com/ghodss/yaml"
-	"github.com/satori/go.uuid"
 )
 
 //PlanBuilder ...
@@ -115,12 +110,7 @@ func (instance *PlanBuilder) CreateJob(arg ...string) *JobBuilder {
 }
 
 //Build ...
-func (instance *PlanBuilder) Build() (*os.File, error) {
-
-	outputBasePath := "/tmp/corcel/plans"
-	//FIXME ignored error output from MkdirAll
-	os.MkdirAll(outputBasePath, 0777)
-
+func (instance *PlanBuilder) Build() ExecutionPlan {
 	plan := ExecutionPlan{
 		Name:       instance.Name,
 		Iterations: instance.Iterations,
@@ -136,32 +126,15 @@ func (instance *PlanBuilder) Build() (*os.File, error) {
 		yamlExecutionJob := jobBuilder.Build()
 		plan.Jobs = append(plan.Jobs, yamlExecutionJob)
 	}
-	file, err := ioutil.TempFile(os.TempDir(), "yamlExecutionPlanForCorcel")
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		utils.CheckErr(file.Close())
-	}()
-	contents, err := yamlFormat.Marshal(&plan)
-	if err != nil {
-		return nil, err
-	}
+	return plan
+}
 
-	//FIXME Write returns an error which is ignored...
-	file.Write(contents)
-
-	err = ioutil.WriteFile(path.Join(outputBasePath, uuid.NewV4().String()), contents, 0644)
-	if err != nil {
-		panic(err)
-	}
-
-	err = file.Sync()
-
-	if err != nil {
-		return nil, err
-	}
-	return file, nil
+//BuildAndSave ...
+//TODO deprecate this
+func (instance *PlanBuilder) BuildAndSave() (*os.File, error) {
+	plan := instance.Build()
+	outputBasePath := "/tmp/corcel/plans"
+	return utils.MarshalYamlToFile(outputBasePath, plan)
 }
 
 //HTTPAction ...

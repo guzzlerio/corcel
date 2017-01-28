@@ -29,14 +29,14 @@ func NewProgressBar(size int, config *config.Configuration) *ConsoleProgressBar 
 }
 
 //Set ...
-func (b *ConsoleProgressBar) Set(progress int) error {
-	return b.bar.Set(progress)
+func (this *ConsoleProgressBar) Set(progress int) error {
+	return this.bar.Set(progress)
 }
 
 //NullProgress ...
 type NullProgress struct{}
 
 //Set ...
-func (b *NullProgress) Set(progress int) error {
+func (this *NullProgress) Set(progress int) error {
 	return nil
 }

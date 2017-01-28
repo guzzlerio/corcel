@@ -22,16 +22,17 @@ import (
 
 //Configuration ...
 type Configuration struct {
-	Iterations int           `json:"iterations"`
-	Random     bool          `json:"random"`
-	Summary    bool          `json:"summary"`
-	LogLevel   log.Level     `json:"log-level"`
-	Workers    int           `json:"workers"`
-	Duration   time.Duration `json:"duration"`
-	WaitTime   time.Duration `json:"wait-time"`
-	Progress   string        `json:"progress"`
-	Plan       bool          `json:"plan"`
-	FilePath   string
+	Iterations    int
+	Random        bool
+	Summary       bool
+	SummaryFormat string    `json:"summary-format"`
+	LogLevel      log.Level `json:"log-level"`
+	Workers       int
+	Duration      time.Duration
+	WaitTime      time.Duration `json:"wait-time"`
+	Progress      string
+	Plan          bool
+	FilePath      string
 }
 
 //WithDuration converts a string duration into a time value and adds it to the configuration
@@ -194,14 +195,15 @@ func DefaultConfig() Configuration {
 	waitTime := time.Duration(0)
 	duration := time.Duration(0)
 	return Configuration{
-		Duration: duration,
-		Plan:     false,
-		Random:   false,
-		Summary:  false,
-		Workers:  1,
-		WaitTime: waitTime,
-		LogLevel: log.FatalLevel,
-		Progress: "logo",
+		Duration:      duration,
+		Plan:          false,
+		Random:        false,
+		Summary:       false,
+		SummaryFormat: "console",
+		Workers:       1,
+		WaitTime:      waitTime,
+		LogLevel:      log.FatalLevel,
+		Progress:      "logo",
 	}
 }
 

@@ -211,9 +211,9 @@ var _ = Describe("Main", func() {
 
 		var summary = statistics.CreateSummary(output)
 
-		Expect(summary.MaxResponseTime).To(BeNumerically(">", 0))
-		Expect(summary.MeanResponseTime).To(BeNumerically(">", 0))
-		Expect(summary.MinResponseTime).To(BeNumerically(">", 0))
+		Expect(summary.ResponseTime.Max).To(BeNumerically(">", 0))
+		Expect(summary.ResponseTime.Mean).To(BeNumerically(">", 0))
+		Expect(summary.ResponseTime.Min).To(BeNumerically(">", 0))
 	})
 
 	It("Generate statistics of data from the execution", func() {
@@ -236,10 +236,8 @@ var _ = Describe("Main", func() {
 
 		var summary = statistics.CreateSummary(output)
 
-		Expect(summary.Bytes.TotalSent).To(BeNumerically(">", 0))
-
-		Expect(summary.Bytes.TotalSent).To(BeNumerically(">", 0))
-		Expect(summary.Bytes.TotalReceived).To(BeNumerically(">", 0))
+		Expect(summary.Bytes.Sent.Total).To(BeNumerically(">", 0))
+		Expect(summary.Bytes.Received.Total).To(BeNumerically(">", 0))
 	})
 
 	Describe("Support sending data with http request", func() {

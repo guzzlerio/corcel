@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/ghodss/yaml"
 	"github.com/guzzlerio/corcel/errormanager"
+	"github.com/satori/go.uuid"
 )
 
 //CreateFileFromLines ...
@@ -30,6 +32,38 @@ func PathExists(value string) bool {
 		return false
 	}
 	return true
+}
+
+func MarshalYamlToFile(outputPath string, object interface{}) (*os.File, error) {
+	contents, err := yaml.Marshal(&object)
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := ioutil.TempFile(os.TempDir(), "yamlExecutionPlanForCorcel")
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		CheckErr(file.Close())
+	}()
+	//FIXME Write returns an error which is ignored...
+	file.Write(contents)
+
+	//FIXME ignored error output from MkdirAll
+	os.MkdirAll(outputPath, 0777)
+
+	err = ioutil.WriteFile(path.Join(outputPath, uuid.NewV4().String()), contents, 0644)
+	if err != nil {
+		panic(err)
+	}
+
+	err = file.Sync()
+
+	if err != nil {
+		return nil, err
+	}
+	return file, nil
 }
 
 //UnmarshalYamlFromFile ...

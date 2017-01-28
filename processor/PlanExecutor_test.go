@@ -30,6 +30,7 @@ var _ = Describe("Plan Executor", func() {
 	var configuration config.Configuration
 	var bar ProgressBar
 	var aggregator statistics.AggregatorInterfaceToRenameLater
+	var channel chan core.ExecutionResult
 
 	BeforeEach(func() {
 		//server = rizo.CreateRequestRecordingServer(5001)
@@ -50,6 +51,12 @@ var _ = Describe("Plan Executor", func() {
 		configuration.FilePath = file.Name()
 		bar = NullProgressBar{}
 		aggregator = statistics.NewAggregator(metrics.DefaultRegistry)
+		channel = make(chan core.ExecutionResult)
+
+		go func() {
+			for range channel {
+			}
+		}()
 	})
 
 	AfterEach(func() {
@@ -58,13 +65,14 @@ var _ = Describe("Plan Executor", func() {
 			logger.Log.Printf("Error removing file %v", err)
 		}
 		//server.Stop()
+		close(channel)
 	})
 
 	It("URL File with duration", func() {
 		start := time.Now()
 		configuration.Duration = time.Duration(5 * time.Second)
 
-		executor := CreatePlanExecutor(&configuration, bar, core.CreateRegistry(), aggregator)
+		executor := CreatePlanExecutor(&configuration, bar, core.CreateRegistry(), aggregator, channel)
 		executor.Execute()
 
 		duration := time.Since(start)
@@ -77,7 +85,7 @@ var _ = Describe("Plan Executor", func() {
 		tries := 50
 		firstPaths := []string{}
 		for i := 0; i < tries; i++ {
-			executor := CreatePlanExecutor(&configuration, bar, core.CreateRegistry(), aggregator)
+			executor := CreatePlanExecutor(&configuration, bar, core.CreateRegistry(), aggregator, channel)
 			executor.Execute()
 			if !ContainsString(firstPaths, TestServer.Requests[0].Request.URL.Path) {
 				firstPaths = append(firstPaths, TestServer.Requests[0].Request.URL.Path)
@@ -91,7 +99,7 @@ var _ = Describe("Plan Executor", func() {
 	It("URL File with more than one worker", func() {
 		configuration.Workers = 5
 
-		executor := CreatePlanExecutor(&configuration, bar, core.CreateRegistry(), aggregator)
+		executor := CreatePlanExecutor(&configuration, bar, core.CreateRegistry(), aggregator, channel)
 
 		executor.Execute()
 
@@ -103,7 +111,7 @@ var _ = Describe("Plan Executor", func() {
 		expectedTotalTimeInMilliseconds := len(list) * waitTimeInMilliseconds
 		configuration.WaitTime = time.Duration(time.Duration(waitTimeInMilliseconds) * time.Millisecond)
 
-		executor := CreatePlanExecutor(&configuration, bar, core.CreateRegistry(), aggregator)
+		executor := CreatePlanExecutor(&configuration, bar, core.CreateRegistry(), aggregator, channel)
 
 		start := time.Now()
 		executor.Execute()

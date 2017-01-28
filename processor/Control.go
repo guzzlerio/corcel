@@ -2,7 +2,6 @@ package processor
 
 import (
 	"sync"
-	"time"
 
 	"github.com/rcrowley/go-metrics"
 
@@ -36,16 +35,19 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 	var metricsRegistry = metrics.NewRegistry()
 	instance.aggregator = statistics.NewAggregator(metricsRegistry)
 
-	executor := CreatePlanExecutor(config, instance.bar, instance.registry, instance.aggregator)
+	resultChannel := make(chan core.ExecutionResult)
+	executor := CreatePlanExecutor(config, instance.bar, instance.registry, instance.aggregator, resultChannel)
 
-	subscription := executor.Publisher.Subscribe()
+	//subscription := executor.Publisher.Subscribe()
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
 		defer errormanager.HandlePanic()
-		for executionResult := range subscription.Channel {
+		//for executionResult := range subscription.Channel {
+		for executionResult := range resultChannel {
 			//			inproc.ProcessEventsSubscribed = inproc.ProcessEventsSubscribed + 1
-			result := executionResult.(core.ExecutionResult)
+			//result := executionResult.(core.ExecutionResult)
+			result := executionResult
 			for _, processor := range instance.registry.ResultProcessors {
 				processor.Process(result, metricsRegistry)
 			}
@@ -55,8 +57,8 @@ func (instance *Controller) Start(config *config.Configuration) (*ExecutionID, e
 	instance.executions[&id] = executor
 	//instance.aggregator.Start()
 	err := executor.Execute()
-	time.Sleep(100 * time.Millisecond)
-	subscription.RemoveFrom(executor.Publisher)
+	//subscription.RemoveFrom(executor.Publisher)
+	close(resultChannel)
 	wg.Wait()
 	return &id, err
 }

@@ -85,6 +85,7 @@ var _ = Describe("RequestStream", func() {
 			var min = duration - (1 * time.Millisecond)
 			var max = duration + (50 * time.Millisecond)
 
+			fmt.Println(fmt.Sprintf("min %v max %v actual %v", min, max, actual))
 			Expect(DurationIsBetween(actual, min, max)).To(Equal(true))
 		})
 

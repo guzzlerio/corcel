@@ -13,8 +13,6 @@ import (
 	"github.com/guzzlerio/corcel/request"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/statistics"
-
-	"github.com/REAANDREW/telegraph"
 )
 
 func merge(source map[string]interface{}, extra map[string]interface{}) map[string]interface{} {
@@ -27,10 +25,11 @@ func merge(source map[string]interface{}, extra map[string]interface{}) map[stri
 //PlanExecutionContext encapsulates the runtime state in order to execute
 //a plan
 type PlanExecutionContext struct {
+	//Publisher    telegraph.LinkedPublisher
 	Plan         core.Plan
 	Lists        *ListRingRevolver
 	Config       *config.Configuration
-	Publisher    telegraph.LinkedPublisher
+	Publisher    chan core.ExecutionResult
 	PlanContext  core.ExtractionResult
 	JobContexts  map[int]core.ExtractionResult
 	StepContexts map[int]map[int]core.ExtractionResult
@@ -101,7 +100,8 @@ func (instance *PlanExecutionContext) workerExecuteJob(ctx context.Context, job 
 		//inproc.Lock.Lock()
 		//inproc.ProcessEventsPublished = inproc.ProcessEventsPublished + 1
 		//inproc.Lock.Unlock()
-		instance.Publisher.Publish(executionResult)
+		//instance.Publisher.Publish(executionResult)
+		instance.Publisher <- executionResult
 	}
 }
 
@@ -193,10 +193,11 @@ type ExecutionBranch interface {
 
 //PlanExecutor ...
 type PlanExecutor struct {
+	//Publisher    telegraph.LinkedPublisher
 	Config       *config.Configuration
 	Bar          ProgressBar
 	start        time.Time
-	Publisher    telegraph.LinkedPublisher
+	Publisher    chan core.ExecutionResult
 	Lists        *ListRingRevolver
 	Plan         core.Plan
 	PlanContext  core.ExtractionResult
@@ -208,11 +209,12 @@ type PlanExecutor struct {
 }
 
 //CreatePlanExecutor ...
-func CreatePlanExecutor(config *config.Configuration, bar ProgressBar, registry core.Registry, aggregator statistics.AggregatorInterfaceToRenameLater) *PlanExecutor {
+func CreatePlanExecutor(config *config.Configuration, bar ProgressBar, registry core.Registry, aggregator statistics.AggregatorInterfaceToRenameLater, publisher chan core.ExecutionResult) *PlanExecutor {
 	return &PlanExecutor{
-		Config:       config,
-		Bar:          bar,
-		Publisher:    telegraph.NewLinkedPublisher(),
+		Config: config,
+		Bar:    bar,
+		//Publisher:    telegraph.NewLinkedPublisher(),
+		Publisher:    publisher,
 		PlanContext:  core.ExtractionResult{},
 		JobContexts:  map[int]core.ExtractionResult{},
 		StepContexts: map[int]map[int]core.ExtractionResult{},

@@ -208,7 +208,7 @@ jobs:
 		Expect(fmt.Sprintf("%v", err)).To(ContainSubstring("Request body file not found: missing-file.json"))
 	})
 
-	It("Error non-http url in the urls file causes a run time exception #21", func() {
+	It("Error non-http url in the urls file causes a run time exception", func() {
 		list := []string{
 			fmt.Sprintf(`-Something`),
 		}

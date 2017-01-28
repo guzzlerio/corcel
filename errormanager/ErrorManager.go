@@ -40,8 +40,6 @@ const (
 	LogMessageVaidURLs = "Your urls in the test specification must be absolute and valid urls"
 )
 
-var ()
-
 //New ...
 func configure() {
 	mappings = make(map[string]ErrorCode)
@@ -71,9 +69,6 @@ func HandlePanic() {
 	}
 
 	if err := recover(); err != nil { //catch
-		fmt.Println("ERROR")
-		fmt.Println()
-
 		for mapping, errorCode := range mappings {
 			if strings.Contains(fmt.Sprintf("%v", err), mapping) {
 				fmt.Println(errorCode.Message)

@@ -12,7 +12,6 @@ import (
 	"github.com/guzzlerio/corcel/config"
 	"github.com/guzzlerio/corcel/global"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
-	"github.com/guzzlerio/corcel/statistics"
 	"github.com/guzzlerio/corcel/test"
 	"github.com/guzzlerio/corcel/utils"
 )
@@ -42,11 +41,8 @@ var _ = Describe("ExecutionPlan", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build())
 
-			output, err := test.ExecutePlanBuilderForApplication(planBuilder)
+			summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
-
-			var summary = statistics.CreateSummary(output)
-
 			Expect(summary.TotalRequests).To(Equal(float64(2)))
 		})
 		It("Single Job Two Steps", func() {
@@ -62,11 +58,8 @@ var _ = Describe("ExecutionPlan", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build())
 
-			output, err := test.ExecutePlanBuilderForApplication(planBuilder)
+			summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
-
-			var summary = statistics.CreateSummary(output)
-
 			Expect(summary.TotalRequests).To(Equal(float64(4)))
 		})
 		It("Single Job Two Steps", func() {
@@ -92,11 +85,8 @@ var _ = Describe("ExecutionPlan", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Build())
 
-			output, err := test.ExecutePlanBuilderForApplication(planBuilder)
+			summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
-
-			var summary = statistics.CreateSummary(output)
-
 			Expect(summary.TotalRequests).To(Equal(float64(8)))
 		})
 
@@ -110,13 +100,10 @@ var _ = Describe("ExecutionPlan", func() {
 				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
 			}
 
-			output, err := test.ExecuteListForApplication(list, config.Configuration{
+			summary, err := test.ExecuteListForApplication(list, config.Configuration{
 				Iterations: 5,
 			})
 			Expect(err).To(BeNil())
-
-			var summary = statistics.CreateSummary(output)
-
 			Expect(summary.TotalRequests).To(Equal(float64(30)))
 		})
 
@@ -141,11 +128,8 @@ var _ = Describe("ExecutionPlan", func() {
 					CreateStep().
 					ToExecuteAction(GetHTTPRequestAction("/people"))
 
-				output, err := test.ExecutePlanBuilderForApplication(planBuilder)
+				summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
 				Expect(err).To(BeNil())
-
-				var summary = statistics.CreateSummary(output)
-
 				Expect(summary.TotalErrors).To(Equal(float64(0)))
 				Expect(summary.TotalRequests).To(Equal(float64(workers)))
 				Expect(len(TestServer.Requests)).To(Equal(workers))
@@ -165,11 +149,8 @@ var _ = Describe("ExecutionPlan", func() {
 			jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction("/people"))
 		}
 
-		output, err := test.ExecutePlanBuilderForApplication(planBuilder)
+		summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
 		Expect(err).To(BeNil())
-
-		var summary = statistics.CreateSummary(output)
-
 		actual := summary.RunningTime
 		seconds := actual.Seconds()
 		seconds = math.Floor(seconds)
@@ -183,11 +164,8 @@ var _ = Describe("ExecutionPlan", func() {
 		jobBuilder := planBuilder.CreateJob()
 		jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction("/people"))
 
-		output, err := test.ExecutePlanBuilderForApplication(planBuilder)
+		summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
 		Expect(err).To(BeNil())
-
-		var summary = statistics.CreateSummary(output)
-
 		actual := summary.RunningTime
 		seconds := actual.Seconds()
 		seconds = math.Floor(seconds)
@@ -237,11 +215,8 @@ var _ = Describe("ExecutionPlan", func() {
 				ToExecuteAction(GetHTTPRequestAction("/boom")).
 				WithAssertion(HTTPStatusExactAssertion(201))
 
-			output, err := test.ExecutePlanBuilderForApplication(planBuilder)
+			summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
-
-			var summary = statistics.CreateSummary(output)
-
 			Expect(summary.TotalAssertions).To(Equal(int64(1)))
 			Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
 		})
@@ -254,11 +229,8 @@ var _ = Describe("ExecutionPlan", func() {
 				ToExecuteAction(GetHTTPRequestAction("/boom")).
 				WithAssertion(HTTPStatusExactAssertion(200))
 
-			output, err := test.ExecutePlanBuilderForApplication(planBuilder)
+			summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
-
-			var summary = statistics.CreateSummary(output)
-
 			Expect(summary.TotalAssertions).To(Equal(int64(1)))
 			Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 		})
@@ -271,11 +243,8 @@ var _ = Describe("ExecutionPlan", func() {
 			ToExecuteAction(GetHTTPRequestAction("/people")).
 			WithAssertion(HTTPStatusExactAssertion(201))
 
-		output, err := test.ExecutePlanBuilderForApplication(planBuilder)
+		summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
 		Expect(err).To(BeNil())
-
-		var summary = statistics.CreateSummary(output)
-
 		Expect(summary.TotalRequests).To(BeNumerically(">", 0))
 		Expect(summary.TotalErrors).To(Equal(float64(0)))
 	})

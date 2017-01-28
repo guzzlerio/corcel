@@ -88,11 +88,11 @@ func ExecutePlanFromData(planData string, args ...string) (core.ExecutionSummary
 }
 
 //ExecutePlanFromDataForApplication ...
-func ExecutePlanFromDataForApplication(planData string) (statistics.AggregatorSnapShot, error) {
+func ExecutePlanFromDataForApplication(planData string) (core.ExecutionSummary, error) {
 	var configuration = config.Configuration{}
 	file, fileErr := planDataToFile(planData)
 	if fileErr != nil {
-		return statistics.AggregatorSnapShot{}, fileErr
+		return core.ExecutionSummary{}, fileErr
 	}
 
 	defer func() {
@@ -108,13 +108,14 @@ func ExecutePlanFromDataForApplication(planData string) (statistics.AggregatorSn
 	var appConfig, err = config.ParseConfiguration(&configuration)
 
 	if err != nil {
-		return statistics.AggregatorSnapShot{}, err
+		return core.ExecutionSummary{}, err
 	}
 
 	app := cmd.Application{}
 	output := app.Execute(appConfig)
+	var summary = statistics.CreateSummary(output)
 
-	return output, nil
+	return summary, nil
 }
 
 //ExecutePlanBuilder ...
@@ -135,11 +136,11 @@ func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) ([]byte, error) {
 }
 
 //ExecutePlanBuilderForApplication ...
-func ExecutePlanBuilderForApplication(planBuilder *yaml.PlanBuilder) (statistics.AggregatorSnapShot, error) {
+func ExecutePlanBuilderForApplication(planBuilder *yaml.PlanBuilder) (core.ExecutionSummary, error) {
 	var configuration = config.Configuration{}
 	file, fileErr := planBuilder.BuildAndSave()
 	if fileErr != nil {
-		return statistics.AggregatorSnapShot{}, fileErr
+		return core.ExecutionSummary{}, fileErr
 	}
 
 	defer func() {
@@ -156,17 +157,18 @@ func ExecutePlanBuilderForApplication(planBuilder *yaml.PlanBuilder) (statistics
 	var appConfig, err = config.ParseConfiguration(&configuration)
 
 	if err != nil {
-		return statistics.AggregatorSnapShot{}, err
+		return core.ExecutionSummary{}, fileErr
 	}
 
 	app := cmd.Application{}
 	output := app.Execute(appConfig)
+	var summary = statistics.CreateSummary(output)
 
-	return output, nil
+	return summary, nil
 }
 
 //ExecuteListForApplication ...
-func ExecuteListForApplication(list []string, configuration config.Configuration) (statistics.AggregatorSnapShot, error) {
+func ExecuteListForApplication(list []string, configuration config.Configuration) (core.ExecutionSummary, error) {
 
 	file := utils.CreateFileFromLines(list)
 	defer func() {
@@ -181,13 +183,14 @@ func ExecuteListForApplication(list []string, configuration config.Configuration
 	var appConfig, err = config.ParseConfiguration(&configuration)
 
 	if err != nil {
-		return statistics.AggregatorSnapShot{}, err
+		return core.ExecutionSummary{}, err
 	}
 
 	app := cmd.Application{}
 	output := app.Execute(appConfig)
+	var summary = statistics.CreateSummary(output)
 
-	return output, nil
+	return summary, nil
 }
 
 //ExecuteList ...

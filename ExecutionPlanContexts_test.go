@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/guzzlerio/corcel/serialisation/yaml"
-	"github.com/guzzlerio/corcel/statistics"
 	"github.com/guzzlerio/corcel/test"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -71,11 +70,8 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				WithAssertion(planBuilder.ExactAssertion("$value:3", "3")).
 				WithAssertion(planBuilder.ExactAssertion("something", "1"))
 
-			output, err := test.ExecutePlanBuilderForApplication(planBuilder)
+			summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
-
-			var summary = statistics.CreateSummary(output)
-
 			Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 		})
 		It("Fails", func() {
@@ -89,11 +85,8 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
 				WithAssertion(planBuilder.ExactAssertion("$value:3", "3"))
 
-			output, err := test.ExecutePlanBuilderForApplication(planBuilder)
+			summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
-
-			var summary = statistics.CreateSummary(output)
-
 			Expect(summary.TotalAssertionFailures).To(Equal(int64(3)))
 		})
 	})
@@ -111,11 +104,8 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
 				WithAssertion(planBuilder.ExactAssertion("$value:3", "3"))
 
-			output, err := test.ExecutePlanBuilderForApplication(planBuilder)
+			summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
-
-			var summary = statistics.CreateSummary(output)
-
 			Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 		})
 
@@ -134,11 +124,8 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
 				WithAssertion(planBuilder.ExactAssertion("$value:3", "3"))
 
-			output, err := test.ExecutePlanBuilderForApplication(planBuilder)
+			summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
-
-			var summary = statistics.CreateSummary(output)
-
 			Expect(summary.TotalAssertionFailures).To(Equal(int64(3)))
 		})
 	})

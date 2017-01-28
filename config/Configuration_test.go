@@ -59,6 +59,9 @@ var _ = Describe("Configuration", func() {
 			It("sets wait-time (--wait-time)", func() {
 				Expect(configuration.WaitTime).To(Equal(defaultWaitTime))
 			})
+			It("sets summary format (--summary-format)", func() {
+				Expect(configuration.SummaryFormat).To(Equal("console"))
+			})
 			It("sets log-level", func() {
 				Expect(configuration.LogLevel).To(Equal(logrus.FatalLevel))
 			})

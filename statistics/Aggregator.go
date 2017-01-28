@@ -29,12 +29,14 @@ type Aggregator struct {
 	mutex      *sync.Mutex
 }
 
+type Histogram map[string]map[string][]int64
+
 //AggregatorSnapShot ...
 type AggregatorSnapShot struct {
 	Times      []int64                         `json:"times,omitempty"`
 	Counters   map[string][]int64              `json:"counters,omitempty"`
 	Gauges     map[string][]float64            `json:"gauges,omitempty"`
-	Histograms map[string]map[string][]int64   `json:"histograms,omitempty"`
+	Histograms Histogram                       `json:"histograms,omitempty"`
 	Meters     map[string]map[string][]float64 `json:"meters,omitempty"`
 	Timers     map[string]map[string][]float64 `json:"timers,omitempty"`
 }

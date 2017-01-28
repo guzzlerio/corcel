@@ -202,10 +202,10 @@ jobs:
 			fmt.Sprintf(`%s -X POST -d @missing-file.json`, URLForTestServer("/success")),
 		}
 
-		summary, err := test.ExecuteList(list, "--summary")
+		_, err := test.ExecuteList(list, "--summary")
 		Expect(err).ToNot(BeNil())
 
-		Expect(summary.Error).To(ContainSubstring("Request body file not found: missing-file.json"))
+		Expect(fmt.Sprintf("%v", err)).To(ContainSubstring("Request body file not found: missing-file.json"))
 	})
 
 	It("Error non-http url in the urls file causes a run time exception #21", func() {
@@ -213,9 +213,9 @@ jobs:
 			fmt.Sprintf(`-Something`),
 		}
 
-		summary, err := test.ExecuteList(list, "--summary")
+		_, err := test.ExecuteList(list, "--summary")
 		Expect(err).ToNot(BeNil())
-		Expect(summary.Error).To(ContainSubstring(errormanager.LogMessageVaidURLs))
+		Expect(fmt.Sprintf("%v", err)).To(ContainSubstring(errormanager.LogMessageVaidURLs))
 	})
 
 	It("Issue - Should write out panics to a log file and not std out", func() {
@@ -230,7 +230,7 @@ jobs:
 		output, err := test.ExecutePlanBuilder(planBuilder)
 		Expect(err).ToNot(BeNil())
 
-		Expect(string(output)).To(ContainSubstring("An unexpected error has occurred.  The error has been logged to /tmp/"))
+		Expect(output).To(ContainSubstring("An unexpected error has occurred.  The error has been logged to /tmp/"))
 
 		//Ensure that the file which was generated contains the error which caused the panic
 		r, _ := regexp.Compile(`/tmp/[\w\d-]+`)

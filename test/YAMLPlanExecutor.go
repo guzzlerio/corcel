@@ -1,6 +1,8 @@
 package test
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -9,6 +11,7 @@ import (
 
 	"github.com/guzzlerio/corcel/cmd"
 	"github.com/guzzlerio/corcel/config"
+	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/logger"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/statistics"
@@ -29,12 +32,35 @@ func planDataToFile(platData string) (*os.File, error) {
 	return file, nil
 }
 
+func stringInSlice(value string, slice []string) bool {
+	for _, sliceValue := range slice {
+		if value == sliceValue {
+			return true
+		}
+	}
+	return false
+}
+
+func ensureSummaryInArgs(args []string) []string {
+
+	if !stringInSlice("--summary", args) {
+		args = append([]string{"--summary"}, args...)
+	}
+
+	if !stringInSlice("--summary-format", args) {
+		args = append([]string{"--summary-format", "json"}, args...)
+	} else {
+		panic("For tests only this method sets the --summary-format")
+	}
+	return args
+}
+
 //ExecutePlanFromData ...
-func ExecutePlanFromData(planData string, args ...string) (statistics.ExecutionSummary, error) {
-	var parser = statistics.CreateExecutionSummaryCliParser()
+func ExecutePlanFromData(planData string, args ...string) (core.ExecutionSummary, error) {
+
 	file, err := planDataToFile(planData)
 	if err != nil {
-		return statistics.ExecutionSummary{}, err
+		return core.ExecutionSummary{}, err
 	}
 
 	defer func() {
@@ -44,12 +70,21 @@ func ExecutePlanFromData(planData string, args ...string) (statistics.ExecutionS
 		}
 	}()
 
+	args = ensureSummaryInArgs(args)
 	args = append([]string{"--plan"}, args...)
 	output, err := executeShell(utils.FindFileUp("corcel"), file, args...)
 	if err != nil {
-		return statistics.ExecutionSummary{}, err
+		return core.ExecutionSummary{}, err
 	}
-	return parser.Parse(string(output)), err
+
+	var executionSummary core.ExecutionSummary
+
+	err = json.Unmarshal(output, &executionSummary)
+	if err != nil {
+		return core.ExecutionSummary{}, err
+	}
+
+	return executionSummary, nil
 }
 
 //ExecutePlanFromDataForApplication ...
@@ -84,7 +119,7 @@ func ExecutePlanFromDataForApplication(planData string) (statistics.AggregatorSn
 
 //ExecutePlanBuilder ...
 func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) ([]byte, error) {
-	file, err := planBuilder.Build()
+	file, err := planBuilder.BuildAndSave()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -102,7 +137,7 @@ func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) ([]byte, error) {
 //ExecutePlanBuilderForApplication ...
 func ExecutePlanBuilderForApplication(planBuilder *yaml.PlanBuilder) (statistics.AggregatorSnapShot, error) {
 	var configuration = config.Configuration{}
-	file, fileErr := planBuilder.Build()
+	file, fileErr := planBuilder.BuildAndSave()
 	if fileErr != nil {
 		return statistics.AggregatorSnapShot{}, fileErr
 	}
@@ -156,9 +191,8 @@ func ExecuteListForApplication(list []string, configuration config.Configuration
 }
 
 //ExecuteList ...
-func ExecuteList(list []string, args ...string) (statistics.ExecutionSummary, error) {
+func ExecuteList(list []string, args ...string) (core.ExecutionSummary, error) {
 
-	var parser = statistics.CreateExecutionSummaryCliParser()
 	path := utils.FindFileUp("corcel")
 
 	file := utils.CreateFileFromLines(list)
@@ -169,11 +203,18 @@ func ExecuteList(list []string, args ...string) (statistics.ExecutionSummary, er
 		}
 	}()
 
+	args = ensureSummaryInArgs(args)
 	output, err := executeShell(path, file, args...)
 	if err != nil {
-		return statistics.ExecutionSummary{Error: string(output)}, err
+		return core.ExecutionSummary{}, errors.New(string(output))
 	}
-	return parser.Parse(string(output)), err
+	var executionSummary core.ExecutionSummary
+
+	err = json.Unmarshal(output, &executionSummary)
+	if err != nil {
+		return core.ExecutionSummary{}, err
+	}
+	return executionSummary, nil
 }
 
 func executeShell(path string, file *os.File, args ...string) ([]byte, error) {

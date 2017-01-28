@@ -28,7 +28,7 @@
             requestTimeout : 150
             method : GET
             url : http://localhost:5000/success
-            httpHeaders :
+            headers :
                 content-Type: application/json
           assertions:
             -

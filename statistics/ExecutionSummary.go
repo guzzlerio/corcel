@@ -6,36 +6,8 @@ import (
 	"github.com/guzzlerio/corcel/core"
 )
 
-//ByteSummary ...
-type ByteSummary struct {
-	MinReceived   int64
-	MaxReceived   int64
-	MeanReceived  int64
-	MinSent       int64
-	MaxSent       int64
-	MeanSent      int64
-	TotalSent     int64
-	TotalReceived int64
-}
-
-//ExecutionSummary ...
-type ExecutionSummary struct {
-	TotalRequests          float64
-	TotalErrors            float64
-	Availability           float64
-	RunningTime            time.Duration
-	Throughput             float64
-	MeanResponseTime       float64
-	MinResponseTime        float64
-	MaxResponseTime        float64
-	TotalAssertions        int64
-	TotalAssertionFailures int64
-	Bytes                  ByteSummary
-	Error                  string
-}
-
 //CreateSummary ...
-func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
+func CreateSummary(snapshot AggregatorSnapShot) core.ExecutionSummary {
 
 	lastTime := time.Unix(0, snapshot.Times[len(snapshot.Times)-1])
 	firstTime := time.Unix(0, snapshot.Times[0])
@@ -59,8 +31,10 @@ func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
 
 	var totalAssertionsCount = int64(0)
 	var totalAssertionFailuresCount = int64(0)
+	var totalReceived = int64(0)
+	var totalSent = int64(0)
 
-	bytes := ByteSummary{}
+	bytes := core.ByteSummary{}
 
 	bytesSent := snapshot.Counters[core.BytesSentCountUrn.Counter().String()]
 
@@ -68,7 +42,7 @@ func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
 		//bytesSentCount = bytesSent[len(bytesSent)-1]
 
 		for _, value := range bytesSent {
-			bytes.TotalSent += value
+			totalSent += value
 		}
 	}
 
@@ -76,26 +50,28 @@ func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
 	if bytesReceived != nil {
 		//bytesReceivedCount = bytesReceived[len(bytesReceived)-1]
 		for _, value := range bytesReceived {
-			bytes.TotalReceived += value
+			totalReceived += value
 		}
 	}
 
 	bytesReceivedHistogram := snapshot.Histograms[core.BytesReceivedCountUrn.Histogram().String()]
 	if bytesReceivedHistogram != nil {
-		maxBytes := bytesReceivedHistogram["max"]
-		bytes.MaxReceived = maxBytes[len(maxBytes)-1]
-
-		minBytes := bytesReceivedHistogram["min"]
-		bytes.MinReceived = minBytes[len(minBytes)-1]
+		bytes.Received = core.ByteStat{
+			Min:   int64FromHistogram(bytesReceivedHistogram["min"]),
+			Max:   int64FromHistogram(bytesReceivedHistogram["max"]),
+			Mean:  int64FromHistogram(bytesReceivedHistogram["mean"]),
+			Total: totalReceived,
+		}
 	}
 
 	bytesSentHistogram := snapshot.Histograms[core.BytesSentCountUrn.Histogram().String()]
 	if bytesSentHistogram != nil {
-		maxBytes := bytesSentHistogram["max"]
-		bytes.MaxSent = maxBytes[len(maxBytes)-1]
-
-		minBytes := bytesSentHistogram["min"]
-		bytes.MinSent = minBytes[len(minBytes)-1]
+		bytes.Sent = core.ByteStat{
+			Min:   int64FromHistogram(bytesSentHistogram["min"]),
+			Max:   int64FromHistogram(bytesSentHistogram["max"]),
+			Mean:  int64FromHistogram(bytesSentHistogram["mean"]),
+			Total: totalSent,
+		}
 	}
 
 	totalAssertions := snapshot.Counters[core.AssertionsTotalUrn.Counter().String()]
@@ -116,17 +92,23 @@ func CreateSummary(snapshot AggregatorSnapShot) ExecutionSummary {
 	responseMaxTimes := snapshot.Timers[core.DurationUrn.Timer().String()]["max"]
 	responseMaxTime := responseMaxTimes[len(responseMaxTimes)-1]
 
-	return ExecutionSummary{
-		RunningTime:            duration,
-		TotalRequests:          count,
-		TotalErrors:            errorCount,
-		Availability:           availability,
-		Throughput:             rate,
-		MeanResponseTime:       responseMeanTime,
-		MinResponseTime:        responseMinTime,
-		MaxResponseTime:        responseMaxTime,
+	return core.ExecutionSummary{
+		RunningTime:   duration,
+		TotalRequests: count,
+		TotalErrors:   errorCount,
+		Availability:  availability,
+		Throughput:    rate,
+		ResponseTime: core.ResponseTimeStat{
+			Mean: responseMeanTime,
+			Min:  responseMinTime,
+			Max:  responseMaxTime,
+		},
 		TotalAssertions:        totalAssertionsCount,
 		TotalAssertionFailures: totalAssertionFailuresCount,
 		Bytes: bytes,
 	}
+}
+
+func int64FromHistogram(b []int64) int64 {
+	return b[len(b)-1]
 }

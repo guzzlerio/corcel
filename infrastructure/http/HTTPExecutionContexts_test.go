@@ -133,7 +133,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 		headers := map[string]string{}
 		headers[expectedHeaderKey] = expectedHeaderValue
 
-		planBuilder.WithContext(planBuilder.BuildContext().Set("httpHeaders", headers).Build()).
+		planBuilder.WithContext(planBuilder.BuildContext().Set("headers", headers).Build()).
 			CreateJob().
 			CreateStep().
 			ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Build())
@@ -154,7 +154,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 
 		expectedHeaderValue := "hazaa"
 
-		planBuilder.WithContext(planBuilder.BuildContext().Set("httpHeaders", headers).Build()).
+		planBuilder.WithContext(planBuilder.BuildContext().Set("headers", headers).Build()).
 			CreateJob().
 			CreateStep().
 			ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Header(contextHeaderKey, expectedHeaderValue).Build())

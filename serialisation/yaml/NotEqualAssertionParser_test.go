@@ -8,26 +8,24 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("LessThanAssertionParser", func() {
+var _ = Describe("NotEqualAssertionParser", func() {
+
 	It("Parses", func() {
 
 		var expectedKey = "talula"
+		var expectedValue = "boomboom"
 		var input = map[string]interface{}{
 			"key":      expectedKey,
-			"expected": 7,
+			"expected": expectedValue,
 		}
 
-		var parser = LessThanAssertionParser{}
+		var parser = NotEqualAssertionParser{}
 		assertion, err := parser.Parse(input)
-		var ltAssertion = assertion.(*assertions.LessThanAssertion)
+		var exactAssertion = assertion.(*assertions.NotEqualAssertion)
 
 		Expect(err).To(BeNil())
-		Expect(ltAssertion.Key).To(Equal(expectedKey))
-		Expect(ltAssertion.Value).To(Equal(7))
-	})
-
-	It("Returns Key", func() {
-		Expect(LessThanAssertionParser{}.Key()).To(Equal("LessThanAssertion"))
+		Expect(exactAssertion.Key).To(Equal(expectedKey))
+		Expect(exactAssertion.Value).To(Equal(expectedValue))
 	})
 
 	It("Fails to parse without key", func() {
@@ -37,7 +35,7 @@ var _ = Describe("LessThanAssertionParser", func() {
 			"expected": "boomboom",
 		}
 
-		var parser = LessThanAssertionParser{}
+		var parser = NotEqualAssertionParser{}
 		_, err := parser.Parse(input)
 
 		Expect(err).ToNot(BeNil())
@@ -51,7 +49,7 @@ var _ = Describe("LessThanAssertionParser", func() {
 			"bang": "boomboom",
 		}
 
-		var parser = LessThanAssertionParser{}
+		var parser = NotEqualAssertionParser{}
 		_, err := parser.Parse(input)
 
 		Expect(err).ToNot(BeNil())

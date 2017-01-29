@@ -24,7 +24,7 @@ func (instance GreaterThanOrEqualAssertionParser) Parse(input map[string]interfa
 	return &assertions.GreaterThanOrEqualAssertion{
 		Key:   input["key"].(string),
 		Value: input["expected"],
-	}
+	}, nil
 }
 
 //Key ...

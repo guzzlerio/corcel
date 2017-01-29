@@ -1,26 +1,40 @@
 package yaml
 
 import (
+	"fmt"
+
 	"github.com/guzzlerio/corcel/assertions"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("NotEmptyAssertionParser", func() {
+
 	It("Parses", func() {
 
-		var expectedKey = "talula"
+		var expected = "talula"
 		var input = map[string]interface{}{
-			"key": expectedKey,
+			"key": expected,
 		}
 
 		var parser = NotEmptyAssertionParser{}
-		var assertion = parser.Parse(input).(*assertions.NotEmptyAssertion)
+		assertion, err := parser.Parse(input)
+		emptyAssertion := assertion.(*assertions.NotEmptyAssertion)
+		Expect(err).To(BeNil())
 
-		Expect(assertion.Key).To(Equal(expectedKey))
+		Expect(emptyAssertion.Key).To(Equal(expected))
 	})
 
-	It("Returns Key", func() {
-		Expect(NotEmptyAssertionParser{}.Key()).To(Equal("NotEmptyAssertion"))
+	It("Fails to parse", func() {
+		var expected = "talula"
+		var input = map[string]interface{}{
+			"bang": expected,
+		}
+
+		var parser = NotEmptyAssertionParser{}
+		_, err := parser.Parse(input)
+
+		Expect(err).ToNot(BeNil())
+		Expect(fmt.Sprintf("%v", err)).To(ContainSubstring("key is not present"))
 	})
 })

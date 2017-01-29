@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("EactAssertionParser", func() {
+var _ = Describe("ExactAssertionParser", func() {
 
 	It("Parses", func() {
 

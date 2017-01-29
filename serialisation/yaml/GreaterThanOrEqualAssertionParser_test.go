@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("GreaterThanOrEqualAssertionParser", func() {
+var _ = Describe("GreaterThanOrEqualAssertionParser", func() {
 	It("Parses", func() {
 
 		var expectedKey = "talula"

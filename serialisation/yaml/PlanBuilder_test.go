@@ -35,10 +35,6 @@ duration: 0s
 			planBuilder := NewPlanBuilder()
 
 			planBuilder.SetWaitTime("talula")
-
-			// assert.Panics(t, func() {
-			// 	planBuilder.Build()
-			// }, "Should panic")
 		})
 		It("builds a plan with waitTime", func() {
 			planBuilder := NewPlanBuilder()

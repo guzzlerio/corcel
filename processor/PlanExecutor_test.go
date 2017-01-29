@@ -33,7 +33,6 @@ var _ = Describe("Plan Executor", func() {
 	var channel chan core.ExecutionResult
 
 	BeforeEach(func() {
-		//server = rizo.CreateRequestRecordingServer(5001)
 		list = []string{
 			fmt.Sprintf(`%s -X POST `, TestServer.CreateURL("/1")),
 			fmt.Sprintf(`%s -X POST `, TestServer.CreateURL("/2")),
@@ -64,7 +63,6 @@ var _ = Describe("Plan Executor", func() {
 		if err != nil {
 			logger.Log.Printf("Error removing file %v", err)
 		}
-		//server.Stop()
 		close(channel)
 	})
 

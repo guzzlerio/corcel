@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("ExactAssertionParser", func() {
+var _ = Describe("NotEqualAssertionParser", func() {
 
 	It("Parses", func() {
 
@@ -19,9 +19,9 @@ var _ = Describe("ExactAssertionParser", func() {
 			"expected": expectedValue,
 		}
 
-		var parser = ExactAssertionParser{}
+		var parser = NotEqualAssertionParser{}
 		assertion, err := parser.Parse(input)
-		var exactAssertion = assertion.(*assertions.ExactAssertion)
+		var exactAssertion = assertion.(*assertions.NotEqualAssertion)
 
 		Expect(err).To(BeNil())
 		Expect(exactAssertion.Key).To(Equal(expectedKey))
@@ -35,7 +35,7 @@ var _ = Describe("ExactAssertionParser", func() {
 			"expected": "boomboom",
 		}
 
-		var parser = ExactAssertionParser{}
+		var parser = NotEqualAssertionParser{}
 		_, err := parser.Parse(input)
 
 		Expect(err).ToNot(BeNil())
@@ -49,7 +49,7 @@ var _ = Describe("ExactAssertionParser", func() {
 			"bang": "boomboom",
 		}
 
-		var parser = ExactAssertionParser{}
+		var parser = NotEqualAssertionParser{}
 		_, err := parser.Parse(input)
 
 		Expect(err).ToNot(BeNil())

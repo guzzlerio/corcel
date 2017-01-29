@@ -8,52 +8,50 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("ExactAssertionParser", func() {
+var _ = Describe("GreaterThanAssertionParser", func() {
 
 	It("Parses", func() {
 
 		var expectedKey = "talula"
-		var expectedValue = "boomboom"
 		var input = map[string]interface{}{
 			"key":      expectedKey,
-			"expected": expectedValue,
+			"expected": 7,
 		}
 
-		var parser = ExactAssertionParser{}
+		var parser = GreaterThanAssertionParser{}
 		assertion, err := parser.Parse(input)
-		var exactAssertion = assertion.(*assertions.ExactAssertion)
+		var gtAssertion = assertion.(*assertions.GreaterThanAssertion)
 
 		Expect(err).To(BeNil())
-		Expect(exactAssertion.Key).To(Equal(expectedKey))
-		Expect(exactAssertion.Value).To(Equal(expectedValue))
+		Expect(gtAssertion.Key).To(Equal(expectedKey))
+		Expect(gtAssertion.Value).To(Equal(7))
+	})
+
+	It("Returns Key", func() {
+		Expect(GreaterThanAssertionParser{}.Key()).To(Equal("GreaterThanAssertion"))
 	})
 
 	It("Fails to parse without key", func() {
-
 		var input = map[string]interface{}{
-			"bang":     "talula",
-			"expected": "boomboom",
+			"boom":     "talula",
+			"expected": 7,
 		}
 
-		var parser = ExactAssertionParser{}
+		var parser = GreaterThanAssertionParser{}
 		_, err := parser.Parse(input)
-
 		Expect(err).ToNot(BeNil())
 		Expect(fmt.Sprintf("%v", err)).To(ContainSubstring("key is not present"))
 	})
 
 	It("Fails to parse without expected", func() {
-
 		var input = map[string]interface{}{
 			"key":  "talula",
-			"bang": "boomboom",
+			"boom": 7,
 		}
 
-		var parser = ExactAssertionParser{}
+		var parser = GreaterThanAssertionParser{}
 		_, err := parser.Parse(input)
-
 		Expect(err).ToNot(BeNil())
 		Expect(fmt.Sprintf("%v", err)).To(ContainSubstring("expected is not present"))
 	})
-
 })

@@ -2,6 +2,6 @@ package core
 
 //ExecutionAssertionParser ...
 type ExecutionAssertionParser interface {
-	Parse(input map[string]interface{}) Assertion
+	Parse(input map[string]interface{}) (Assertion, error)
 	Key() string
 }

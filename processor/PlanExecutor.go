@@ -13,8 +13,6 @@ import (
 	"github.com/guzzlerio/corcel/request"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/statistics"
-
-	"github.com/REAANDREW/telegraph"
 )
 
 func merge(source map[string]interface{}, extra map[string]interface{}) map[string]interface{} {
@@ -30,7 +28,7 @@ type PlanExecutionContext struct {
 	Plan         core.Plan
 	Lists        *ListRingRevolver
 	Config       *config.Configuration
-	Publisher    telegraph.LinkedPublisher
+	Publisher    chan core.ExecutionResult
 	PlanContext  core.ExtractionResult
 	JobContexts  map[int]core.ExtractionResult
 	StepContexts map[int]map[int]core.ExtractionResult
@@ -39,16 +37,9 @@ type PlanExecutionContext struct {
 	start        time.Time
 }
 
-//func (instance *PlanExecutionContext) execute(cancellation chan struct{}) {
 func (instance *PlanExecutionContext) execute(ctx context.Context) {
 	var jobs = instance.Plan.Jobs
 	var jobStream = CreateJobStream(jobs, instance.Config)
-
-	/*
-		if int64(time.Since(instance.start).Seconds())%2 == 0 {
-			instance.progress <- jobStream.Progress()
-		}
-	*/
 
 	for jobStream.HasNext() {
 		_ = instance.Bar.Set(jobStream.Progress())
@@ -71,13 +62,6 @@ func (instance *PlanExecutionContext) execute(ctx context.Context) {
 }
 
 func (instance *PlanExecutionContext) workerExecuteJob(ctx context.Context, job core.Job) {
-	/*
-		defer func() { //catch or finally
-			if err := recover(); err != nil { //catch
-				errormanager.Log(err)
-			}
-		}()
-	*/
 	var stepStream StepStream
 	stepStream = CreateStepSequentialStream(job.Steps)
 	if instance.Config.WaitTime > time.Duration(0) {
@@ -86,18 +70,16 @@ func (instance *PlanExecutionContext) workerExecuteJob(ctx context.Context, job 
 
 	for stepStream.HasNext() {
 		step := stepStream.Next()
-		//before Step
 		for _, action := range step.Before {
 			_ = action.Execute(ctx, nil)
 		}
 		executionResult := instance.executeStep(ctx, step)
-		//instance.executeStep(ctx, step)
 
-		//after Step
 		for _, action := range step.After {
 			_ = action.Execute(ctx, nil)
 		}
-		instance.Publisher.Publish(executionResult)
+
+		instance.Publisher <- executionResult
 	}
 }
 
@@ -164,7 +146,6 @@ func (instance *PlanExecutionContext) executeStep(ctx context.Context, step core
 			instance.StepContexts[step.JobID][step.ID] = merge(instance.StepContexts[step.JobID][step.ID], extractorResult)
 		}
 
-		//instance.JobContexts[step.JobID] = merge(instance.JobContexts[step.JobID], extractorResult)
 		for k, v := range extractorResult {
 			executionResult[k] = v
 		}
@@ -192,7 +173,7 @@ type PlanExecutor struct {
 	Config       *config.Configuration
 	Bar          ProgressBar
 	start        time.Time
-	Publisher    telegraph.LinkedPublisher
+	Publisher    chan core.ExecutionResult
 	Lists        *ListRingRevolver
 	Plan         core.Plan
 	PlanContext  core.ExtractionResult
@@ -204,11 +185,11 @@ type PlanExecutor struct {
 }
 
 //CreatePlanExecutor ...
-func CreatePlanExecutor(config *config.Configuration, bar ProgressBar, registry core.Registry, aggregator statistics.AggregatorInterfaceToRenameLater) *PlanExecutor {
+func CreatePlanExecutor(config *config.Configuration, bar ProgressBar, registry core.Registry, aggregator statistics.AggregatorInterfaceToRenameLater, publisher chan core.ExecutionResult) *PlanExecutor {
 	return &PlanExecutor{
 		Config:       config,
 		Bar:          bar,
-		Publisher:    telegraph.NewLinkedPublisher(),
+		Publisher:    publisher,
 		PlanContext:  core.ExtractionResult{},
 		JobContexts:  map[int]core.ExtractionResult{},
 		StepContexts: map[int]map[int]core.ExtractionResult{},
@@ -221,15 +202,6 @@ func CreatePlanExecutor(config *config.Configuration, bar ProgressBar, registry 
 //CreatePlanFromURLList ...
 func CreatePlanFromURLList(config *config.Configuration) core.Plan {
 	//FIXME Exposed for use in tests
-
-	/*
-		plan := core.Plan{
-			Name:     "Plan from urls in file",
-			Workers:  config.Workers,
-			WaitTime: config.WaitTime,
-			Jobs:     []core.Job{},
-		}
-	*/
 
 	var name = "Plan from urls in file"
 	var plan = core.NewPlanBuilder().
@@ -269,9 +241,7 @@ func CreatePlanFromURLList(config *config.Configuration) core.Plan {
 		action.Body = body
 
 		step.Action = action
-		//job.Steps = append(job.Steps, step)
 		job = job.AddStep(step)
-		//plan.Jobs = append(plan.Jobs, job)
 		plan = plan.AddJob(job)
 	}
 
@@ -316,16 +286,12 @@ func (instance *PlanExecutor) generatePlan() core.Plan {
 
 // Execute ...
 func (instance *PlanExecutor) Execute() error {
-	//var cancellation = make(chan struct{})
-
 	var ctx, cancel = context.WithCancel(context.Background())
 
 	instance.start = time.Now()
 
 	var mainPlan = instance.generatePlan()
-	//before Plan
 	for _, action := range mainPlan.Before {
-		//_ = action.Execute(nil, cancellation)
 		_ = action.Execute(ctx, nil)
 	}
 
@@ -342,7 +308,6 @@ func (instance *PlanExecutor) Execute() error {
 	for i := 0; i < instance.Config.Workers; i++ {
 		go func() {
 			defer errormanager.HandlePanic()
-			//var plan = instance.generatePlan()
 			var plan = <-planChannel
 			if plan.Context["vars"] != nil {
 				stringKeyData := map[string]interface{}{}
@@ -366,7 +331,6 @@ func (instance *PlanExecutor) Execute() error {
 				start:        time.Now(),
 			}
 
-			//planExecutionContext.execute(cancellation)
 			latch.Done()
 			<-startingFence
 			planExecutionContext.execute(ctx)
@@ -381,7 +345,6 @@ func (instance *PlanExecutor) Execute() error {
 	close(startingFence)
 	if instance.Config.Duration > time.Duration(0) {
 		time.AfterFunc(instance.Config.Duration, func() {
-			//close(cancellation)
 			cancel()
 		})
 	}
@@ -390,8 +353,6 @@ func (instance *PlanExecutor) Execute() error {
 	for _, action := range mainPlan.After {
 		_ = action.Execute(ctx, nil)
 	}
-
-	cancel()
 
 	return nil
 }

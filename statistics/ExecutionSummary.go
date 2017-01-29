@@ -39,8 +39,6 @@ func CreateSummary(snapshot AggregatorSnapShot) core.ExecutionSummary {
 	bytesSent := snapshot.Counters[core.BytesSentCountUrn.Counter().String()]
 
 	if bytesSent != nil {
-		//bytesSentCount = bytesSent[len(bytesSent)-1]
-
 		for _, value := range bytesSent {
 			totalSent += value
 		}
@@ -48,7 +46,6 @@ func CreateSummary(snapshot AggregatorSnapShot) core.ExecutionSummary {
 
 	bytesReceived := snapshot.Counters[core.BytesReceivedCountUrn.Counter().String()]
 	if bytesReceived != nil {
-		//bytesReceivedCount = bytesReceived[len(bytesReceived)-1]
 		for _, value := range bytesReceived {
 			totalReceived += value
 		}
@@ -93,7 +90,7 @@ func CreateSummary(snapshot AggregatorSnapShot) core.ExecutionSummary {
 	responseMaxTime := responseMaxTimes[len(responseMaxTimes)-1]
 
 	return core.ExecutionSummary{
-		RunningTime:   duration.String(),
+		RunningTime:   duration,
 		TotalRequests: count,
 		TotalErrors:   errorCount,
 		Availability:  availability,

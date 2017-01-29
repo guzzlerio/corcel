@@ -58,7 +58,7 @@ func NewConsoleSummaryBuilder(writer io.Writer) *ConsoleSummaryBuilder {
 func (this *ConsoleSummaryBuilder) Write(summary ExecutionSummary) {
 
 	this.top()
-	this.line("Running Time", summary.RunningTime)
+	this.line("Running Time", summary.RunningTime.String())
 	this.line("Throughput", fmt.Sprintf("%-.0f req/s", summary.Throughput))
 	this.line("Total Requests", fmt.Sprintf("%-.0f", summary.TotalRequests))
 	this.line("Number of Errors", fmt.Sprintf("%-.0f", summary.TotalErrors))

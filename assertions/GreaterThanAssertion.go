@@ -27,9 +27,6 @@ func (instance *GreaterThanAssertion) Assert(executionResult core.ExecutionResul
 		"key":      instance.resultKey(),
 	}
 
-	// INEFFICIENT BUT WORKING ...
-	//var actualType interface{}
-	//var instanceType interface{}
 	switch actualType := actual.(type) {
 	case float64:
 		switch instanceType := instance.Value.(type) {

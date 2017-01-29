@@ -89,7 +89,11 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 			for _, yamlAssertion := range yamlStep.Assertions {
 				assertionType := yamlAssertion["type"].(string)
 				if parser := instance.ExecutionAssertionParsers[assertionType]; parser != nil {
-					step.Assertions = append(step.Assertions, parser.Parse(yamlAssertion))
+					assertion, err := parser.Parse(yamlAssertion)
+					if err != nil {
+						panic(err)
+					}
+					step.Assertions = append(step.Assertions, assertion)
 				} else {
 					panic(fmt.Sprintf("No parser configured for assertion %s", assertionType))
 				}

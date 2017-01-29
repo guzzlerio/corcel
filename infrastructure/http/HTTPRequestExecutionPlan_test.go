@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 
 	"github.com/guzzlerio/corcel/serialisation/yaml"
-	"github.com/guzzlerio/corcel/statistics"
 	"github.com/guzzlerio/corcel/test"
 	"github.com/guzzlerio/rizo"
 	. "github.com/onsi/ginkgo"
@@ -45,11 +44,8 @@ jobs:
       key: urn:http:response:headers:x-boom
       expected: "1"`, TestServer.CreateURL("/people"))
 
-		output, err := test.ExecutePlanFromDataForApplication(plan)
+		summary, err := test.ExecutePlanFromDataForApplication(plan)
 		Expect(err).To(BeNil())
-
-		var summary = statistics.CreateSummary(output)
-
 		Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 	})
 

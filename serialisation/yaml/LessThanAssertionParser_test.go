@@ -8,24 +8,26 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("ExactAssertionParser", func() {
-
+var _ = Describe("LessThanAssertionParser", func() {
 	It("Parses", func() {
 
 		var expectedKey = "talula"
-		var expectedValue = "boomboom"
 		var input = map[string]interface{}{
 			"key":      expectedKey,
-			"expected": expectedValue,
+			"expected": 7,
 		}
 
-		var parser = ExactAssertionParser{}
+		var parser = LessThanAssertionParser{}
 		assertion, err := parser.Parse(input)
-		var exactAssertion = assertion.(*assertions.ExactAssertion)
+		var ltAssertion = assertion.(*assertions.LessThanAssertion)
 
 		Expect(err).To(BeNil())
-		Expect(exactAssertion.Key).To(Equal(expectedKey))
-		Expect(exactAssertion.Value).To(Equal(expectedValue))
+		Expect(ltAssertion.Key).To(Equal(expectedKey))
+		Expect(ltAssertion.Value).To(Equal(7))
+	})
+
+	It("Returns Key", func() {
+		Expect(LessThanAssertionParser{}.Key()).To(Equal("LessThanAssertion"))
 	})
 
 	It("Fails to parse without key", func() {
@@ -35,7 +37,7 @@ var _ = Describe("ExactAssertionParser", func() {
 			"expected": "boomboom",
 		}
 
-		var parser = ExactAssertionParser{}
+		var parser = LessThanAssertionParser{}
 		_, err := parser.Parse(input)
 
 		Expect(err).ToNot(BeNil())
@@ -49,7 +51,7 @@ var _ = Describe("ExactAssertionParser", func() {
 			"bang": "boomboom",
 		}
 
-		var parser = ExactAssertionParser{}
+		var parser = LessThanAssertionParser{}
 		_, err := parser.Parse(input)
 
 		Expect(err).ToNot(BeNil())

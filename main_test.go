@@ -15,9 +15,9 @@ import (
 	"github.com/guzzlerio/rizo"
 
 	"github.com/guzzlerio/corcel/config"
+	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/errormanager"
 	"github.com/guzzlerio/corcel/global"
-	"github.com/guzzlerio/corcel/statistics"
 	"github.com/guzzlerio/corcel/test"
 	. "github.com/guzzlerio/corcel/utils"
 )
@@ -43,12 +43,9 @@ var _ = Describe("Main", func() {
 				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
 			}
 
-			output, err := SutExecuteApplication(list, config.Configuration{}.WithDuration("5s"))
+			summary, err := SutExecuteApplication(list, config.Configuration{}.WithDuration("5s"))
 			Expect(err).To(BeNil())
-
-			var summary = statistics.CreateSummary(output)
-
-			actual, _ := time.ParseDuration(summary.RunningTime)
+			actual := summary.RunningTime
 			seconds := actual.Seconds()
 			seconds = math.Floor(seconds)
 			Expect(seconds).To(Equal(float64(5)))
@@ -97,13 +94,10 @@ var _ = Describe("Main", func() {
 					fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
 				}
 
-				output, err := SutExecuteApplication(list, config.Configuration{
+				summary, err := SutExecuteApplication(list, config.Configuration{
 					Workers: workers,
 				})
 				Expect(err).To(BeNil())
-
-				var summary = statistics.CreateSummary(output)
-
 				Expect(summary.TotalErrors).To(Equal(float64(0)))
 				Expect(summary.TotalRequests).To(Equal(float64(len(list) * workers)))
 			})
@@ -156,11 +150,8 @@ var _ = Describe("Main", func() {
 				}
 			}))
 
-			output, err := SutExecuteApplication(list, config.Configuration{})
+			summary, err := SutExecuteApplication(list, config.Configuration{})
 			Expect(err).To(BeNil())
-
-			var summary = statistics.CreateSummary(output)
-
 			Expect(summary.Availability).To(Equal(float64(60)))
 		})
 
@@ -170,22 +161,16 @@ var _ = Describe("Main", func() {
 					w.WriteHeader(code)
 				}))
 
-				output, err := SutExecuteApplication(list, config.Configuration{})
+				summary, err := SutExecuteApplication(list, config.Configuration{})
 				Expect(err).To(BeNil())
-
-				var summary = statistics.CreateSummary(output)
-
 				Expect(summary.TotalErrors).To(Equal(float64(len(list))))
 				Expect(summary.TotalRequests).To(Equal(float64(len(list))))
 			})
 		}
 
 		It("Requests per second", func() {
-			output, err := SutExecuteApplication(list, config.Configuration{})
+			summary, err := SutExecuteApplication(list, config.Configuration{})
 			Expect(err).To(BeNil())
-
-			var summary = statistics.CreateSummary(output)
-
 			Expect(summary.Throughput).To(BeNumerically(">", 0))
 			Expect(summary.TotalRequests).To(Equal(float64(len(list))))
 		})
@@ -206,11 +191,8 @@ var _ = Describe("Main", func() {
 			count++
 		}))
 
-		output, err := SutExecuteApplication(list, config.Configuration{})
+		summary, err := SutExecuteApplication(list, config.Configuration{})
 		Expect(err).To(BeNil())
-
-		var summary = statistics.CreateSummary(output)
-
 		Expect(summary.ResponseTime.Max).To(BeNumerically(">", 0))
 		Expect(summary.ResponseTime.Mean).To(BeNumerically(">", 0))
 		Expect(summary.ResponseTime.Min).To(BeNumerically(">", 0))
@@ -231,11 +213,8 @@ var _ = Describe("Main", func() {
 			responseBody = responseBody + "-"
 		}))
 
-		output, err := SutExecuteApplication(list, config.Configuration{})
+		summary, err := SutExecuteApplication(list, config.Configuration{})
 		Expect(err).To(BeNil())
-
-		var summary = statistics.CreateSummary(output)
-
 		Expect(summary.Bytes.Sent.Total).To(BeNumerically(">", 0))
 		Expect(summary.Bytes.Received.Total).To(BeNumerically(">", 0))
 	})
@@ -332,9 +311,8 @@ var _ = Describe("Main", func() {
 	})
 })
 
-func SutExecuteApplication(list []string, configuration config.Configuration) (statistics.AggregatorSnapShot, error) {
-	output, err := test.ExecuteListForApplication(list, configuration)
-	return output, err
+func SutExecuteApplication(list []string, configuration config.Configuration) (core.ExecutionSummary, error) {
+	return test.ExecuteListForApplication(list, configuration)
 }
 
 func Requests(recordedRequests []rizo.RecordedRequest) (result []*http.Request) {

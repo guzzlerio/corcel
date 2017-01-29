@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("EmptyAssertionParser", func() {
+var _ = Describe("NotEmptyAssertionParser", func() {
 
 	It("Parses", func() {
 
@@ -17,9 +17,9 @@ var _ = Describe("EmptyAssertionParser", func() {
 			"key": expected,
 		}
 
-		var parser = EmptyAssertionParser{}
+		var parser = NotEmptyAssertionParser{}
 		assertion, err := parser.Parse(input)
-		emptyAssertion := assertion.(*assertions.EmptyAssertion)
+		emptyAssertion := assertion.(*assertions.NotEmptyAssertion)
 		Expect(err).To(BeNil())
 
 		Expect(emptyAssertion.Key).To(Equal(expected))
@@ -31,7 +31,7 @@ var _ = Describe("EmptyAssertionParser", func() {
 			"bang": expected,
 		}
 
-		var parser = EmptyAssertionParser{}
+		var parser = NotEmptyAssertionParser{}
 		_, err := parser.Parse(input)
 
 		Expect(err).ToNot(BeNil())

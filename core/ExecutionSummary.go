@@ -1,5 +1,8 @@
 package core
 
+import "time"
+
+//ByteStat ...
 type ByteStat struct {
 	Min   int64 `json:"min"`
 	Max   int64 `json:"max"`
@@ -13,6 +16,7 @@ type ByteSummary struct {
 	Sent     ByteStat `json:"sent"`
 }
 
+//ResponseTimeStat ...
 type ResponseTimeStat struct {
 	Min  float64 `json:"min"`
 	Max  float64 `json:"max"`
@@ -24,7 +28,7 @@ type ExecutionSummary struct {
 	TotalRequests          float64          `json:"totalRequests"`
 	TotalErrors            float64          `json:"totalErrors"`
 	Availability           float64          `json:"availability"`
-	RunningTime            string           `json:"runningTime"`
+	RunningTime            time.Duration    `json:"runningTime"`
 	Throughput             float64          `json:"throughput"`
 	ResponseTime           ResponseTimeStat `json:"responseTime"`
 	TotalAssertions        int64            `json:"totalAssertions"`

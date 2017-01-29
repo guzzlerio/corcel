@@ -69,7 +69,6 @@ func HandlePanic() {
 	}
 
 	if err := recover(); err != nil { //catch
-
 		for mapping, errorCode := range mappings {
 			if strings.Contains(fmt.Sprintf("%v", err), mapping) {
 				fmt.Println(errorCode.Message)
@@ -92,9 +91,8 @@ func Log(err interface{}) {
 	for mapping, errorCode := range mappings {
 		if strings.Contains(fmt.Sprintf("%v", err), mapping) {
 			fmt.Println(errorCode.Message)
-			//		os.Exit(errorCode.Code)
+			os.Exit(errorCode.Code)
 		}
 	}
 	panic(err)
-	//logger.Log.Fatalf("UNKNOWN ERROR: %v", err)
 }

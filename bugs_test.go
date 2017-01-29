@@ -11,7 +11,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/guzzlerio/corcel/config"
-	"github.com/guzzlerio/corcel/statistics"
 )
 
 var _ = Describe("Bugs replication", func() {
@@ -29,15 +28,12 @@ var _ = Describe("Bugs replication", func() {
 			fmt.Sprintf(`%s?id=1 -X DELETE -H "Content-type: application/json"`, URLForTestServer("/success")),
 		}
 
-		output, err := SutExecuteApplication(list[:1], config.Configuration{
+		summary, err := SutExecuteApplication(list[:1], config.Configuration{
 			Random:  true,
 			Summary: true,
 			Workers: numberOfWorkers,
 		})
 		Expect(err).To(BeNil())
-
-		var summary = statistics.CreateSummary(output)
-
 		Expect(summary.TotalRequests).To(Equal(float64(2)))
 	})
 
@@ -52,12 +48,9 @@ var _ = Describe("Bugs replication", func() {
 			fmt.Sprintf(`%s -X POST `, URLForTestServer("/something")),
 		}
 
-		output, err := SutExecuteApplication(list, config.Configuration{}.WithDuration("1s"))
+		summary, err := SutExecuteApplication(list, config.Configuration{}.WithDuration("1s"))
 		Expect(err).To(BeNil())
-
-		var summary = statistics.CreateSummary(output)
-
-		runningTime, _ := time.ParseDuration(summary.RunningTime)
+		runningTime := summary.RunningTime
 		Expect(math.Floor(runningTime.Seconds())).To(Equal(float64(1)))
 	})
 })

@@ -2,6 +2,8 @@ package core
 
 import (
 	"bytes"
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -14,6 +16,7 @@ var _ = Describe("Summary Builders", func() {
 	)
 	BeforeEach(func() {
 		writer = new(bytes.Buffer)
+		duration, _ := time.ParseDuration("1.003242751s")
 		summary = ExecutionSummary{
 			Availability: 100,
 			Bytes: ByteSummary{
@@ -35,7 +38,7 @@ var _ = Describe("Summary Builders", func() {
 				Mean: 6.7081714,
 				Min:  0,
 			},
-			RunningTime:            "1.003242751s",
+			RunningTime:            duration,
 			Throughput:             2544.8113,
 			TotalAssertionFailures: 0,
 			TotalAssertions:        0,
@@ -97,7 +100,7 @@ var _ = Describe("Summary Builders", func() {
     "mean": 6.7081714,
     "min": 0
   },
-  "runningTime": "1.003242751s",
+  "runningTime": 1003242751,
   "throughput": 2544.8113,
   "totalAssertionFailures": 0,
   "totalAssertions": 0,
@@ -132,7 +135,7 @@ responseTime:
   max: 31
   mean: 6.7081714
   min: 0
-runningTime: 1.003242751s
+runningTime: 1003242751
 throughput: 2544.8113
 totalAssertionFailures: 0
 totalAssertions: 0

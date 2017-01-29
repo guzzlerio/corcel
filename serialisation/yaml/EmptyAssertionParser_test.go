@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("EmptyAssertionParser", func() {
+var _ = Describe("EmptyAssertionParser", func() {
 
 	It("Parses", func() {
 
@@ -35,6 +35,6 @@ var _ = FDescribe("EmptyAssertionParser", func() {
 		_, err := parser.Parse(input)
 
 		Expect(err).ToNot(BeNil())
-		Expect(fmt.Sprintf("%v", err)).To(ContainSubstring(""))
+		Expect(fmt.Sprintf("%v", err)).To(ContainSubstring("key is not present"))
 	})
 })

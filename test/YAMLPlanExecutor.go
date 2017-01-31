@@ -14,7 +14,6 @@ import (
 	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/logger"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
-	"github.com/guzzlerio/corcel/statistics"
 	"github.com/guzzlerio/corcel/utils"
 )
 
@@ -113,7 +112,7 @@ func ExecutePlanFromDataForApplication(planData string) (core.ExecutionSummary, 
 
 	app := cmd.Application{}
 	output := app.Execute(appConfig)
-	var summary = statistics.CreateSummary(output)
+	var summary = output.CreateSummary()
 
 	return summary, nil
 }
@@ -162,7 +161,7 @@ func ExecutePlanBuilderForApplication(planBuilder *yaml.PlanBuilder) (core.Execu
 
 	app := cmd.Application{}
 	output := app.Execute(appConfig)
-	var summary = statistics.CreateSummary(output)
+	var summary = output.CreateSummary()
 
 	return summary, nil
 }
@@ -188,7 +187,7 @@ func ExecuteListForApplication(list []string, configuration config.Configuration
 
 	app := cmd.Application{}
 	output := app.Execute(appConfig)
-	var summary = statistics.CreateSummary(output)
+	var summary = output.CreateSummary()
 
 	return summary, nil
 }

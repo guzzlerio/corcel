@@ -11,7 +11,6 @@ import (
 	"github.com/guzzlerio/corcel/errormanager"
 	"github.com/guzzlerio/corcel/logger"
 	"github.com/guzzlerio/corcel/report"
-	"github.com/guzzlerio/corcel/statistics"
 )
 
 // ServerCommand ...
@@ -82,7 +81,7 @@ func (instance *RunCommand) run(c *kingpin.ParseContext) error {
 	reporter.Generate(output)
 
 	if configuration.Summary {
-		summary := statistics.CreateSummary(output)
+		summary := output.CreateSummary()
 		summaryBuilder := core.NewSummaryBuilder(configuration.SummaryFormat)
 		summaryBuilder.Write(summary)
 	}

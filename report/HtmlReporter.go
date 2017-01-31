@@ -103,7 +103,7 @@ func (instance HTMLReporter) Generate(output statistics.AggregatorSnapShot) {
 		composite.AddValue(key, value)
 	}
 
-	executionSummary := statistics.CreateSummary(output)
+	executionSummary := output.CreateSummary()
 
 	masterLayout, _ := Asset("data/corcel.layout.mustache.html")
 	summaryLayout, _ := Asset("data/summary.mustache")

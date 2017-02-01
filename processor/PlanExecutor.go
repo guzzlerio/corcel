@@ -16,6 +16,15 @@ import (
 )
 
 func merge(source map[string]interface{}, extra map[string]interface{}) map[string]interface{} {
+
+	if source == nil {
+		panic("Source map is nil")
+	}
+
+	if extra == nil {
+		panic("Extra map is nil")
+	}
+
 	for k, v := range extra {
 		source[k] = v
 	}
@@ -86,9 +95,14 @@ func (instance *PlanExecutionContext) workerExecuteJob(ctx context.Context, job 
 func (instance *PlanExecutionContext) executeStep(ctx context.Context, step core.Step) core.ExecutionResult {
 	start := time.Now()
 
+	//initilie the job contexts
 	if instance.JobContexts[step.JobID] == nil {
 		instance.JobContexts[step.JobID] = map[string]interface{}{}
 		instance.StepContexts[step.JobID] = map[int]core.ExtractionResult{}
+		instance.StepContexts[step.JobID][step.ID] = map[string]interface{}{}
+	}
+
+	if instance.StepContexts[step.JobID][step.ID] == nil {
 		instance.StepContexts[step.JobID][step.ID] = map[string]interface{}{}
 	}
 
@@ -111,7 +125,16 @@ func (instance *PlanExecutionContext) executeStep(ctx context.Context, step core
 
 	job := instance.Plan.GetJob(step.JobID)
 	for jKey, jValue := range job.Context {
-		executionContext[jKey] = jValue
+		executionContext["$"+jKey] = jValue
+		if jKey == "vars" {
+			vars := jValue.(map[string]interface{})
+			for varKey, varValue := range vars {
+				executionContext["$"+varKey] = varValue
+			}
+		}
+	}
+	for jKey, jValue := range instance.JobContexts[step.JobID] {
+		executionContext["$"+jKey] = jValue
 		if jKey == "vars" {
 			vars := jValue.(map[string]interface{})
 			for varKey, varValue := range vars {
@@ -154,6 +177,7 @@ func (instance *PlanExecutionContext) executeStep(ctx context.Context, step core
 	duration := time.Since(start) / time.Millisecond
 	executionResult[core.DurationUrn.String()] = duration
 	assertionResults := []core.AssertionResult{}
+
 	for _, assertion := range step.Assertions {
 		assertionResult := assertion.Assert(executionResult)
 		assertionResults = append(assertionResults, assertionResult)

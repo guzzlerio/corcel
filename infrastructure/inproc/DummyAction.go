@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/guzzlerio/corcel/core"
@@ -47,8 +48,15 @@ func (instance DummyAction) Execute(ctx context.Context, executionContext core.E
 				replacement := strings.Replace(resultValue.(string), k, value, -1)
 				instance.Results[key] = replacement
 			}
+		case float64:
+			for key, resultValue := range instance.Results {
+				strValue := strconv.FormatFloat(value, 'f', 0, 64)
+				replacement := strings.Replace(resultValue.(string), k, strValue, -1)
+				instance.Results[key] = replacement
+			}
+
 		default:
-			break
+
 		}
 	}
 

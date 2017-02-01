@@ -107,6 +107,49 @@ jobs:
 
 				summary, err := test.ExecutePlanFromDataForApplication(plan)
 				Expect(err).To(BeNil())
+				Expect(summary.TotalAssertions).To(Equal(int64(1)))
+				Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+			})
+			It("Succeeds using extracted context variable in action", func() {
+				var plan = fmt.Sprintf(`---
+name: Some Plan
+iterations: 0
+random: false
+workers: 1
+waitTime: 0s
+duration: 0s
+jobs:
+    - name: Some Job
+      steps:
+      - name: Step 1
+        action:
+          type: DummyAction
+          results:
+            key: 12345
+        extractors:
+         - type: KeyValueExtractor
+           key: key
+           name: target
+           scope: job
+      - name: Step 2
+        action:
+          type: DummyAction
+          results:
+            lastKey: $target
+        extractors:
+         - type: KeyValueExtractor
+           key: lastKey
+           name: newKey
+           scope: job
+        assertions:
+         - type: ExactAssertion
+           key: newKey
+           expected: 12345
+      `)
+
+				summary, err := test.ExecutePlanFromDataForApplication(plan)
+				Expect(err).To(BeNil())
+				Expect(summary.TotalAssertions).To(Equal(int64(1)))
 				Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
 			})
 			It("Fails", func() {

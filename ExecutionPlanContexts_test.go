@@ -60,10 +60,14 @@ var _ = Describe("ExecutionPlanContexts", func() {
 		It("Succeeds", func() {
 			planBuilder := yaml.NewPlanBuilder()
 
-			planBuilder.
+			jobBuilder := planBuilder.
 				WithContext(planBuilder.BuildContext().Set("value:1", "1").Set("value:2", "2").Set("value:3", "3").Build()).
-				CreateJob().
-				CreateStep().
+				CreateJob()
+
+			jobBuilder.CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Set("something", "$value:1").Build())
+
+			jobBuilder.CreateStep().
 				ToExecuteAction(planBuilder.DummyAction().Set("something", "$value:1").Build()).
 				WithAssertion(planBuilder.ExactAssertion("$value:1", "1")).
 				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
@@ -92,17 +96,23 @@ var _ = Describe("ExecutionPlanContexts", func() {
 	})
 
 	Context("Job Scope", func() {
+
 		It("Succeeds", func() {
 			planBuilder := yaml.NewPlanBuilder()
 
-			planBuilder.
+			jobBuilder := planBuilder.
 				CreateJob().
-				WithContext(planBuilder.BuildContext().Set("value:1", "1").Set("value:2", "2").Set("value:3", "3").Build()).
-				CreateStep().
-				ToExecuteAction(planBuilder.DummyAction().Build()).
+				WithContext(planBuilder.BuildContext().Set("value:1", "1").Set("value:2", "2").Set("value:3", "3").Build())
+
+			jobBuilder.CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Set("something", "$value:1").Build())
+
+			jobBuilder.CreateStep().
+				ToExecuteAction(planBuilder.DummyAction().Set("something", "$value:1").Build()).
 				WithAssertion(planBuilder.ExactAssertion("$value:1", "1")).
 				WithAssertion(planBuilder.ExactAssertion("$value:2", "2")).
-				WithAssertion(planBuilder.ExactAssertion("$value:3", "3"))
+				WithAssertion(planBuilder.ExactAssertion("$value:3", "3")).
+				WithAssertion(planBuilder.ExactAssertion("something", "1"))
 
 			summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())

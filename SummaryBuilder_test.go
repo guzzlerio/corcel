@@ -1,39 +1,43 @@
-package core
+package main
 
 import (
 	"bytes"
 	"time"
 
+	"github.com/guzzlerio/corcel/cmd"
+	"github.com/guzzlerio/corcel/core"
+	"github.com/guzzlerio/corcel/serialisation/json"
+	"github.com/guzzlerio/corcel/serialisation/yaml"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Summary Builders", func() {
 	var (
-		builder SummaryBuilder
-		summary ExecutionSummary
+		builder core.SummaryBuilder
+		summary core.ExecutionSummary
 		writer  *bytes.Buffer
 	)
 	BeforeEach(func() {
 		writer = new(bytes.Buffer)
 		duration, _ := time.ParseDuration("1.003242751s")
-		summary = ExecutionSummary{
+		summary = core.ExecutionSummary{
 			Availability: 100,
-			Bytes: ByteSummary{
-				Received: ByteStat{
+			Bytes: core.ByteSummary{
+				Received: core.ByteStat{
 					Max:   120,
 					Mean:  120,
 					Min:   120,
 					Total: 303480,
 				},
-				Sent: ByteStat{
+				Sent: core.ByteStat{
 					Max:   308,
 					Mean:  136,
 					Min:   59,
 					Total: 343864,
 				},
 			},
-			ResponseTime: ResponseTimeStat{
+			ResponseTime: core.ResponseTimeStat{
 				Max:  31,
 				Mean: 6.7081714,
 				Min:  0,
@@ -49,7 +53,7 @@ var _ = Describe("Summary Builders", func() {
 
 	Describe("ConsoleSummaryBuilder", func() {
 		BeforeEach(func() {
-			builder = NewConsoleSummaryBuilder(writer)
+			builder = cmd.NewConsoleSummaryBuilder(writer)
 		})
 
 		It("writes the expected table to the console", func() {
@@ -73,7 +77,7 @@ var _ = Describe("Summary Builders", func() {
 
 	Describe("JSONSummaryBuilder", func() {
 		BeforeEach(func() {
-			builder = &JSONSummaryBuilder{writer}
+			builder = &json.JSONSummaryBuilder{writer}
 		})
 
 		It("writes the expected table to the console", func() {
@@ -113,7 +117,7 @@ var _ = Describe("Summary Builders", func() {
 
 	Describe("YAMLSummaryBuilder", func() {
 		BeforeEach(func() {
-			builder = &YAMLSummaryBuilder{writer}
+			builder = &yaml.YAMLSummaryBuilder{writer}
 		})
 
 		It("writes the expected table to the console", func() {

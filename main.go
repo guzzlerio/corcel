@@ -14,6 +14,7 @@ import (
 	"github.com/guzzlerio/corcel/infrastructure/http"
 	"github.com/guzzlerio/corcel/infrastructure/inproc"
 	"github.com/guzzlerio/corcel/logger"
+	"github.com/guzzlerio/corcel/serialisation/json"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
 )
 
@@ -77,6 +78,11 @@ func main() {
 		AddExtractorParser(yaml.JSONPathExtractorParser{}).
 		AddExtractorParser(yaml.KeyValueExtractorParser{})
 
+	summaryBuilders := core.NewSummaryBuilderFactory().
+		AddBuilder("json", &json.JSONSummaryBuilder{Writer: os.Stdout}).
+		AddBuilder("yaml", &yaml.YAMLSummaryBuilder{Writer: os.Stdout}).
+		AddBuilder("console", cmd.NewConsoleSummaryBuilder(os.Stdout))
+
 	//kingpin.UsageTemplate(kingpin.CompactUsageTemplate)
 	kingpin.CommandLine.Help = "An example implementation of curl."
 
@@ -86,7 +92,7 @@ func main() {
 	app.HelpFlag.Short('h')
 	app.UsageTemplate(kingpin.LongHelpTemplate)
 
-	cmd.NewRunCommand(app, &registry)
+	cmd.NewRunCommand(app, &registry, summaryBuilders)
 	cmd.NewServerCommand(app, &registry)
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))

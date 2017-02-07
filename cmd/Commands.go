@@ -28,27 +28,29 @@ func NewServerCommand(app *kingpin.Application, registry *core.Registry) {
 	server.Flag("port", "Port").Default("54332").IntVar(&c.Port)
 }
 
-func (instance *ServerCommand) run(c *kingpin.ParseContext) error {
+func (this *ServerCommand) run(c *kingpin.ParseContext) error {
 	// have access to c.registry
 	//Start HTTP Server
 	// construct HTTP Host
 	// Start HTTP Host from cmd options
-	fmt.Printf("Would now be starting the HTTP server on %v\n", instance.Port)
+	fmt.Printf("Would now be starting the HTTP server on %v\n", this.Port)
 	return nil
 }
 
 // RunCommand ...
 type RunCommand struct {
-	Config   *config.Configuration
-	registry *core.Registry
+	Config          *config.Configuration
+	registry        *core.Registry
+	summaryBuilders *core.SummaryBuilderFactory
 }
 
 //NewRunCommand ...
-func NewRunCommand(app *kingpin.Application, registry *core.Registry) {
+func NewRunCommand(app *kingpin.Application, registry *core.Registry, summaryBuilders *core.SummaryBuilderFactory) {
 	configuration := &config.Configuration{}
 	c := &RunCommand{
-		Config:   configuration,
-		registry: registry,
+		Config:          configuration,
+		registry:        registry,
+		summaryBuilders: summaryBuilders,
 	}
 	run := app.Command("run", "Execute performance test thing").Action(c.run)
 	run.Arg("file", "Corcel file contains URLs or an ExecutionPlan (see the --plan argument)").Required().StringVar(&configuration.FilePath)
@@ -64,8 +66,8 @@ func NewRunCommand(app *kingpin.Application, registry *core.Registry) {
 	run.Flag("progress", "Progress reporter").EnumVar(&configuration.Progress, "bar", "logo", "none")
 }
 
-func (instance *RunCommand) run(c *kingpin.ParseContext) error {
-	configuration, err := config.ParseConfiguration(instance.Config)
+func (this *RunCommand) run(c *kingpin.ParseContext) error {
+	configuration, err := config.ParseConfiguration(this.Config)
 	if err != nil {
 		errormanager.Log(err)
 		panic("REPLACE ME THIS IS TEMP")
@@ -82,7 +84,7 @@ func (instance *RunCommand) run(c *kingpin.ParseContext) error {
 
 	if configuration.Summary {
 		summary := output.CreateSummary()
-		summaryBuilder := core.NewSummaryBuilder(configuration.SummaryFormat)
+		summaryBuilder := this.summaryBuilders.Get(configuration.SummaryFormat)
 		summaryBuilder.Write(summary)
 	}
 	return nil

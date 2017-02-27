@@ -29,7 +29,6 @@ var _ = Describe("ExecutionPlanContexts", func() {
 		Context("Plan Scope", func() {
 
 			It("Succeeds", func() {
-
 				planBuilder := yaml.NewPlanBuilder()
 
 				planBuilder.
@@ -96,7 +95,6 @@ var _ = Describe("ExecutionPlanContexts", func() {
 	})
 
 	Context("Job Scope", func() {
-
 		It("Succeeds", func() {
 			planBuilder := yaml.NewPlanBuilder()
 

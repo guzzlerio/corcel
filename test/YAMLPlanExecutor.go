@@ -62,6 +62,7 @@ func ExecutePlanFromData(planData string, args ...string) (core.ExecutionSummary
 	if err != nil {
 		return core.ExecutionSummary{}, err
 	}
+	PrintPlan(file)
 
 	defer func() {
 		fileErr := os.Remove(file.Name())
@@ -94,6 +95,7 @@ func ExecutePlanFromDataForApplication(planData string) (core.ExecutionSummary, 
 	if fileErr != nil {
 		return core.ExecutionSummary{}, fileErr
 	}
+	PrintPlan(file)
 
 	defer func() {
 		fileErr := os.Remove(file.Name())
@@ -124,6 +126,7 @@ func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
+	PrintPlan(file)
 	defer func() {
 		fileErr := os.Remove(file.Name())
 		if fileErr != nil {
@@ -140,17 +143,11 @@ func ExecutePlanBuilderForApplication(planBuilder *yaml.PlanBuilder) (core.Execu
 	var configuration = config.Configuration{}
 	file, fileErr := planBuilder.BuildAndSave()
 
-	if os.Getenv("CORCEL_PRINT_PLAN") == "1" {
-		data, fileReadErr := ioutil.ReadFile(file.Name())
-		if fileReadErr != nil {
-			return core.ExecutionSummary{}, fileReadErr
-		}
-		fmt.Println(string(data))
-	}
-
 	if fileErr != nil {
 		return core.ExecutionSummary{}, fileErr
 	}
+
+	PrintPlan(file)
 
 	defer func() {
 		fileErr := os.Remove(file.Name())
@@ -174,6 +171,16 @@ func ExecutePlanBuilderForApplication(planBuilder *yaml.PlanBuilder) (core.Execu
 	var summary = statistics.CreateSummary(output)
 
 	return summary, nil
+}
+
+func PrintPlan(file *os.File) {
+	if os.Getenv("CORCEL_PRINT_PLAN") == "1" {
+		data, fileReadErr := ioutil.ReadFile(file.Name())
+		if fileReadErr != nil {
+			panic(fileReadErr)
+		}
+		fmt.Println(string(data))
+	}
 }
 
 //ExecuteListForApplication ...

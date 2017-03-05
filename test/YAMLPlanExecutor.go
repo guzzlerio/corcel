@@ -139,6 +139,15 @@ func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) ([]byte, error) {
 func ExecutePlanBuilderForApplication(planBuilder *yaml.PlanBuilder) (core.ExecutionSummary, error) {
 	var configuration = config.Configuration{}
 	file, fileErr := planBuilder.BuildAndSave()
+
+	if os.Getenv("CORCEL_PRINT_PLAN") == "1" {
+		data, fileReadErr := ioutil.ReadFile(file.Name())
+		if fileReadErr != nil {
+			return core.ExecutionSummary{}, fileReadErr
+		}
+		fmt.Println(string(data))
+	}
+
 	if fileErr != nil {
 		return core.ExecutionSummary{}, fileErr
 	}
@@ -157,7 +166,7 @@ func ExecutePlanBuilderForApplication(planBuilder *yaml.PlanBuilder) (core.Execu
 	var appConfig, err = config.ParseConfiguration(&configuration)
 
 	if err != nil {
-		return core.ExecutionSummary{}, fileErr
+		return core.ExecutionSummary{}, err
 	}
 
 	app := cmd.Application{}

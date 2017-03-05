@@ -28,7 +28,6 @@ var _ = Describe("ExecutionPlanContexts", func() {
 
 	Context("Using List Variables", func() {
 		It("inside the http headers", func() {
-
 			expectedHeaderKey := "Content-Type"
 			json := "application/json"
 			xml := "application/json"
@@ -46,21 +45,93 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.HTTPAction().Header(expectedHeaderKey, "$Content-type.commonType").URL(TestServer.CreateURL(path)).Build())
 
-			_, err := test.ExecutePlanBuilder(planBuilder)
+			_, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
 
 			Expect(len(TestServer.Requests)).To(Equal(3))
 			Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithHeader(expectedHeaderKey, json))).To(Equal(true))
 			Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithHeader(expectedHeaderKey, xml))).To(Equal(true))
 			Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithHeader(expectedHeaderKey, carf))).To(Equal(true))
+		})
+	})
 
+	Context("Using Defaults", func() {
+
+		It("Set HTTP Header", func() {
+
+			planBuilder := yaml.NewPlanBuilder()
+
+			expectedHeaderKey := "content-boomboom"
+			expectedHeaderValue := "bang/boom"
+			headers := map[string]string{}
+			headers[expectedHeaderKey] = expectedHeaderValue
+
+			planBuilder.WithContext(planBuilder.BuildContext().SetDefault("HttpAction", "headers", headers).Build()).
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Build())
+
+			_, err := test.ExecutePlanBuilderForApplication(planBuilder)
+			Expect(err).To(BeNil())
+
+			Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithHeader(expectedHeaderKey, expectedHeaderValue))).To(Equal(true))
+		})
+
+		It("Set HTTP Method", func() {
+
+			var method = "PATCH"
+			planBuilder := yaml.NewPlanBuilder()
+			planBuilder.WithContext(planBuilder.BuildContext().SetDefault("HttpAction", "method", method).Build()).
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Build())
+
+			_, err := test.ExecutePlanBuilderForApplication(planBuilder)
+			Expect(err).To(BeNil())
+
+			Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithMethod(method))).To(Equal(true))
+		})
+
+		It("Set HTTP Body", func() {
+
+			var body = "BOOM"
+			planBuilder := yaml.NewPlanBuilder()
+			planBuilder.WithContext(planBuilder.BuildContext().SetDefault("HttpAction", "body", body).Build()).
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Build())
+
+			_, err := test.ExecutePlanBuilderForApplication(planBuilder)
+			Expect(err).To(BeNil())
+
+			Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithBody(body))).To(Equal(true))
+		})
+
+		It("Context does not override a HTTP Header set in the action it self", func() {
+			planBuilder := yaml.NewPlanBuilder()
+
+			contextHeaderKey := "content-boomboom"
+			contextHeaderValue := "bang/boom"
+			headers := map[string]string{}
+			headers[contextHeaderKey] = contextHeaderValue
+
+			expectedHeaderValue := "hazaa"
+
+			planBuilder.WithContext(planBuilder.BuildContext().SetDefault("HttpAction", "headers", headers).Build()).
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Header(contextHeaderKey, expectedHeaderValue).Build())
+
+			_, err := test.ExecutePlanBuilderForApplication(planBuilder)
+			Expect(err).To(BeNil())
+
+			Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithHeader(contextHeaderKey, expectedHeaderValue))).To(Equal(true))
 		})
 	})
 
 	Context("Using variables", func() {
 
 		It("inside the http headers", func() {
-
 			expectedHeaderKey := "Content-Type"
 			expectedHeaderValue := "application/json"
 
@@ -70,7 +141,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.HTTPAction().Header(expectedHeaderKey, "$commonType").URL(TestServer.CreateURL(path)).Build())
 
-			_, err := test.ExecutePlanBuilder(planBuilder)
+			_, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
 
 			Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithHeader(expectedHeaderKey, expectedHeaderValue))).To(Equal(true))
@@ -105,7 +176,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 				CreateStep().
 				ToExecuteAction(planBuilder.HTTPAction().Header("Content-type", "application/json").Body(body).URL(TestServer.CreateURL(path)).Build())
 
-			_, err := test.ExecutePlanBuilder(planBuilder)
+			_, err := test.ExecutePlanBuilderForApplication(planBuilder)
 			Expect(err).To(BeNil())
 
 			expectedBody := strings.Replace(body, "$firstname", "john", -1)
@@ -124,44 +195,4 @@ var _ = Describe("ExecutionPlanContexts", func() {
 		//If a base querystring is set the jobs, steps and actions add/override the previous
 	})
 
-	It("Set HTTP Header", func() {
-
-		planBuilder := yaml.NewPlanBuilder()
-
-		expectedHeaderKey := "content-boomboom"
-		expectedHeaderValue := "bang/boom"
-		headers := map[string]string{}
-		headers[expectedHeaderKey] = expectedHeaderValue
-
-		planBuilder.WithContext(planBuilder.BuildContext().Set("headers", headers).Build()).
-			CreateJob().
-			CreateStep().
-			ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Build())
-
-		_, err := test.ExecutePlanBuilder(planBuilder)
-		Expect(err).To(BeNil())
-
-		Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithHeader(expectedHeaderKey, expectedHeaderValue))).To(Equal(true))
-	})
-
-	It("Context does not override a HTTP Header set in the action it self", func() {
-		planBuilder := yaml.NewPlanBuilder()
-
-		contextHeaderKey := "content-boomboom"
-		contextHeaderValue := "bang/boom"
-		headers := map[string]string{}
-		headers[contextHeaderKey] = contextHeaderValue
-
-		expectedHeaderValue := "hazaa"
-
-		planBuilder.WithContext(planBuilder.BuildContext().Set("headers", headers).Build()).
-			CreateJob().
-			CreateStep().
-			ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Header(contextHeaderKey, expectedHeaderValue).Build())
-
-		_, err := test.ExecutePlanBuilder(planBuilder)
-		Expect(err).To(BeNil())
-
-		Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithHeader(contextHeaderKey, expectedHeaderValue))).To(Equal(true))
-	})
 })

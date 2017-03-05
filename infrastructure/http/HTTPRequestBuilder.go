@@ -4,9 +4,7 @@ package http
 func NewHTTPRequestBuilder() RequestBuilder {
 	return RequestBuilder{
 		data: map[string]interface{}{
-			"type":   "HttpRequest",
-			"method": "GET",
-			"url":    "",
+			"type": "HttpRequest",
 		},
 	}
 }

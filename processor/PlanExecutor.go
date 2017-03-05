@@ -118,6 +118,10 @@ func (instance *PlanExecutionContext) executeStep(ctx context.Context, step core
 		executionContext[pKey] = pValue
 	}
 
+	if instance.Plan.Context["defaults"] != nil {
+		executionContext["defaults"] = instance.Plan.Context["defaults"].(map[string]interface{})
+	}
+
 	listValues := instance.Lists.Values()
 	for pKey, pValue := range listValues {
 		executionContext[pKey] = pValue
@@ -259,10 +263,10 @@ func CreatePlanFromURLList(config *config.Configuration) core.Plan {
 		}
 		action := http.CreateAction()
 
-		action.URL = request.URL.String()
-		action.Method = request.Method
-		action.Headers = request.Header
-		action.Body = body
+		action.State.URL = request.URL.String()
+		action.State.Method = request.Method
+		action.State.Headers = request.Header
+		action.State.Body = body
 
 		step.Action = action
 		job = job.AddStep(step)

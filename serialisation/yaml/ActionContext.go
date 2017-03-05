@@ -25,6 +25,25 @@ func (instance ContextBuilder) SetList(key string, value []map[string]interface{
 	return instance
 }
 
+//SetDefaults ...
+func (instance ContextBuilder) SetDefault(actionType string, key string, value interface{}) ContextBuilder {
+	var defaults map[string]interface{}
+	var actionDefaults map[string]interface{}
+
+	if instance.data["defaults"] == nil {
+		defaults = map[string]interface{}{}
+		actionDefaults = map[string]interface{}{}
+		defaults[actionType] = actionDefaults
+	} else {
+		defaults = instance.data["defaults"].(map[string]interface{})
+		actionDefaults = defaults[actionType].(map[string]interface{})
+	}
+	actionDefaults[key] = value
+	instance.data["defaults"] = defaults
+
+	return instance
+}
+
 //Set ...
 func (instance ContextBuilder) Set(key string, value interface{}) ContextBuilder {
 	var vars map[string]interface{}

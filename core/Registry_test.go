@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("Registry", func() {
+var _ = Describe("Registry", func() {
 
 	It("Creates a Registry", func() {
 		var registry = CreateRegistry()

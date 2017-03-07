@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net/url"
 
 	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
@@ -415,35 +414,36 @@ jobs:
             </character>
           </book>
         </library>`
-		testCases := map[string]string{
-			"/library/book/isbn":                              "0836217462",
-			"library/*/isbn":                                  "0836217462",
-			"/library/book/../book/./isbn":                    "0836217462",
-			"/library/book/character[2]/name":                 "Snoopy",
-			"/library/book/character[born='1950-10-04']/name": "Snoopy",
-			"/library/book//node()[@id='PP']/name":            "Peppermint Patty",
-			"//book[author/@id='CMS']/title":                  "Being a Dog Is a Full-Time Job",
-			"/library/book/preceding::comment()":              " Great book. ",
-			"//*[contains(born,'1922')]/name":                 "Charles M Schulz",
-			"//*[@id='PP' or @id='Snoopy']/born":              "1966-08-22",
+
+		var entries = []TableEntry{
+			Entry("", "/library/book/isbn", "0836217462"),
+			Entry("", "library/*/isbn", "0836217462"),
+			Entry("", "/library/book/../book/./isbn", "0836217462"),
+			Entry("", "/library/book/character[2]/name", "Snoopy"),
+			Entry("", "/library/book/character[born='1950-10-04']/name", "Snoopy"),
+			Entry("", "/library/book//node()[@id='PP']/name", "Peppermint Patty"),
+			Entry("", "//book[author/@id='CMS']/title", "Being a Dog Is a Full-Time Job"),
+			Entry("", "/library/book/preceding::comment()", " Great book. "),
+			Entry("", "//*[contains(born,'1922')]/name", "Charles M Schulz"),
+			Entry("", "//*[@id='PP' or @id='Snoopy']/born", "1966-08-22"),
 		}
+
 		Context("Step Scope", func() {
-			for testCase, expectedValue := range testCases {
-				It(fmt.Sprintf("Succeeds with %s", url.QueryEscape(testCase)), func() {
-					planBuilder := yaml.NewPlanBuilder()
+			DescribeTable("Succeeds", func(testCase string, expectedValue string) {
+				planBuilder := yaml.NewPlanBuilder()
 
-					planBuilder.
-						CreateJob().
-						CreateStep().
-						ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
-						WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath(testCase).Build()).
-						WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
+				planBuilder.
+					CreateJob().
+					CreateStep().
+					ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
+					WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath(testCase).Build()).
+					WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
-					summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
-					Expect(err).To(BeNil())
-					Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
-				})
-			}
+				summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
+				Expect(err).To(BeNil())
+				Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+			}, entries...)
+
 			It("Fails", func() {
 				planBuilder := yaml.NewPlanBuilder()
 
@@ -460,94 +460,79 @@ jobs:
 			})
 		})
 		Context("Job Scope", func() {
-			Context("Succeeds", func() {
-				for testCase, expectedValue := range testCases {
-					It(fmt.Sprintf("Succeeds with %s", url.QueryEscape(testCase)), func() {
-						planBuilder := yaml.NewPlanBuilder()
+			DescribeTable("Succeeds", func(testCase string, expectedValue string) {
+				planBuilder := yaml.NewPlanBuilder()
 
-						jobBuilder := planBuilder.
-							CreateJob()
-						jobBuilder.
-							CreateStep().
-							ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
-							WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath(testCase).Scope(core.JobScope).Build())
-						jobBuilder.
-							CreateStep().
-							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
+				jobBuilder := planBuilder.
+					CreateJob()
+				jobBuilder.
+					CreateStep().
+					ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
+					WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath(testCase).Scope(core.JobScope).Build())
+				jobBuilder.
+					CreateStep().
+					WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
-						summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
-						Expect(err).To(BeNil())
-						Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
-					})
-				}
-			})
-			Context("Fails", func() {
-				for testCase, expectedValue := range testCases {
-					It(fmt.Sprintf("Fails with %s", url.QueryEscape(testCase)), func() {
-						planBuilder := yaml.NewPlanBuilder()
+				summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
+				Expect(err).To(BeNil())
+				Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+			}, entries...)
 
-						jobBuilder := planBuilder.
-							CreateJob()
-						jobBuilder.
-							CreateStep().
-							ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
-							WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath(testCase).Build())
-						jobBuilder.
-							CreateStep().
-							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
+			It("fails", func() {
+				planBuilder := yaml.NewPlanBuilder()
+				jobBuilder := planBuilder.
+					CreateJob()
+				jobBuilder.
+					CreateStep().
+					ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
+					WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath("/library/book/isbn").Build())
+				jobBuilder.
+					CreateStep().
+					WithAssertion(planBuilder.ExactAssertion("xpath:match:1", "0836217462"))
 
-						summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
-						Expect(err).To(BeNil())
-						Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
-					})
-				}
+				summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
+				Expect(err).To(BeNil())
+				Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
 			})
 		})
 
 		Context("Plan Scope", func() {
-			Context("Succeeds", func() {
-				for testCase, expectedValue := range testCases {
-					It(fmt.Sprintf("Succeeds with %s", url.QueryEscape(testCase)), func() {
-						planBuilder := yaml.NewPlanBuilder()
+			DescribeTable("Succeeds", func(testCase string, expectedValue string) {
+				planBuilder := yaml.NewPlanBuilder()
 
-						planBuilder.
-							CreateJob().
-							CreateStep().
-							ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
-							WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath(testCase).Scope(core.PlanScope).Build())
+				planBuilder.
+					CreateJob().
+					CreateStep().
+					ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
+					WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath(testCase).Scope(core.PlanScope).Build())
 
-						planBuilder.
-							CreateJob().
-							CreateStep().
-							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
+				planBuilder.
+					CreateJob().
+					CreateStep().
+					WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
 
-						summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
-						Expect(err).To(BeNil())
-						Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
-					})
-				}
-			})
-			Context("Fails", func() {
-				for testCase, expectedValue := range testCases {
-					It(fmt.Sprintf("Fails with %s", url.QueryEscape(testCase)), func() {
-						planBuilder := yaml.NewPlanBuilder()
+				summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
+				Expect(err).To(BeNil())
+				Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+			}, entries...)
 
-						planBuilder.
-							CreateJob().
-							CreateStep().
-							ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
-							WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath(testCase).Build())
+			It("Fails", func() {
+				planBuilder := yaml.NewPlanBuilder()
 
-						planBuilder.
-							CreateJob().
-							CreateStep().
-							WithAssertion(planBuilder.ExactAssertion("xpath:match:1", expectedValue))
+				planBuilder.
+					CreateJob().
+					CreateStep().
+					ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
+					WithExtractor(planBuilder.XPathExtractor().Name("xpath:match:1").Key("value:1").XPath("/library/book/isbn").Build())
 
-						summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
-						Expect(err).To(BeNil())
-						Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
-					})
-				}
+				planBuilder.
+					CreateJob().
+					CreateStep().
+					WithAssertion(planBuilder.ExactAssertion("xpath:match:1", "0836217462"))
+
+				summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
+				Expect(err).To(BeNil())
+				Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
 			})
 		})
 	})

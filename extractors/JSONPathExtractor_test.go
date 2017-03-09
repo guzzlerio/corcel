@@ -24,4 +24,19 @@ var _ = Describe("JSONPathExtractor", func() {
 		Expect(extractionResult["something"]).To(Equal(float64(32)))
 	})
 
+	It("invalid json path", func() {
+		var extractor = JSONPathExtractor{
+			Name:     "something",
+			Key:      "targetKey",
+			JSONPath: "talula",
+		}
+
+		var result = core.ExecutionResult{
+			"targetKey": `{"aKey":32}`,
+		}
+
+		var extractionResult = extractor.Extract(result)
+
+		Expect(extractionResult["something"]).To(Equal(ErrInvalidJsonPath))
+	})
 })

@@ -2,10 +2,15 @@ package extractors
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/guzzlerio/jsonpath"
 
 	"github.com/guzzlerio/corcel/core"
+)
+
+var (
+	ErrInvalidJsonPath = errors.New("Unexpected error evaluating JSON Path")
 )
 
 //JSONPathExtractor ...
@@ -27,10 +32,10 @@ func (instance JSONPathExtractor) Extract(result core.ExecutionResult) core.Extr
 		json.Unmarshal([]byte(data.(string)), &json_data)
 		res, err := jsonpath.JsonPathLookup(json_data, instance.JSONPath)
 		if err != nil {
-			extractionResult[instance.Name] = "Unexpected error evaluating JSON Path"
+			extractionResult[instance.Name] = ErrInvalidJsonPath
+		} else {
+			extractionResult[instance.Name] = res
 		}
-
-		extractionResult[instance.Name] = res
 	}
 
 	return extractionResult

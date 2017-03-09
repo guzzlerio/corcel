@@ -1,11 +1,15 @@
 package http
 
-import nethttp "net/http"
+import (
+	nethttp "net/http"
+
+	"github.com/guzzlerio/corcel/core"
+)
 
 type defaultsExtractor struct {
 }
 
-func (self defaultsExtractor) Extract(input map[string]interface{}) HttpActionState {
+func (self defaultsExtractor) Extract(input core.ExecutionContext) HttpActionState {
 
 	var state = HttpActionState{
 		Headers: nethttp.Header{},

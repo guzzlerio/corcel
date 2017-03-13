@@ -340,17 +340,6 @@ func (instance *PlanExecutor) Execute() error {
 				}
 			}
 
-			/*
-				if plan.Context["vars"] != nil {
-					stringKeyData := map[string]interface{}{}
-					data := plan.Context["vars"].(map[string]interface{})
-					for dataKey, dataValue := range data {
-						stringKeyData["$"+dataKey] = dataValue
-					}
-					plan.Context["vars"] = stringKeyData
-				}
-			*/
-
 			var planExecutionContext = &PlanExecutionContext{
 				Plan:         plan,
 				Lists:        NewListRingRevolver(plan.Lists()),

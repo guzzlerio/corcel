@@ -92,72 +92,26 @@ func (instance *PlanExecutionContext) workerExecuteJob(ctx context.Context, job 
 	}
 }
 
-func (instance *PlanExecutionContext) executeStep(ctx context.Context, step core.Step) core.ExecutionResult {
-	start := time.Now()
+func (instance *PlanExecutionContext) evaluateVariablesForStep(step core.Step) map[string]interface{} {
 
-	//initilie the job contexts
-	if instance.JobContexts[step.JobID] == nil {
-		instance.JobContexts[step.JobID] = map[string]interface{}{}
-		instance.StepContexts[step.JobID] = map[int]core.ExtractionResult{}
-		instance.StepContexts[step.JobID][step.ID] = map[string]interface{}{}
-	}
-
-	if instance.StepContexts[step.JobID][step.ID] == nil {
-		instance.StepContexts[step.JobID][step.ID] = map[string]interface{}{}
-	}
-
-	var executionContext = core.ExecutionContext{}
-
-	var vars map[string]interface{}
+	var vars = map[string]interface{}{}
 
 	if instance.Plan.Context["vars"] != nil {
 		vars = instance.Plan.Context["vars"].(map[string]interface{})
 	}
 
-	for pKey, pValue := range vars {
-		executionContext[pKey] = pValue
+	if instance.Plan.GetJob(step.JobID).Context["vars"] != nil {
+		vars = merge(vars, instance.Plan.GetJob(step.JobID).Context["vars"].(map[string]interface{}))
 	}
 
-	if instance.Plan.Context["defaults"] != nil {
-		executionContext["defaults"] = instance.Plan.Context["defaults"].(map[string]interface{})
-	}
+	vars = merge(vars, instance.PlanContext)
+	vars = merge(vars, instance.JobContexts[step.JobID])
+	vars = merge(vars, instance.StepContexts[step.JobID][step.ID])
 
-	listValues := instance.Lists.Values()
-	for pKey, pValue := range listValues {
-		executionContext[pKey] = pValue
-	}
+	return vars
+}
 
-	job := instance.Plan.GetJob(step.JobID)
-	for jKey, jValue := range job.Context {
-		executionContext["$"+jKey] = jValue
-		if jKey == "vars" {
-			vars := jValue.(map[string]interface{})
-			for varKey, varValue := range vars {
-				executionContext["$"+varKey] = varValue
-			}
-		}
-	}
-	for jKey, jValue := range instance.JobContexts[step.JobID] {
-		executionContext["$"+jKey] = jValue
-		if jKey == "vars" {
-			vars := jValue.(map[string]interface{})
-			for varKey, varValue := range vars {
-				executionContext["$"+varKey] = varValue
-			}
-		}
-	}
-
-	var executionResult = core.ExecutionResult{}
-
-	if step.Action != nil {
-		executionResult = step.Action.Execute(ctx, executionContext)
-	}
-
-	executionResult = merge(executionResult, instance.PlanContext)
-	executionResult = merge(executionResult, instance.JobContexts[step.JobID])
-	executionResult = merge(executionResult, instance.StepContexts[step.JobID][step.ID])
-
-	executionResult = merge(executionResult, executionContext)
+func (instance *PlanExecutionContext) extractResults(executionResult core.ExecutionResult, step core.Step) core.ExecutionResult {
 
 	for _, extractor := range step.Extractors {
 		extractorResult := extractor.Extract(executionResult)
@@ -177,6 +131,41 @@ func (instance *PlanExecutionContext) executeStep(ctx context.Context, step core
 			executionResult[k] = v
 		}
 	}
+
+	return executionResult
+}
+
+func (instance *PlanExecutionContext) executeStep(ctx context.Context, step core.Step) core.ExecutionResult {
+	start := time.Now()
+
+	var vars = instance.evaluateVariablesForStep(step)
+	var executionContext = core.ExecutionContext{}
+
+	if instance.Plan.Context["defaults"] != nil {
+		executionContext["defaults"] = instance.Plan.Context["defaults"].(map[string]interface{})
+	}
+
+	for pKey, pValue := range instance.Lists.Values() {
+		executionContext["$"+pKey] = pValue
+	}
+
+	for pKey, pValue := range vars {
+		executionContext["$"+pKey] = pValue
+	}
+
+	var executionResult = core.ExecutionResult{}
+
+	if step.Action != nil {
+		executionResult = step.Action.Execute(ctx, executionContext)
+	}
+
+	executionResult = merge(executionResult, instance.PlanContext)
+	executionResult = merge(executionResult, instance.JobContexts[step.JobID])
+	executionResult = merge(executionResult, instance.StepContexts[step.JobID][step.ID])
+
+	executionResult = merge(executionResult, executionContext)
+
+	executionResult = instance.extractResults(executionResult, step)
 
 	duration := time.Since(start) / time.Millisecond
 	executionResult[core.DurationUrn.String()] = duration
@@ -337,23 +326,39 @@ func (instance *PlanExecutor) Execute() error {
 		go func() {
 			defer errormanager.HandlePanic()
 			var plan = <-planChannel
-			if plan.Context["vars"] != nil {
-				stringKeyData := map[string]interface{}{}
-				data := plan.Context["vars"].(map[string]interface{})
-				for dataKey, dataValue := range data {
-					stringKeyData["$"+dataKey] = dataValue
+
+			var planContext = core.ExtractionResult{}
+			var jobContexts = map[int]core.ExtractionResult{}
+			var stepContexts = map[int]map[int]core.ExtractionResult{}
+
+			//Initialize the contexts
+			for _, job := range plan.Jobs {
+				jobContexts[job.ID] = map[string]interface{}{}
+				stepContexts[job.ID] = map[int]core.ExtractionResult{}
+				for _, step := range job.Steps {
+					stepContexts[job.ID][step.ID] = map[string]interface{}{}
 				}
-				plan.Context["vars"] = stringKeyData
 			}
+
+			/*
+				if plan.Context["vars"] != nil {
+					stringKeyData := map[string]interface{}{}
+					data := plan.Context["vars"].(map[string]interface{})
+					for dataKey, dataValue := range data {
+						stringKeyData["$"+dataKey] = dataValue
+					}
+					plan.Context["vars"] = stringKeyData
+				}
+			*/
 
 			var planExecutionContext = &PlanExecutionContext{
 				Plan:         plan,
 				Lists:        NewListRingRevolver(plan.Lists()),
 				Config:       instance.Config,
 				Publisher:    instance.Publisher,
-				PlanContext:  core.ExtractionResult{},
-				JobContexts:  map[int]core.ExtractionResult{},
-				StepContexts: map[int]map[int]core.ExtractionResult{},
+				PlanContext:  planContext,
+				JobContexts:  jobContexts,
+				StepContexts: stepContexts,
 				Bar:          instance.Bar,
 				mutex:        &sync.Mutex{},
 				start:        time.Now(),

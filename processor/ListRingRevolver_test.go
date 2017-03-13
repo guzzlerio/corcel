@@ -46,16 +46,16 @@ var _ = Describe("ListRingIterator", func() {
 		iterator := NewListRingRevolver(data)
 
 		values1 := iterator.Values()
-		Expect(values1["$People.name"]).To(Equal("bob"))
-		Expect(values1["$People.age"]).To(Equal(30))
+		Expect(values1["People.name"]).To(Equal("bob"))
+		Expect(values1["People.age"]).To(Equal(30))
 
 		values2 := iterator.Values()
-		Expect(values2["$People.name"]).To(Equal("carol"))
-		Expect(values2["$People.age"]).To(Equal(31))
+		Expect(values2["People.name"]).To(Equal("carol"))
+		Expect(values2["People.age"]).To(Equal(31))
 
 		values3 := iterator.Values()
-		Expect(values3["$People.name"]).To(Equal("alice"))
-		Expect(values3["$People.age"]).To(Equal(32))
+		Expect(values3["People.name"]).To(Equal("alice"))
+		Expect(values3["People.age"]).To(Equal(32))
 	})
 
 	It("Loops around uneven lists", func() {
@@ -66,22 +66,22 @@ var _ = Describe("ListRingIterator", func() {
 		iterator := NewListRingRevolver(data)
 
 		values1 := iterator.Values()
-		Expect(values1["$People.name"]).To(Equal("bob"))
-		Expect(values1["$People.age"]).To(Equal(30))
-		Expect(values1["$Products.name"]).To(Equal("toaster"))
-		Expect(values1["$Products.sku"]).To(Equal("1234"))
+		Expect(values1["People.name"]).To(Equal("bob"))
+		Expect(values1["People.age"]).To(Equal(30))
+		Expect(values1["Products.name"]).To(Equal("toaster"))
+		Expect(values1["Products.sku"]).To(Equal("1234"))
 
 		values2 := iterator.Values()
-		Expect(values2["$People.name"]).To(Equal("carol"))
-		Expect(values2["$People.age"]).To(Equal(31))
-		Expect(values2["$Products.name"]).To(Equal("grinder"))
-		Expect(values2["$Products.sku"]).To(Equal("5678"))
+		Expect(values2["People.name"]).To(Equal("carol"))
+		Expect(values2["People.age"]).To(Equal(31))
+		Expect(values2["Products.name"]).To(Equal("grinder"))
+		Expect(values2["Products.sku"]).To(Equal("5678"))
 
 		values3 := iterator.Values()
-		Expect(values3["$People.name"]).To(Equal("alice"))
-		Expect(values3["$People.age"]).To(Equal(32))
-		Expect(values3["$Products.name"]).To(Equal("toaster"))
-		Expect(values3["$Products.sku"]).To(Equal("1234"))
+		Expect(values3["People.name"]).To(Equal("alice"))
+		Expect(values3["People.age"]).To(Equal(32))
+		Expect(values3["Products.name"]).To(Equal("toaster"))
+		Expect(values3["Products.sku"]).To(Equal("1234"))
 	})
 
 })

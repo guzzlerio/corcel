@@ -26,7 +26,7 @@ func (instance *ListRingRevolver) Values() map[string]interface{} {
 	for key, value := range instance.Lists {
 		values := value.Next()
 		for subKey, subValue := range values {
-			computedKey := fmt.Sprintf("$%s.%s", key, subKey)
+			computedKey := fmt.Sprintf("%s.%s", key, subKey)
 			data[computedKey] = subValue
 		}
 	}

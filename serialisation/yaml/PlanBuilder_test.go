@@ -1,6 +1,7 @@
 package yaml
 
 import (
+	"github.com/guzzlerio/corcel/core"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -145,7 +146,7 @@ duration: 10s
 		planBuilder := NewPlanBuilder()
 
 		planBuilder.SetDuration("10s").
-			WithContext(planBuilder.BuildContext().SetList("People", []map[string]interface{}{
+			WithContext(planBuilder.BuildContext().SetList("People", []core.ExecutionContext{
 				{"name": "bob", "age": 52},
 			}).Build())
 
@@ -264,7 +265,7 @@ jobs:
 			planBuilder := NewPlanBuilder()
 
 			planBuilder.CreateJob().
-				WithContext(planBuilder.BuildContext().SetList("People", []map[string]interface{}{
+				WithContext(planBuilder.BuildContext().SetList("People", []core.ExecutionContext{
 					{"name": "bob", "age": 52},
 				}).Build())
 

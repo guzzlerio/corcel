@@ -1,24 +1,28 @@
 package yaml
 
+import (
+	"github.com/guzzlerio/corcel/core"
+)
+
 //BuildContext ...
 func (instance PlanBuilder) BuildContext() ContextBuilder {
 	return ContextBuilder{
-		data: map[string]interface{}{},
+		data: core.ExecutionContext{},
 	}
 }
 
 //ContextBuilder ...
 type ContextBuilder struct {
-	data map[string]interface{}
+	data core.ExecutionContext
 }
 
 //SetList ...
-func (instance ContextBuilder) SetList(key string, value []map[string]interface{}) ContextBuilder {
-	var lists map[string][]map[string]interface{}
+func (instance ContextBuilder) SetList(key string, value []core.ExecutionContext) ContextBuilder {
+	var lists map[string][]core.ExecutionContext
 	if instance.data["lists"] == nil {
-		lists = map[string][]map[string]interface{}{}
+		lists = map[string][]core.ExecutionContext{}
 	} else {
-		lists = instance.data["lists"].(map[string][]map[string]interface{})
+		lists = instance.data["lists"].(map[string][]core.ExecutionContext)
 	}
 	lists[key] = value
 	instance.data["lists"] = lists
@@ -27,16 +31,16 @@ func (instance ContextBuilder) SetList(key string, value []map[string]interface{
 
 //SetDefaults ...
 func (instance ContextBuilder) SetDefault(actionType string, key string, value interface{}) ContextBuilder {
-	var defaults map[string]interface{}
-	var actionDefaults map[string]interface{}
+	var defaults core.ExecutionContext
+	var actionDefaults core.ExecutionContext
 
 	if instance.data["defaults"] == nil {
-		defaults = map[string]interface{}{}
-		actionDefaults = map[string]interface{}{}
+		defaults = core.ExecutionContext{}
+		actionDefaults = core.ExecutionContext{}
 		defaults[actionType] = actionDefaults
 	} else {
-		defaults = instance.data["defaults"].(map[string]interface{})
-		actionDefaults = defaults[actionType].(map[string]interface{})
+		defaults = instance.data["defaults"].(core.ExecutionContext)
+		actionDefaults = defaults[actionType].(core.ExecutionContext)
 	}
 	actionDefaults[key] = value
 	instance.data["defaults"] = defaults
@@ -46,11 +50,11 @@ func (instance ContextBuilder) SetDefault(actionType string, key string, value i
 
 //Set ...
 func (instance ContextBuilder) Set(key string, value interface{}) ContextBuilder {
-	var vars map[string]interface{}
+	var vars core.ExecutionContext
 	if instance.data["vars"] == nil {
-		vars = map[string]interface{}{}
+		vars = core.ExecutionContext{}
 	} else {
-		vars = instance.data["vars"].(map[string]interface{})
+		vars = instance.data["vars"].(core.ExecutionContext)
 	}
 	vars[key] = value
 	instance.data["vars"] = vars
@@ -59,6 +63,6 @@ func (instance ContextBuilder) Set(key string, value interface{}) ContextBuilder
 }
 
 //Build ...
-func (instance ContextBuilder) Build() map[string]interface{} {
+func (instance ContextBuilder) Build() core.ExecutionContext {
 	return instance.data
 }

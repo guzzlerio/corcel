@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/test"
 	"github.com/guzzlerio/rizo"
@@ -36,7 +37,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 			planBuilder := yaml.NewPlanBuilder()
 			planBuilder.
 				SetIterations(3).
-				WithContext(planBuilder.BuildContext().SetList("Content-type", []map[string]interface{}{
+				WithContext(planBuilder.BuildContext().SetList("Content-type", []core.ExecutionContext{
 					{"commonType": json},
 					{"commonType": xml},
 					{"commonType": carf},

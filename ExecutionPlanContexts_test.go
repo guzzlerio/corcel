@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/test"
 	. "github.com/onsi/ginkgo"
@@ -33,7 +34,7 @@ var _ = Describe("ExecutionPlanContexts", func() {
 
 				planBuilder.
 					SetIterations(3).
-					WithContext(planBuilder.BuildContext().SetList("People", []map[string]interface{}{
+					WithContext(planBuilder.BuildContext().SetList("People", []core.ExecutionContext{
 						{"name": "jill", "age": 35},
 						{"name": "bob", "age": 52},
 						{"name": "carol", "age": 24},

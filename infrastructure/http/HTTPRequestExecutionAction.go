@@ -17,11 +17,9 @@ import (
 
 //Action ...
 type HTTPAction struct {
-	client  *http.Client
-	URL     string
-	Method  string
-	Body    string
-	Headers http.Header
+	client    *http.Client
+	extractor defaultsExtractor
+	State     HttpActionState
 }
 
 func CreateAction() HTTPAction {
@@ -35,14 +33,15 @@ func CreateAction() HTTPAction {
 		MaxIdleConnsPerHost: 10,
 	}
 	var instance = HTTPAction{
-		client: &http.Client{Transport: tr},
+		client:    &http.Client{Transport: tr},
+		extractor: NewDefaultsExtractor(),
+		State:     HttpActionState{},
 	}
 	return instance
 }
 
 //Execute ...
 func (instance HTTPAction) Execute(ctx context.Context, executionContext core.ExecutionContext) core.ExecutionResult {
-
 	result := core.ExecutionResult{}
 
 	select {
@@ -51,32 +50,36 @@ func (instance HTTPAction) Execute(ctx context.Context, executionContext core.Ex
 
 	default:
 
-		if instance.Body != "" && instance.Body[0] == '@' {
-			contents, err := ioutil.ReadFile(instance.Body[1:])
+		var defaults = instance.extractor.Extract(executionContext)
+
+		if instance.State.Body != "" && instance.State.Body[0] == '@' {
+			contents, err := ioutil.ReadFile(instance.State.Body[1:])
 			if err != nil {
 				result[core.ErrorUrn.String()] = err
 				return result
 			}
-			instance.Body = string(contents)
+			instance.State.Body = string(contents)
 		}
 
-		var requestURL = instance.URL
-		var method = instance.Method
-		var headers = http.Header{}
-		var body = instance.Body
-
-		for k := range instance.Headers {
-			headers.Set(k, instance.Headers.Get(k))
+		var requestURL = defaults.URL
+		if instance.State.URL != "" {
+			requestURL = instance.State.URL
 		}
-		if executionContext["$headers"] != nil {
-			for hKey, hValue := range executionContext["$headers"].(map[string]interface{}) {
-				headerKey := hKey
-				headerValue := hValue.(string)
 
-				if headers.Get(headerKey) == "" {
-					headers.Set(headerKey, headerValue)
-				}
-			}
+		var method = defaults.Method
+		if instance.State.Method != "" {
+			method = instance.State.Method
+		}
+
+		var headers = defaults.Headers
+
+		var body = defaults.Body
+		if instance.State.Body != "" {
+			body = instance.State.Body
+		}
+
+		for k := range instance.State.Headers {
+			headers.Set(k, instance.State.Headers.Get(k))
 		}
 
 		for k, v := range executionContext {

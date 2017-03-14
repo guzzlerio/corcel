@@ -1,6 +1,7 @@
 package yaml
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -102,7 +103,11 @@ func (instance *ExecutionPlanParser) Parse(data string) (core.Plan, error) {
 			for _, yamlExtractor := range yamlStep.Extractors {
 				extractorType := yamlExtractor["type"].(string)
 				if parser := instance.ExecutionExtractorParsers[extractorType]; parser != nil {
-					step.Extractors = append(step.Extractors, parser.Parse(yamlExtractor))
+					var extractor, err = parser.Parse(yamlExtractor)
+					if err != nil {
+						panic(errors.New("error parsing extractors"))
+					}
+					step.Extractors = append(step.Extractors, extractor)
 				} else {
 					panic(fmt.Sprintf("No parser configured for extractor %s", extractorType))
 				}

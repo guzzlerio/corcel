@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"path/filepath"
 
 	"github.com/ghodss/yaml"
 	"github.com/guzzlerio/corcel/errormanager"
@@ -24,16 +23,7 @@ func CreateFileFromLines(lines []string) *os.File {
 	return file
 }
 
-//PathExists ...
-func PathExists(value string) bool {
-	path, pathErr := filepath.Abs(value)
-	errormanager.Check(pathErr)
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return false
-	}
-	return true
-}
-
+//MarshalYamlToFile
 func MarshalYamlToFile(outputPath string, object interface{}) (*os.File, error) {
 	contents, err := yaml.Marshal(&object)
 	if err != nil {
@@ -64,20 +54,4 @@ func MarshalYamlToFile(outputPath string, object interface{}) (*os.File, error) 
 		return nil, err
 	}
 	return file, nil
-}
-
-//UnmarshalYamlFromFile ...
-func UnmarshalYamlFromFile(path string, output interface{}) {
-	absPath, err := filepath.Abs(path)
-	if err != nil {
-		panic(err)
-	}
-	data, err := ioutil.ReadFile(absPath)
-	if err != nil {
-		panic(err)
-	}
-	err = yaml.Unmarshal(data, output)
-	if err != nil {
-		panic(err)
-	}
 }

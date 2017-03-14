@@ -41,7 +41,6 @@ func stringInSlice(value string, slice []string) bool {
 }
 
 func ensureSummaryInArgs(args []string) []string {
-
 	if !stringInSlice("--summary", args) {
 		args = append([]string{"--summary"}, args...)
 	}
@@ -61,6 +60,7 @@ func ExecutePlanFromData(planData string, args ...string) (core.ExecutionSummary
 	if err != nil {
 		return core.ExecutionSummary{}, err
 	}
+	PrintPlan(file)
 
 	defer func() {
 		fileErr := os.Remove(file.Name())
@@ -93,6 +93,7 @@ func ExecutePlanFromDataForApplication(planData string) (core.ExecutionSummary, 
 	if fileErr != nil {
 		return core.ExecutionSummary{}, fileErr
 	}
+	PrintPlan(file)
 
 	defer func() {
 		fileErr := os.Remove(file.Name())
@@ -123,6 +124,7 @@ func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
+	PrintPlan(file)
 	defer func() {
 		fileErr := os.Remove(file.Name())
 		if fileErr != nil {
@@ -138,9 +140,12 @@ func ExecutePlanBuilder(planBuilder *yaml.PlanBuilder) ([]byte, error) {
 func ExecutePlanBuilderForApplication(planBuilder *yaml.PlanBuilder) (core.ExecutionSummary, error) {
 	var configuration = config.Configuration{}
 	file, fileErr := planBuilder.BuildAndSave()
+
 	if fileErr != nil {
 		return core.ExecutionSummary{}, fileErr
 	}
+
+	PrintPlan(file)
 
 	defer func() {
 		fileErr := os.Remove(file.Name())
@@ -156,7 +161,7 @@ func ExecutePlanBuilderForApplication(planBuilder *yaml.PlanBuilder) (core.Execu
 	var appConfig, err = config.ParseConfiguration(&configuration)
 
 	if err != nil {
-		return core.ExecutionSummary{}, fileErr
+		return core.ExecutionSummary{}, err
 	}
 
 	app := cmd.Application{}
@@ -164,6 +169,16 @@ func ExecutePlanBuilderForApplication(planBuilder *yaml.PlanBuilder) (core.Execu
 	var summary = output.CreateSummary()
 
 	return summary, nil
+}
+
+func PrintPlan(file *os.File) {
+	if os.Getenv("CORCEL_PRINT_PLAN") == "1" {
+		data, fileReadErr := ioutil.ReadFile(file.Name())
+		if fileReadErr != nil {
+			panic(fileReadErr)
+		}
+		fmt.Println(string(data))
+	}
 }
 
 //ExecuteListForApplication ...

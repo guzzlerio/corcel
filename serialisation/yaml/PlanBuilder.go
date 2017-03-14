@@ -4,6 +4,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/infrastructure/http"
 	"github.com/guzzlerio/corcel/utils"
 )
@@ -17,7 +18,7 @@ type PlanBuilder struct {
 	WaitTime        string
 	Duration        string
 	JobBuilders     []*JobBuilder
-	Context         map[string]interface{}
+	Context         core.ExecutionContext
 	Before          []Action
 	After           []Action
 }
@@ -79,7 +80,7 @@ func (instance *PlanBuilder) WithName(name string) *PlanBuilder {
 }
 
 //WithContext ...
-func (instance *PlanBuilder) WithContext(context map[string]interface{}) *PlanBuilder {
+func (instance *PlanBuilder) WithContext(context core.ExecutionContext) *PlanBuilder {
 	instance.Context = context
 	return instance
 }

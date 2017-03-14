@@ -1,6 +1,8 @@
 package yaml
 
 import (
+	"errors"
+
 	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/extractors"
 )
@@ -9,7 +11,20 @@ import (
 type JSONPathExtractorParser struct{}
 
 //Parse ...
-func (instance JSONPathExtractorParser) Parse(input map[string]interface{}) core.Extractor {
+func (instance JSONPathExtractorParser) Parse(input map[string]interface{}) (core.Extractor, error) {
+
+	if _, ok := input["name"]; !ok {
+		return extractors.JSONPathExtractor{}, errors.New("name not set")
+	}
+
+	if _, ok := input["key"]; !ok {
+		return extractors.JSONPathExtractor{}, errors.New("key not set")
+	}
+
+	if _, ok := input["jsonpath"]; !ok {
+		return extractors.JSONPathExtractor{}, errors.New("jsonpath not set")
+	}
+
 	extractor := extractors.JSONPathExtractor{
 		Name:     input["name"].(string),
 		Key:      input["key"].(string),
@@ -21,7 +36,7 @@ func (instance JSONPathExtractorParser) Parse(input map[string]interface{}) core
 		extractor.Scope = input["scope"].(string)
 	}
 
-	return extractor
+	return extractor, nil
 }
 
 //Key ...

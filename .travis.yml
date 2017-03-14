@@ -31,7 +31,7 @@ script:
       #- gometalinter --install
       #- gometalinter -e "duplicate" -e "_test" --deadline=30s
     - echo go build -ldflags "-X main.BuildTime=`date -u '+%Y-%m-%d_%I:%M:%S%p'` -X main.CommitHash=`git rev-parse HEAD` -X main.Version=\"${APP_VERSION}\""
-      #- go build -ldflags "-X main.BuildTime=`date -u '+%Y-%m-%d_%I:%M:%S%p'` -X main.CommitHash=`git rev-parse HEAD` -X main.Version=\"${APP_VERSION}\""
+    - go build -ldflags "-X main.BuildTime=`date -u '+%Y-%m-%d_%I:%M:%S%p'` -X main.CommitHash=`git rev-parse HEAD` -X main.Version=\"${APP_VERSION}\""
       #- ginkgo -cover -r --race -noisyPendings=false -slowSpecThreshold=10
       #- gover
       #- goveralls -service travis-ci -coverprofile=gover.coverprofile -ignore=report/bindata.go
@@ -39,7 +39,7 @@ notifications:
   slack:
     secure: oYscM9PLFqsfbdSI9CxP03u0cokFSihoHPqOiycK40/c51v9o57mg4cWBfmEXilBEzRe8OrVKYEzglq1zekEl5V6ks+yGPfUrcZNg1JTsDa1/2RE+rRNewcylegEQHZuAhDWz8XC4sSfZsPRVswop+HYnuxQ07OpAvTLt89S9cpeJ6igTAXRoixpNd7TDYv2MwOZRBlUfgPWfo0WNoFBfH41HON1rRIZeRhtglshhUpzYDLRBaVu86GcH9RVD68t/VlMl4evbzwRmD0gBw1kOtN4hCvu/L96/2IstXNDIvNZorXvX5w4E6M+YqwUkO97bxl26f8IPZvivL17YNJYoGDPs7FVRio13BOv+1kwO8B+Nk4OebR3S62e0Amq7b4HyujOtCcf/LlZEZICZDiPrl1A9JQEGsChktrX48IRWxHZFMxnH4Sg50E/pF+fXiSnEuz650EePXxFJItrgTvNlWWSSP3P33dbDKB8Aiji4tQVhih88I3qc85rjU3tea/XN6GTEtpfHFZWdWi/PBRGTPR+x/Gsw9d6Ue9TqXDZ3dv+NQ7r2vXyC25H7SQDkhOZKyYytAcjVcUi8eQnFAJ7cuAjeRoH4f3b/B6ti6iurP23qlFfD5L7M1g+/Sj7OT5ddhBDPgrf0UfQeoHQSK3lv8bEMt+U0ojy7QV+2Nle+P0=
 after_success:
-    #- gox -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
-    #- if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "develop" ]; then ghr -username guzzlerio -token $GITHUB_TOKEN --recreate --prerelease --debug "latest" dist/; fi;
+    - gox -output "dist/{{.OS}}_{{.Arch}}_{{.Dir}}"
+    - if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "develop" ]; then ghr -username guzzlerio -token $GITHUB_TOKEN --recreate --prerelease --debug "latest" dist/; fi;
     #- if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "release" ]; then ghr -username guzzlerio -token $GITHUB_TOKEN --recreate --prerelease --debug "${APP_VERSION}" dist/; fi;
     #- if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; then ghr -username guzzlerio -token $GITHUB_TOKEN --recreate  --debug "${APP_VERSION}" dist/; fi;

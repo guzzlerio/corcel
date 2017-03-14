@@ -42,7 +42,6 @@ func stringInSlice(value string, slice []string) bool {
 }
 
 func ensureSummaryInArgs(args []string) []string {
-
 	if !stringInSlice("--summary", args) {
 		args = append([]string{"--summary"}, args...)
 	}

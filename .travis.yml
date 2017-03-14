@@ -1,7 +1,8 @@
 language: go
 sudo: false
 go:
-    - 1.7.1
+    - 1.8
+    - tip
 before_install:
     - # http://stackoverflow.com/questions/16989598/bash-comparing-version-numbers
     - if [ ! $(cat VERSION | grep -P "[0-9]+\.[0-9]+\.[0-9]+$") ]; then echo "MALFORMED VERSION NUMBER" && exit 1;fi;
@@ -15,6 +16,7 @@ before_install:
     - go get github.com/mattn/goveralls
     - go get github.com/onsi/ginkgo/ginkgo
     - go get github.com/onsi/gomega
+    - go get github.com/mattn/go-isatty
     - go get -u github.com/jteeuwen/go-bindata/...
 before_script:
     - APP_VERSION="v$(cat VERSION)"

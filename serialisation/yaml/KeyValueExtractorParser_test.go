@@ -20,7 +20,9 @@ var _ = Describe("KeyValueExtractorParser", func() {
 
 		var parser = KeyValueExtractorParser{}
 
-		var result = parser.Parse(input)
+		var result, err = parser.Parse(input)
+
+		Expect(err).To(BeNil())
 
 		Expect(result).To(BeAssignableToTypeOf(extractors.KeyValueExtractor{}))
 
@@ -28,5 +30,31 @@ var _ = Describe("KeyValueExtractorParser", func() {
 
 		Expect(keyValueExtractor.Name).To(Equal(expectedName))
 		Expect(keyValueExtractor.Key).To(Equal(expectedKey))
+	})
+
+	It("Fails to parse when name not set", func() {
+
+		var input = map[string]interface{}{
+			"key": "key",
+		}
+
+		var parser = KeyValueExtractorParser{}
+
+		var _, err = parser.Parse(input)
+
+		Expect(err).ToNot(BeNil())
+	})
+
+	It("Fails to parse when key not set", func() {
+
+		var input = map[string]interface{}{
+			"name": "name",
+		}
+
+		var parser = KeyValueExtractorParser{}
+
+		var _, err = parser.Parse(input)
+
+		Expect(err).ToNot(BeNil())
 	})
 })

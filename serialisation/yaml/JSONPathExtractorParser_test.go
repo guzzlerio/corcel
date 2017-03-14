@@ -24,7 +24,9 @@ var _ = Describe("JSONPathExtractorParser", func() {
 
 		var parser = JSONPathExtractorParser{}
 
-		var result = parser.Parse(input)
+		var result, err = parser.Parse(input)
+
+		Expect(err).To(BeNil())
 
 		Expect(result).To(BeAssignableToTypeOf(extractors.JSONPathExtractor{}))
 
@@ -33,5 +35,50 @@ var _ = Describe("JSONPathExtractorParser", func() {
 		Expect(jsonPathExtractor.Name).To(Equal(expectedName))
 		Expect(jsonPathExtractor.Key).To(Equal(expectedKey))
 		Expect(jsonPathExtractor.JSONPath).To(Equal(expectedJsonPath))
+	})
+
+	It("Fails to parse when name not set", func() {
+
+		var input = map[string]interface{}{
+			"key":      "key",
+			"jsonpath": "path",
+			"scope":    core.PlanScope,
+		}
+
+		var parser = JSONPathExtractorParser{}
+
+		var _, err = parser.Parse(input)
+
+		Expect(err).ToNot(BeNil())
+	})
+
+	It("Fails to parse when key not set", func() {
+
+		var input = map[string]interface{}{
+			"name":     "name",
+			"jsonpath": "path",
+			"scope":    core.PlanScope,
+		}
+
+		var parser = JSONPathExtractorParser{}
+
+		var _, err = parser.Parse(input)
+
+		Expect(err).ToNot(BeNil())
+	})
+
+	It("Fails to parse when jsonpath not set", func() {
+
+		var input = map[string]interface{}{
+			"name":  "name",
+			"key":   "key",
+			"scope": core.PlanScope,
+		}
+
+		var parser = JSONPathExtractorParser{}
+
+		var _, err = parser.Parse(input)
+
+		Expect(err).ToNot(BeNil())
 	})
 })

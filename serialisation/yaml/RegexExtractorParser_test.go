@@ -11,7 +11,6 @@ import (
 
 var _ = Describe("RegexExtractorParser", func() {
 	It("Parses", func() {
-
 		var expectedName = "A"
 		var expectedKey = "B"
 		var expectedMatch = "C"
@@ -25,7 +24,9 @@ var _ = Describe("RegexExtractorParser", func() {
 
 		var parser = RegexExtractorParser{}
 
-		var result = parser.Parse(input)
+		var result, err = parser.Parse(input)
+
+		Expect(err).To(BeNil())
 
 		Expect(result).To(BeAssignableToTypeOf(extractors.RegexExtractor{}))
 
@@ -34,5 +35,50 @@ var _ = Describe("RegexExtractorParser", func() {
 		Expect(jsonPathExtractor.Name).To(Equal(expectedName))
 		Expect(jsonPathExtractor.Key).To(Equal(expectedKey))
 		Expect(jsonPathExtractor.Match).To(Equal(expectedMatch))
+	})
+
+	It("Fails to parse without name", func() {
+
+		var input = map[string]interface{}{
+			"key":   "key",
+			"match": "match",
+			"scope": core.PlanScope,
+		}
+
+		var parser = RegexExtractorParser{}
+
+		var _, err = parser.Parse(input)
+
+		Expect(err).ToNot(BeNil())
+	})
+
+	It("Fails to parse without key", func() {
+
+		var input = map[string]interface{}{
+			"name":  "name",
+			"match": "match",
+			"scope": core.PlanScope,
+		}
+
+		var parser = RegexExtractorParser{}
+
+		var _, err = parser.Parse(input)
+
+		Expect(err).ToNot(BeNil())
+	})
+
+	It("Fails to parse without match", func() {
+
+		var input = map[string]interface{}{
+			"name":  "name",
+			"key":   "key",
+			"scope": core.PlanScope,
+		}
+
+		var parser = RegexExtractorParser{}
+
+		var _, err = parser.Parse(input)
+
+		Expect(err).ToNot(BeNil())
 	})
 })

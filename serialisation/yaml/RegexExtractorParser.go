@@ -1,6 +1,8 @@
 package yaml
 
 import (
+	"errors"
+
 	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/extractors"
 )
@@ -9,7 +11,20 @@ import (
 type RegexExtractorParser struct{}
 
 //Parse ...
-func (instance RegexExtractorParser) Parse(input map[string]interface{}) core.Extractor {
+func (instance RegexExtractorParser) Parse(input map[string]interface{}) (core.Extractor, error) {
+
+	if _, ok := input["name"]; !ok {
+		return extractors.RegexExtractor{}, errors.New("name not set")
+	}
+
+	if _, ok := input["key"]; !ok {
+		return extractors.RegexExtractor{}, errors.New("key not set")
+	}
+
+	if _, ok := input["match"]; !ok {
+		return extractors.RegexExtractor{}, errors.New("match not set")
+	}
+
 	extractor := extractors.RegexExtractor{
 		Name:  input["name"].(string),
 		Key:   input["key"].(string),
@@ -21,7 +36,7 @@ func (instance RegexExtractorParser) Parse(input map[string]interface{}) core.Ex
 		extractor.Scope = input["scope"].(string)
 	}
 
-	return extractor
+	return extractor, nil
 }
 
 //Key ...

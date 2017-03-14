@@ -1,6 +1,8 @@
 package yaml
 
 import (
+	"errors"
+
 	"github.com/guzzlerio/corcel/core"
 	"github.com/guzzlerio/corcel/extractors"
 )
@@ -9,7 +11,19 @@ import (
 type XPathExtractorParser struct{}
 
 //Parse ...
-func (instance XPathExtractorParser) Parse(input map[string]interface{}) core.Extractor {
+func (instance XPathExtractorParser) Parse(input map[string]interface{}) (core.Extractor, error) {
+
+	if _, ok := input["name"]; !ok {
+		return extractors.XPathExtractor{}, errors.New("name not found")
+	}
+
+	if _, ok := input["key"]; !ok {
+		return extractors.XPathExtractor{}, errors.New("key not found")
+	}
+
+	if _, ok := input["xpath"]; !ok {
+		return extractors.XPathExtractor{}, errors.New("xpath not found")
+	}
 	extractor := extractors.XPathExtractor{
 		Name:  input["name"].(string),
 		Key:   input["key"].(string),
@@ -21,7 +35,7 @@ func (instance XPathExtractorParser) Parse(input map[string]interface{}) core.Ex
 		extractor.Scope = input["scope"].(string)
 	}
 
-	return extractor
+	return extractor, nil
 }
 
 //Key ...

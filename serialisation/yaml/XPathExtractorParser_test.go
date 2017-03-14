@@ -22,7 +22,9 @@ var _ = Describe("XPathExtractorParser", func() {
 
 		var parser = XPathExtractorParser{}
 
-		var result = parser.Parse(input)
+		var result, err = parser.Parse(input)
+
+		Expect(err).To(BeNil())
 
 		Expect(result).To(BeAssignableToTypeOf(extractors.XPathExtractor{}))
 
@@ -31,5 +33,44 @@ var _ = Describe("XPathExtractorParser", func() {
 		Expect(xpathExtractor.Name).To(Equal(expectedName))
 		Expect(xpathExtractor.XPath).To(Equal(expectedXpath))
 		Expect(xpathExtractor.Scope).To(Equal(core.PlanScope))
+	})
+
+	It("Fails to parse with empty name", func() {
+		var input = map[string]interface{}{
+			"key":   "key",
+			"xpath": "path",
+			"scope": core.PlanScope,
+		}
+		var parser = XPathExtractorParser{}
+
+		var _, err = parser.Parse(input)
+
+		Expect(err).ToNot(BeNil())
+	})
+
+	It("Fails to parse with empty key", func() {
+		var input = map[string]interface{}{
+			"name":  "name",
+			"xpath": "path",
+			"scope": core.PlanScope,
+		}
+		var parser = XPathExtractorParser{}
+
+		var _, err = parser.Parse(input)
+
+		Expect(err).ToNot(BeNil())
+	})
+
+	It("Fails to parse with empty xpath", func() {
+		var input = map[string]interface{}{
+			"key":   "key",
+			"name":  "name",
+			"scope": core.PlanScope,
+		}
+		var parser = XPathExtractorParser{}
+
+		var _, err = parser.Parse(input)
+
+		Expect(err).ToNot(BeNil())
 	})
 })

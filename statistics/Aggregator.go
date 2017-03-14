@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/guzzlerio/corcel/core"
 	"github.com/rcrowley/go-metrics"
 )
 
@@ -160,6 +161,135 @@ func (instance *AggregatorSnapShot) Update(output AggregatorSnapShot) {
 	instance.updateMeters(output)
 	instance.updateTimers(output)
 	instance.updateTime(output.Times[len(output.Times)-1])
+}
+
+//CreateSummary ...
+func (this *AggregatorSnapShot) CreateSummary() core.ExecutionSummary {
+	var (
+		duration                    time.Duration
+		count                       float64
+		errorCount                  float64
+		rate                        float64
+		availability                float64
+		totalAssertionsCount        = int64(0)
+		totalAssertionFailuresCount = int64(0)
+		totalReceived               = int64(0)
+		totalSent                   = int64(0)
+	)
+	if len(this.Times) > 0 {
+		lastTime := time.Unix(0, this.Times[len(this.Times)-1])
+		firstTime := time.Unix(0, this.Times[0])
+		if firstTime.Before(lastTime) {
+			duration = lastTime.Sub(firstTime)
+		}
+	}
+
+	if len(this.Meters) > 0 {
+		counts := this.Meters[core.ThroughputUrn.Meter().String()]["count"]
+		count = counts[len(counts)-1]
+
+		errors := this.Meters[core.ErrorUrn.Meter().String()]["count"]
+		errorCount = errors[len(errors)-1]
+
+		rates := this.Meters[core.ThroughputUrn.Meter().String()]["rateMean"]
+		rate = rates[len(rates)-1]
+	}
+
+	if errorCount > 0 {
+		availability = (1 - (float64(errorCount) / float64(count))) * 100
+	} else {
+		availability = 100
+	}
+
+	bytes := core.ByteSummary{}
+
+	bytesSent := this.Counters[core.BytesSentCountUrn.Counter().String()]
+
+	if bytesSent != nil {
+		for _, value := range bytesSent {
+			totalSent += value
+		}
+	}
+
+	bytesReceived := this.Counters[core.BytesReceivedCountUrn.Counter().String()]
+	if bytesReceived != nil {
+		for _, value := range bytesReceived {
+			totalReceived += value
+		}
+	}
+
+	bytesReceivedHistogram := this.Histograms[core.BytesReceivedCountUrn.Histogram().String()]
+	if bytesReceivedHistogram != nil {
+		bytes.Received = core.ByteStat{
+			Min:   int64FromHistogram(bytesReceivedHistogram["min"]),
+			Max:   int64FromHistogram(bytesReceivedHistogram["max"]),
+			Mean:  int64FromHistogram(bytesReceivedHistogram["mean"]),
+			Total: totalReceived,
+		}
+	}
+
+	bytesSentHistogram := this.Histograms[core.BytesSentCountUrn.Histogram().String()]
+	if bytesSentHistogram != nil {
+		bytes.Sent = core.ByteStat{
+			Min:   int64FromHistogram(bytesSentHistogram["min"]),
+			Max:   int64FromHistogram(bytesSentHistogram["max"]),
+			Mean:  int64FromHistogram(bytesSentHistogram["mean"]),
+			Total: totalSent,
+		}
+	}
+
+	totalAssertions := this.Counters[core.AssertionsTotalUrn.Counter().String()]
+	if totalAssertions != nil {
+		totalAssertionsCount = totalAssertions[len(totalAssertions)-1]
+	}
+
+	totalAssertionsFailed := this.Counters[core.AssertionsFailedUrn.Counter().String()]
+	if totalAssertionsFailed != nil {
+		totalAssertionFailuresCount = totalAssertionsFailed[len(totalAssertionsFailed)-1]
+	}
+
+	return core.ExecutionSummary{
+		RunningTime:            duration,
+		TotalRequests:          count,
+		TotalErrors:            errorCount,
+		Availability:           availability,
+		Throughput:             rate,
+		ResponseTime:           this.getResponseTimers(core.DurationUrn.Timer().String()),
+		TotalAssertions:        totalAssertionsCount,
+		TotalAssertionFailures: totalAssertionFailuresCount,
+		Bytes: bytes,
+	}
+}
+
+func (this *AggregatorSnapShot) getResponseTimers(name string) core.ResponseTimeStat {
+	var (
+		responseMeanTime float64
+		responseMaxTime  float64
+		responseMinTime  float64
+	)
+	responseMeanTimes := this.Timers[name]["mean"]
+	responseMinTimes := this.Timers[name]["min"]
+	responseMaxTimes := this.Timers[name]["max"]
+	if responseMeanTimes != nil {
+		responseMeanTime = responseMeanTimes[len(responseMeanTimes)-1]
+	}
+
+	if responseMinTimes != nil {
+		responseMinTime = responseMinTimes[len(responseMinTimes)-1]
+	}
+
+	if responseMaxTimes != nil {
+		responseMaxTime = responseMaxTimes[len(responseMaxTimes)-1]
+	}
+	return core.ResponseTimeStat{
+		Mean: responseMeanTime,
+		Min:  responseMinTime,
+		Max:  responseMaxTime,
+	}
+}
+
+func int64FromHistogram(b []int64) int64 {
+	return b[len(b)-1]
 }
 
 //IncrementCounter ...

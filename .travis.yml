@@ -30,7 +30,7 @@ script:
     - go get -t ./...
     - go get -u github.com/alecthomas/gometalinter
     - gometalinter --install
-    - gometalinter -e "duplicate" -e "_test" --deadline=120s
+    - gometalinter -e "duplicate" -e "_test" --deadline=60s
     - echo go build -ldflags "-X main.BuildTime=`date -u '+%Y-%m-%d_%I:%M:%S%p'` -X main.CommitHash=`git rev-parse HEAD` -X main.Version=\"${APP_VERSION}\""
     - go build -ldflags "-X main.BuildTime=`date -u '+%Y-%m-%d_%I:%M:%S%p'` -X main.CommitHash=`git rev-parse HEAD` -X main.Version=\"${APP_VERSION}\""
     - ginkgo -cover -r --race -noisyPendings=false -slowSpecThreshold=10

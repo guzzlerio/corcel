@@ -18,28 +18,28 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 		Context("Step Scope", func() {
 			It("Succeeds", func() {
 				var plan = fmt.Sprintf(`---
-				name: Some Plan
-				iterations: 0
-				random: false
-				workers: 1
-				waitTime: 0s
-				duration: 0s
-				jobs:
-					- name: Some Job
-					  steps:
-					  - name: Some Step
-						action:
-						  type: DummyAction
-						  results:
-							key: 12345
-						extractors:
-						 - type: KeyValueExtractor
-						   key: key
-						   name: target
-						assertions:
-						 - type: ExactAssertion
-						   key: target
-						   expected: 12345`)
+name: Some Plan
+iterations: 0
+random: false
+workers: 1
+waitTime: 0s
+duration: 0s
+jobs:
+    - name: Some Job
+      steps:
+      - name: Some Step
+        action:
+          type: DummyAction
+          results:
+            key: 12345
+        extractors:
+         - type: KeyValueExtractor
+           key: key
+           name: target
+        assertions:
+         - type: ExactAssertion
+           key: target
+           expected: 12345`)
 
 				summary, err := test.ExecutePlanFromDataForApplication(plan)
 				Expect(err).To(BeNil())
@@ -48,28 +48,28 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 			It("Fails", func() {
 
 				var plan = fmt.Sprintf(`---
-				name: Some Plan
-				iterations: 0
-				random: false
-				workers: 1
-				waitTime: 0s
-				duration: 0s
-				jobs:
-				- name: Some Job
-				  steps:
-				  - name: Some Step
-					action:
-					   type: DummyAction
-					   results:
-						  hole: 12345
-					extractors:
-						- type: KeyValueExtractor
-						  key: key
-						  name: target
-					assertions:
-						- type: ExactAssertion
-						  key: target
-						  expected: 123456`)
+name: Some Plan
+iterations: 0
+random: false
+workers: 1
+waitTime: 0s
+duration: 0s
+jobs:
+- name: Some Job
+  steps:
+  - name: Some Step
+    action:
+       type: DummyAction
+       results:
+          hole: 12345
+    extractors:
+        - type: KeyValueExtractor
+          key: key
+          name: target
+    assertions:
+        - type: ExactAssertion
+          key: target
+          expected: 123456`)
 
 				summary, err := test.ExecutePlanFromDataForApplication(plan)
 				Expect(err).To(BeNil())
@@ -79,31 +79,31 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 		Context("Job Scope", func() {
 			It("Succeeds", func() {
 				var plan = fmt.Sprintf(`---
-				name: Some Plan
-				iterations: 0
-				random: false
-				workers: 1
-				waitTime: 0s
-				duration: 0s
-				jobs:
-					- name: Some Job
-					  steps:
-					  - name: Step 1
-						action:
-						  type: DummyAction
-						  results:
-							key: 12345
-						extractors:
-						 - type: KeyValueExtractor
-						   key: key
-						   name: target
-						   scope: job
-					  - name: Step 2
-						assertions:
-						 - type: ExactAssertion
-						   key: target
-						   expected: 12345
-					  `)
+name: Some Plan
+iterations: 0
+random: false
+workers: 1
+waitTime: 0s
+duration: 0s
+jobs:
+    - name: Some Job
+      steps:
+      - name: Step 1
+        action:
+          type: DummyAction
+          results:
+            key: 12345
+        extractors:
+         - type: KeyValueExtractor
+           key: key
+           name: target
+           scope: job
+      - name: Step 2
+        assertions:
+         - type: ExactAssertion
+           key: target
+           expected: 12345
+      `)
 
 				summary, err := test.ExecutePlanFromDataForApplication(plan)
 				Expect(err).To(BeNil())
@@ -112,40 +112,40 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 			})
 			It("Succeeds using extracted context variable in action", func() {
 				var plan = fmt.Sprintf(`---
-				name: Some Plan
-				iterations: 0
-				random: false
-				workers: 1
-				waitTime: 0s
-				duration: 0s
-				jobs:
-					- name: Some Job
-					  steps:
-					  - name: Step 1
-						action:
-						  type: DummyAction
-						  results:
-							key: 12345
-						extractors:
-						 - type: KeyValueExtractor
-						   key: key
-						   name: target
-						   scope: job
-					  - name: Step 2
-						action:
-						  type: DummyAction
-						  results:
-							lastKey: $target
-						extractors:
-						 - type: KeyValueExtractor
-						   key: lastKey
-						   name: newKey
-						   scope: job
-						assertions:
-						 - type: ExactAssertion
-						   key: newKey
-						   expected: 12345
-					  `)
+name: Some Plan
+iterations: 0
+random: false
+workers: 1
+waitTime: 0s
+duration: 0s
+jobs:
+    - name: Some Job
+      steps:
+      - name: Step 1
+        action:
+          type: DummyAction
+          results:
+            key: 12345
+        extractors:
+         - type: KeyValueExtractor
+           key: key
+           name: target
+           scope: job
+      - name: Step 2
+        action:
+          type: DummyAction
+          results:
+            lastKey: $target
+        extractors:
+         - type: KeyValueExtractor
+           key: lastKey
+           name: newKey
+           scope: job
+        assertions:
+         - type: ExactAssertion
+           key: newKey
+           expected: 12345
+      `)
 
 				summary, err := test.ExecutePlanFromDataForApplication(plan)
 				Expect(err).To(BeNil())
@@ -155,31 +155,31 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 			It("Fails", func() {
 
 				var plan = fmt.Sprintf(`---
-				name: Some Plan
-				iterations: 0
-				random: false
-				workers: 1
-				waitTime: 0s
-				duration: 0s
-				jobs:
-					- name: Some Job
-					  steps:
-					  - name: Step 1
-						action:
-						  type: DummyAction
-						  results:
-							hole: 12345
-						extractors:
-						 - type: KeyValueExtractor
-						   key: key
-						   name: target
-						   scope: job
-					  - name:  Step 2
-						assertions:
-						 - type: ExactAssertion
-						   key: target
-						   expected: 12345
-					  `)
+name: Some Plan
+iterations: 0
+random: false
+workers: 1
+waitTime: 0s
+duration: 0s
+jobs:
+    - name: Some Job
+      steps:
+      - name: Step 1
+        action:
+          type: DummyAction
+          results:
+            hole: 12345
+        extractors:
+         - type: KeyValueExtractor
+           key: key
+           name: target
+           scope: job
+      - name:  Step 2
+        assertions:
+         - type: ExactAssertion
+           key: target
+           expected: 12345
+      `)
 
 				summary, err := test.ExecutePlanFromDataForApplication(plan)
 				Expect(err).To(BeNil())
@@ -189,32 +189,32 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 		Context("Plan Scope", func() {
 			It("Succeeds", func() {
 				var plan = fmt.Sprintf(`---
-				name: Some Plan
-				iterations: 0
-				random: false
-				workers: 1
-				waitTime: 0s
-				duration: 0s
-				jobs:
-					- name: Job 1
-					  steps:
-					  - name: Step 1
-						action:
-						  type: DummyAction
-						  results:
-							key: 12345
-						extractors:
-						 - type: KeyValueExtractor
-						   key: key
-						   name: target
-						   scope: plan
-					- name: Job 2
-					  steps: 
-					  - name: Step 1
-						assertions:
-						 - type: ExactAssertion
-						   key: target
-						   expected: 12345`)
+name: Some Plan
+iterations: 0
+random: false
+workers: 1
+waitTime: 0s
+duration: 0s
+jobs:
+    - name: Job 1
+      steps:
+      - name: Step 1
+        action:
+          type: DummyAction
+          results:
+            key: 12345
+        extractors:
+         - type: KeyValueExtractor
+           key: key
+           name: target
+           scope: plan
+    - name: Job 2
+      steps: 
+      - name: Step 1
+        assertions:
+         - type: ExactAssertion
+           key: target
+           expected: 12345`)
 
 				summary, err := test.ExecutePlanFromDataForApplication(plan)
 				Expect(err).To(BeNil())
@@ -222,32 +222,32 @@ var _ = Describe("ExecutionPlanExtractions", func() {
 			})
 			It("Fails", func() {
 				var plan = fmt.Sprintf(`---
-				name: Some Plan
-				iterations: 0
-				random: false
-				workers: 1
-				waitTime: 0s
-				duration: 0s
-				jobs:
-					- name: Job 1
-					  steps:
-					  - name: Step 1
-						action:
-						  type: DummyAction
-						  results:
-							hole: 12345
-						extractors:
-						 - type: KeyValueExtractor
-						   key: key
-						   name: target
-						   scope: plan
-					- name: Job 2
-					  steps: 
-					  - name: Step 1
-						assertions:
-						 - type: ExactAssertion
-						   key: target
-						   expected: 12345`)
+name: Some Plan
+iterations: 0
+random: false
+workers: 1
+waitTime: 0s
+duration: 0s
+jobs:
+    - name: Job 1
+      steps:
+      - name: Step 1
+        action:
+          type: DummyAction
+          results:
+            hole: 12345
+        extractors:
+         - type: KeyValueExtractor
+           key: key
+           name: target
+           scope: plan
+    - name: Job 2
+      steps: 
+      - name: Step 1
+        assertions:
+         - type: ExactAssertion
+           key: target
+           expected: 12345`)
 
 				summary, err := test.ExecutePlanFromDataForApplication(plan)
 				Expect(err).To(BeNil())

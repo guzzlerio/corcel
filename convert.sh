@@ -11,11 +11,11 @@ if [ ! "$lastline" == "}" ]; then
     echo "}" >> ${filename}
 fi
 
-#The different pending test structures of Ginkgo replace with the only one for GoConvey
-sed -i -E 's/PDescribe\(\"|PContext\(\"|PIt\(\"/SkipConvey(\"/g' ${filename}
-
 #The different test structure methods of Ginkgo replaced with the only one for GoConvey
 sed -i -E 's/Describe\(\"|Context\(\"|It\(\"/Convey(\"/g' ${filename}
+
+#The different pending test structures of Ginkgo replace with the only one for GoConvey
+sed -i -E 's/PDescribe\(\"|PContext\(\"|PIt\(\"/SkipConvey(\"/g' ${filename}
 
 #Assertions with GoConvey start with So(...), Ginkgo has an Expect method aswell as others
 # but this project only uses the Expect method.
@@ -32,10 +32,6 @@ sed -i -E 's/\. \"github.com\/onsi\/ginkgo\"/\. \"github.com\/smartystreets\/goc
 sed -i -E 's/\. \"github.com\/onsi\/gomega\"//g' ${filename}
 
 goimports -w ${filename}
-
-if [ "${DEBUG_CONVERT}" -eq 1 ]; then
-    echo "You can revert the change to ${filename} using: git checkout ${filename}"
-fi
 
 #This feels like a useful thing to remember for the future.  Multiline grep
 #grep -Poz "(?s)import \([^\)]+\)" ${filename}

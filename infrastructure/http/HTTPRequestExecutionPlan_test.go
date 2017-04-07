@@ -6,28 +6,32 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"testing"
 
 	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/test"
 	"github.com/guzzlerio/rizo"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-var _ = Describe("ExecutionPlanHttpRequest", func() {
-	BeforeEach(func() {
-		TestServer.Clear()
-		factory := rizo.HTTPResponseFactory(func(w http.ResponseWriter) {
-			w.Header().Add("X-BOOM", "1")
-			w.WriteHeader(http.StatusOK)
-		})
+func TestExecutionPlanHttpRequest(t *testing.T) {
+	BeforeTest()
 
-		TestServer.Use(factory).For(rizo.RequestWithPath("/people"))
-	})
+	defer AfterTest()
+	Convey("ExecutionPlanHttpRequest", t, func() {
+		func() {
+			TestServer.Clear()
+			factory := rizo.HTTPResponseFactory(func(w http.ResponseWriter) {
+				w.Header().Add("X-BOOM", "1")
+				w.WriteHeader(http.StatusOK)
+			})
 
-	It("Adds the response headers to the context", func() {
+			TestServer.Use(factory).For(rizo.RequestWithPath("/people"))
+		}()
 
-		plan := fmt.Sprintf(`---
+		Convey("Adds the response headers to the context", func() {
+
+			plan := fmt.Sprintf(`---
 workers: 1
 jobs:
 - name: "Job 1"
@@ -44,29 +48,29 @@ jobs:
       key: urn:http:response:headers:x-boom
       expected: "1"`, TestServer.CreateURL("/people"))
 
-		summary, err := test.ExecutePlanFromDataForApplication(plan)
-		Expect(err).To(BeNil())
-		Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
-	})
+			summary, err := test.ExecutePlanFromDataForApplication(plan)
+			So(err, ShouldBeNil)
+			So(summary.TotalAssertionFailures, ShouldEqual, int64(0))
+		})
 
-	It("Supplies a payload to the HTTP Request", func() {
-		planBuilder := yaml.NewPlanBuilder()
+		Convey("Supplies a payload to the HTTP Request", func() {
+			planBuilder := yaml.NewPlanBuilder()
 
-		path := "/people"
-		body := "Zee Body"
+			path := "/people"
+			body := "Zee Body"
 
-		planBuilder.
-			CreateJob().
-			CreateStep().
-			ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
+			planBuilder.
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-		_, err := test.ExecutePlanBuilder(planBuilder)
-		Expect(err).To(BeNil())
-		Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithBody(body))).To(Equal(true))
-	})
+			_, err := test.ExecutePlanBuilder(planBuilder)
+			So(err, ShouldBeNil)
+			So(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithBody(body)), ShouldEqual, true)
+		})
 
-	It("Supplies a header which is an int", func() {
-		plan := fmt.Sprintf(`---
+		Convey("Supplies a header which is an int", func() {
+			plan := fmt.Sprintf(`---
 iterations: 0
 random: false
 workers: 1
@@ -85,44 +89,45 @@ jobs:
       url: %s
 `, TestServer.CreateURL("/people"))
 
-		_, err := test.ExecutePlanFromData(plan)
-		Expect(err).To(BeNil())
-		Expect(TestServer.Find(rizo.RequestWithHeader("key", "1"))).To(Equal(true))
-	})
+			_, err := test.ExecutePlanFromData(plan)
+			So(err, ShouldBeNil)
+			So(TestServer.Find(rizo.RequestWithHeader("key", "1")), ShouldEqual, true)
+		})
 
-	It("Supplies a payload as a file reference to the HTTP Request", func() {
-		content := []byte("temporary file's content")
-		dir, err := ioutil.TempDir("", "ExecutionPlanHttpRequest")
-		if err != nil {
-			panic(err)
-		}
-
-		defer func() {
-			err := os.RemoveAll(dir) // clean up
+		Convey("Supplies a payload as a file reference to the HTTP Request", func() {
+			content := []byte("temporary file's content")
+			dir, err := ioutil.TempDir("", "ExecutionPlanHttpRequest")
 			if err != nil {
 				panic(err)
 			}
-		}()
 
-		tmpfn := filepath.Join(dir, "tmpfile")
-		if err := ioutil.WriteFile(tmpfn, content, 0666); err != nil {
-			panic(err)
-		}
+			defer func() {
+				err := os.RemoveAll(dir) // clean up
+				if err != nil {
+					panic(err)
+				}
+			}()
 
-		path := "/people"
-		body := fmt.Sprintf("@%s", tmpfn)
+			tmpfn := filepath.Join(dir, "tmpfile")
+			if err := ioutil.WriteFile(tmpfn, content, 0666); err != nil {
+				panic(err)
+			}
 
-		planBuilder := yaml.NewPlanBuilder()
+			path := "/people"
+			body := fmt.Sprintf("@%s", tmpfn)
 
-		planBuilder.
-			CreateJob().
-			CreateStep().
-			ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
+			planBuilder := yaml.NewPlanBuilder()
 
-		_, err = test.ExecutePlanBuilder(planBuilder)
-		Expect(err).To(BeNil())
-		Expect(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithBody(string(content)))).To(Equal(true))
+			planBuilder.
+				CreateJob().
+				CreateStep().
+				ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
+
+			_, err = test.ExecutePlanBuilder(planBuilder)
+			So(err, ShouldBeNil)
+			So(TestServer.Find(rizo.RequestWithPath(path), rizo.RequestWithBody(string(content))), ShouldEqual, true)
+		})
+
+		SkipConvey("Returns an error when the file path does not exist", func() {})
 	})
-
-	PIt("Returns an error when the file path does not exist", func() {})
-})
+}

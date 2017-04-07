@@ -1,20 +1,23 @@
 package utils_test
 
 import (
+	"testing"
+
 	. "github.com/guzzlerio/corcel/utils"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-var _ = Describe("ArrayUtils", func() {
-	var input = []string{"A", "B", "C"}
+func TestArrayUtils(t *testing.T) {
+	Convey("ArrayUtils", t, func() {
+		var input = []string{"A", "B", "C"}
 
-	It("ContainsString suceeds", func() {
-		Expect(ContainsString(input, "B")).To(BeTrue())
-	})
+		Convey("ContainsString suceeds", func() {
+			So(ContainsString(input, "B"), ShouldBeTrue)
+		})
 
-	It("ContainsString fails", func() {
-		Expect(ContainsString(input, "D")).To(BeFalse())
+		Convey("ContainsString fails", func() {
+			So(ContainsString(input, "D"), ShouldBeFalse)
+		})
 	})
-})
+}

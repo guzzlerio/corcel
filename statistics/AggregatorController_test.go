@@ -1,39 +1,41 @@
 package statistics_test
 
 import (
+	"testing"
 	"time"
 
 	. "github.com/guzzlerio/corcel/statistics"
 	metrics "github.com/rcrowley/go-metrics"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-var _ = Describe("AggregatorController", func() {
+func TestAggregatorController(t *testing.T) {
+	Convey("AggregatorController", t, func() {
 
-	It("Can take a snapshot after calling stop", func() {
-		var controller = CreateAggregatorController(metrics.DefaultRegistry)
+		Convey("Can take a snapshot after calling stop", func() {
+			var controller = CreateAggregatorController(metrics.DefaultRegistry)
 
-		var snapshot AggregatorSnapShot
+			var snapshot AggregatorSnapShot
 
-		controller.Start()
-		controller.Stop()
-		snapshot = controller.Snapshot()
+			controller.Start()
+			controller.Stop()
+			snapshot = controller.Snapshot()
 
-		Expect(len(snapshot.Times)).To(Equal(2))
+			So(len(snapshot.Times), ShouldEqual, 2)
+		})
+
+		Convey("Creates a snapshot after a time period", func() {
+			var controller = CreateAggregatorController(metrics.DefaultRegistry)
+
+			var snapshot AggregatorSnapShot
+
+			controller.Start()
+			time.Sleep(2 * time.Second)
+			controller.Stop()
+			snapshot = controller.Snapshot()
+
+			So(len(snapshot.Times), ShouldEqual, 3)
+		})
 	})
-
-	It("Creates a snapshot after a time period", func() {
-		var controller = CreateAggregatorController(metrics.DefaultRegistry)
-
-		var snapshot AggregatorSnapShot
-
-		controller.Start()
-		time.Sleep(2 * time.Second)
-		controller.Stop()
-		snapshot = controller.Snapshot()
-
-		Expect(len(snapshot.Times)).To(Equal(3))
-	})
-})
+}

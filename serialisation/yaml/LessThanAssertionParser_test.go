@@ -2,60 +2,62 @@ package yaml
 
 import (
 	"fmt"
+	"testing"
 
 	"github.com/guzzlerio/corcel/assertions"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-var _ = Describe("LessThanAssertionParser", func() {
-	It("Parses", func() {
+func TestLessThanAssertionParser(t *testing.T) {
+	Convey("LessThanAssertionParser", t, func() {
+		Convey("Parses", func() {
 
-		var expectedKey = "talula"
-		var input = map[string]interface{}{
-			"key":      expectedKey,
-			"expected": 7,
-		}
+			var expectedKey = "talula"
+			var input = map[string]interface{}{
+				"key":      expectedKey,
+				"expected": 7,
+			}
 
-		var parser = LessThanAssertionParser{}
-		assertion, err := parser.Parse(input)
-		var ltAssertion = assertion.(*assertions.LessThanAssertion)
+			var parser = LessThanAssertionParser{}
+			assertion, err := parser.Parse(input)
+			var ltAssertion = assertion.(*assertions.LessThanAssertion)
 
-		Expect(err).To(BeNil())
-		Expect(ltAssertion.Key).To(Equal(expectedKey))
-		Expect(ltAssertion.Value).To(Equal(7))
+			So(err, ShouldBeNil)
+			So(ltAssertion.Key, ShouldEqual, expectedKey)
+			So(ltAssertion.Value, ShouldEqual, 7)
+		})
+
+		Convey("Returns Key", func() {
+			So(LessThanAssertionParser{}.Key(), ShouldEqual, "LessThanAssertion")
+		})
+
+		Convey("Fails to parse without key", func() {
+
+			var input = map[string]interface{}{
+				"bang":     "talula",
+				"expected": "boomboom",
+			}
+
+			var parser = LessThanAssertionParser{}
+			_, err := parser.Parse(input)
+
+			So(err, ShouldNotBeNil)
+			So(fmt.Sprintf("%v", err), ShouldContainSubstring, "key is not present")
+		})
+
+		Convey("Fails to parse without expected", func() {
+
+			var input = map[string]interface{}{
+				"key":  "talula",
+				"bang": "boomboom",
+			}
+
+			var parser = LessThanAssertionParser{}
+			_, err := parser.Parse(input)
+
+			So(err, ShouldNotBeNil)
+			So(fmt.Sprintf("%v", err), ShouldContainSubstring, "expected is not present")
+		})
+
 	})
-
-	It("Returns Key", func() {
-		Expect(LessThanAssertionParser{}.Key()).To(Equal("LessThanAssertion"))
-	})
-
-	It("Fails to parse without key", func() {
-
-		var input = map[string]interface{}{
-			"bang":     "talula",
-			"expected": "boomboom",
-		}
-
-		var parser = LessThanAssertionParser{}
-		_, err := parser.Parse(input)
-
-		Expect(err).ToNot(BeNil())
-		Expect(fmt.Sprintf("%v", err)).To(ContainSubstring("key is not present"))
-	})
-
-	It("Fails to parse without expected", func() {
-
-		var input = map[string]interface{}{
-			"key":  "talula",
-			"bang": "boomboom",
-		}
-
-		var parser = LessThanAssertionParser{}
-		_, err := parser.Parse(input)
-
-		Expect(err).ToNot(BeNil())
-		Expect(fmt.Sprintf("%v", err)).To(ContainSubstring("expected is not present"))
-	})
-
-})
+}

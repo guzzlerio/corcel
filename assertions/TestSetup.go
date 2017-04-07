@@ -4,10 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
-	"testing"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 var NilValue interface{}
@@ -44,20 +41,15 @@ func assert(testCases []AssertionTestCase, test func(actual interface{}, instanc
 	for _, testCase := range testCases {
 		actualValue := testCase.Actual
 		instanceValue := testCase.Instance
-		testName := fmt.Sprintf("When Actual is of type %T and Instance is of type %T", actualValue, instanceValue)
+		testName := fmt.Sprintf("When Actual is of type %T %[1]V and Instance is of type %T %[2]V", actualValue, instanceValue)
 		if testCase.ActualStringNumber {
 			testName = fmt.Sprintf("%s. Actual value is a STRING NUMBER in this case", testName)
 		}
 		if testCase.InstanceStringNumber {
 			testName = fmt.Sprintf("%s. Instance value is a STRING NUMBER in this case", testName)
 		}
-		It(testName, func() {
+		Convey(testName, func() {
 			test(actualValue, instanceValue)
 		})
 	}
-}
-
-func TestAssertions(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Assertions Suite")
 }

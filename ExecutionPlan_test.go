@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"testing"
 
 	"github.com/guzzlerio/rizo"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/guzzlerio/corcel/config"
 	"github.com/guzzlerio/corcel/global"
@@ -16,236 +16,242 @@ import (
 	"github.com/guzzlerio/corcel/utils"
 )
 
-var _ = Describe("ExecutionPlan", func() {
+func TestExecutionPlan(t *testing.T) {
+	BeforeTest()
 
-	BeforeEach(func() {
-		TestServer.Clear()
-		factory := rizo.HTTPResponseFactory(func(w http.ResponseWriter) {
-			w.WriteHeader(http.StatusOK)
-		})
+	defer AfterTest()
+	Convey("ExecutionPlan", t, func() {
 
-		TestServer.Use(factory).For(rizo.RequestWithPath("/people"))
-	})
-
-	AfterEach(func() {
-		TestServer.Clear()
-	})
-
-	Context("SetIterations", func() {
-		It("Single Job Single Step", func() {
-			planBuilder := yaml.NewPlanBuilder()
-
-			planBuilder.
-				SetIterations(2).
-				CreateJob().
-				CreateStep().
-				ToExecuteAction(planBuilder.DummyAction().Build())
-
-			summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
-			Expect(err).To(BeNil())
-			Expect(summary.TotalRequests).To(Equal(float64(2)))
-		})
-		It("Single Job Two Steps", func() {
-			planBuilder := yaml.NewPlanBuilder()
-
-			jobBuilder := planBuilder.
-				SetIterations(2).
-				CreateJob()
-			jobBuilder.
-				CreateStep().
-				ToExecuteAction(planBuilder.DummyAction().Build())
-			jobBuilder.
-				CreateStep().
-				ToExecuteAction(planBuilder.DummyAction().Build())
-
-			summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
-			Expect(err).To(BeNil())
-			Expect(summary.TotalRequests).To(Equal(float64(4)))
-		})
-		It("Single Job Two Steps", func() {
-			planBuilder := yaml.NewPlanBuilder()
-
-			jobBuilder := planBuilder.
-				SetIterations(2).
-				CreateJob()
-
-			jobBuilder.
-				CreateStep().
-				ToExecuteAction(planBuilder.DummyAction().Build())
-			jobBuilder.
-				CreateStep().
-				ToExecuteAction(planBuilder.DummyAction().Build())
-
-			jobBuilder = planBuilder.
-				CreateJob()
-			jobBuilder.
-				CreateStep().
-				ToExecuteAction(planBuilder.DummyAction().Build())
-			jobBuilder.
-				CreateStep().
-				ToExecuteAction(planBuilder.DummyAction().Build())
-
-			summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
-			Expect(err).To(BeNil())
-			Expect(summary.TotalRequests).To(Equal(float64(8)))
-		})
-
-		It("For a list", func() {
-			list := []string{
-				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
-				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
-				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
-				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
-				fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
-				fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
-			}
-
-			summary, err := test.ExecuteListForApplication(list, config.Configuration{
-				Iterations: 5,
+		func() {
+			TestServer.Clear()
+			factory := rizo.HTTPResponseFactory(func(w http.ResponseWriter) {
+				w.WriteHeader(http.StatusOK)
 			})
-			Expect(err).To(BeNil())
-			Expect(summary.TotalRequests).To(Equal(float64(30)))
-		})
 
-	})
+			TestServer.Use(factory).For(rizo.RequestWithPath("/people"))
+		}()
 
-	/*/\/\/\/\/\/\/\//\/\/\/\/\/\/\/\/\/\/\/\\/\/
-	 *
-	 * REFER TO ISSUE #50
-	 *
-	 *\/\/\/\/\/\/\//\/\/\/\/\/\/\/\/\/\/\/\\/\/
-	 */
+		defer func() {
+			TestServer.Clear()
+		}()
 
-	for _, numberOfWorkers := range global.NumberOfWorkersToTest {
-		name := fmt.Sprintf("SetWorkers for %v workers", numberOfWorkers)
-		func(workers int) {
-			It(name, func() {
+		Convey("SetIterations", func() {
+			Convey("Single Job Single Step", func() {
 				planBuilder := yaml.NewPlanBuilder()
 
 				planBuilder.
-					SetWorkers(workers).
+					SetIterations(2).
 					CreateJob().
 					CreateStep().
-					ToExecuteAction(GetHTTPRequestAction("/people"))
+					ToExecuteAction(planBuilder.DummyAction().Build())
 
 				summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
-				Expect(err).To(BeNil())
-				Expect(summary.TotalErrors).To(Equal(float64(0)))
-				Expect(summary.TotalRequests).To(Equal(float64(workers)))
-				Expect(len(TestServer.Requests)).To(Equal(workers))
+				So(err, ShouldBeNil)
+				So(summary.TotalRequests, ShouldEqual, float64(2))
 			})
-		}(numberOfWorkers)
-	}
+			Convey("Single Job Two Steps", func() {
+				planBuilder := yaml.NewPlanBuilder()
 
-	It("SetWaitTime", func() {
-		numberOfSteps := 6
-		waitTime := "500ms"
+				jobBuilder := planBuilder.
+					SetIterations(2).
+					CreateJob()
+				jobBuilder.
+					CreateStep().
+					ToExecuteAction(planBuilder.DummyAction().Build())
+				jobBuilder.
+					CreateStep().
+					ToExecuteAction(planBuilder.DummyAction().Build())
 
-		planBuilder := yaml.NewPlanBuilder()
-		planBuilder.SetWaitTime(waitTime)
-		jobBuilder := planBuilder.CreateJob()
+				summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
+				So(err, ShouldBeNil)
+				So(summary.TotalRequests, ShouldEqual, float64(4))
+			})
+			Convey("Two Jobs Two Steps", func() {
+				planBuilder := yaml.NewPlanBuilder()
 
-		for i := 0; i < numberOfSteps; i++ {
-			jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction("/people"))
-		}
+				jobBuilder := planBuilder.
+					SetIterations(2).
+					CreateJob()
 
-		summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
-		Expect(err).To(BeNil())
-		actual := summary.RunningTime
-		seconds := actual.Seconds()
-		seconds = math.Floor(seconds)
-		Expect(seconds).To(Equal(float64(3)))
-	})
+				jobBuilder.
+					CreateStep().
+					ToExecuteAction(planBuilder.DummyAction().Build())
+				jobBuilder.
+					CreateStep().
+					ToExecuteAction(planBuilder.DummyAction().Build())
 
-	It("SetDuration", func() {
-		duration := "3s"
-		planBuilder := yaml.NewPlanBuilder()
-		planBuilder.SetDuration(duration)
-		jobBuilder := planBuilder.CreateJob()
-		jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction("/people"))
+				jobBuilder = planBuilder.
+					CreateJob()
+				jobBuilder.
+					CreateStep().
+					ToExecuteAction(planBuilder.DummyAction().Build())
+				jobBuilder.
+					CreateStep().
+					ToExecuteAction(planBuilder.DummyAction().Build())
 
-		summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
-		Expect(err).To(BeNil())
-		actual := summary.RunningTime
-		seconds := actual.Seconds()
-		seconds = math.Floor(seconds)
-		Expect(seconds).To(Equal(float64(3)))
-	})
+				summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
+				So(err, ShouldBeNil)
+				So(summary.TotalRequests, ShouldEqual, float64(8))
+			})
 
-	It("SetRandom", func() {
-		numberOfSteps := 6
+			Convey("For a list", func() {
+				list := []string{
+					fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
+					fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+					fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
+					fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+					fmt.Sprintf(`%s -X POST `, URLForTestServer("/error")),
+					fmt.Sprintf(`%s -X POST `, URLForTestServer("/success")),
+				}
 
-		planBuilder := yaml.NewPlanBuilder()
-		planBuilder.SetRandom(true)
+				summary, err := test.ExecuteListForApplication(list, config.Configuration{
+					Iterations: 5,
+				})
+				So(err, ShouldBeNil)
+				So(summary.TotalRequests, ShouldEqual, float64(30))
+			})
 
-		for i := 0; i < numberOfSteps; i++ {
-			jobBuilder := planBuilder.CreateJob()
-			jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction(fmt.Sprintf("/%d", i+1)))
-		}
-
-		_, err := test.ExecutePlanBuilderForApplication(planBuilder)
-		Expect(err).To(BeNil())
-
-		firstBatchOfRequests := utils.ConcatRequestPaths(utils.ToHTTPRequestArray(TestServer.Requests))
-		TestServer.Clear()
-
-		_, err = test.ExecutePlanBuilderForApplication(planBuilder)
-		Expect(err).To(BeNil())
-		secondBatchOfRequests := utils.ConcatRequestPaths(utils.ToHTTPRequestArray(TestServer.Requests))
-
-		Expect(firstBatchOfRequests).ToNot(Equal(secondBatchOfRequests))
-	})
-
-	PDescribe("HttpRequest", func() {})
-
-	Describe("Assertions", func() {
-
-		BeforeEach(func() {
-			TestServer.Clear()
-			TestServer.Use(func(w http.ResponseWriter) {
-				w.WriteHeader(http.StatusOK)
-			}).For(rizo.RequestWithPath("/boom"))
 		})
-		//ASSERTION FAILURES ARE NOT CURRENTLY COUNTING AS ERRORS IN THE SUMMARY OUTPUT
-		It("ExactAssertion Fails", func() {
 
+		/*/\/\/\/\/\/\/\//\/\/\/\/\/\/\/\/\/\/\/\\/\/
+		 *
+		 * REFER TO ISSUE #50
+		 *
+		 *\/\/\/\/\/\/\//\/\/\/\/\/\/\/\/\/\/\/\\/\/
+		 */
+
+		for _, numberOfWorkers := range global.NumberOfWorkersToTest {
+			name := fmt.Sprintf("SetWorkers for %v workers", numberOfWorkers)
+			func(workers int) {
+				Convey(name, func() {
+					planBuilder := yaml.NewPlanBuilder()
+
+					planBuilder.
+						SetWorkers(workers).
+						CreateJob().
+						CreateStep().
+						ToExecuteAction(GetHTTPRequestAction("/people"))
+
+					summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
+					So(err, ShouldBeNil)
+					So(summary.TotalErrors, ShouldEqual, float64(0))
+					So(summary.TotalRequests, ShouldEqual, float64(workers))
+					So(len(TestServer.Requests), ShouldEqual, workers)
+				})
+			}(numberOfWorkers)
+		}
+
+		Convey("SetWaitTime", func() {
+			numberOfSteps := 6
+			waitTime := "500ms"
+
+			planBuilder := yaml.NewPlanBuilder()
+			planBuilder.SetWaitTime(waitTime)
+			jobBuilder := planBuilder.CreateJob()
+
+			for i := 0; i < numberOfSteps; i++ {
+				jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction("/people"))
+			}
+
+			summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
+			So(err, ShouldBeNil)
+			actual := summary.RunningTime
+			seconds := actual.Seconds()
+			seconds = math.Floor(seconds)
+			So(seconds, ShouldEqual, float64(3))
+		})
+
+		Convey("SetDuration", func() {
+			duration := "3s"
+			planBuilder := yaml.NewPlanBuilder()
+			planBuilder.SetDuration(duration)
+			jobBuilder := planBuilder.CreateJob()
+			jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction("/people"))
+
+			summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
+			So(err, ShouldBeNil)
+			actual := summary.RunningTime
+			seconds := actual.Seconds()
+			seconds = math.Floor(seconds)
+			So(seconds, ShouldEqual, float64(3))
+		})
+
+		Convey("SetRandom", func() {
+			numberOfSteps := 6
+
+			planBuilder := yaml.NewPlanBuilder()
+			planBuilder.SetRandom(true)
+
+			for i := 0; i < numberOfSteps; i++ {
+				jobBuilder := planBuilder.CreateJob()
+				jobBuilder.CreateStep().ToExecuteAction(GetHTTPRequestAction(fmt.Sprintf("/%d", i+1)))
+			}
+
+			_, err := test.ExecutePlanBuilderForApplication(planBuilder)
+			So(err, ShouldBeNil)
+
+			firstBatchOfRequests := utils.ConcatRequestPaths(utils.ToHTTPRequestArray(TestServer.Requests))
+			TestServer.Clear()
+
+			_, err = test.ExecutePlanBuilderForApplication(planBuilder)
+			So(err, ShouldBeNil)
+			secondBatchOfRequests := utils.ConcatRequestPaths(utils.ToHTTPRequestArray(TestServer.Requests))
+
+			So(firstBatchOfRequests, ShouldNotEqual, secondBatchOfRequests)
+		})
+
+		SkipConvey("HttpRequest", func() {})
+
+		Convey("Assertions", func() {
+
+			func() {
+				TestServer.Clear()
+				TestServer.Use(func(w http.ResponseWriter) {
+					w.WriteHeader(http.StatusOK)
+				}).For(rizo.RequestWithPath("/boom"))
+			}()
+
+			//ASSERTION FAILURES ARE NOT CURRENTLY COUNTING AS ERRORS IN THE SUMMARY OUTPUT
+			Convey("ExactAssertion Fails", func() {
+
+				planBuilder := yaml.NewPlanBuilder()
+				planBuilder.CreateJob().
+					CreateStep().
+					ToExecuteAction(GetHTTPRequestAction("/boom")).
+					WithAssertion(HTTPStatusExactAssertion(201))
+
+				summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
+				So(err, ShouldBeNil)
+				So(summary.TotalAssertions, ShouldEqual, int64(1))
+				So(summary.TotalAssertionFailures, ShouldEqual, int64(1))
+			})
+
+			Convey("ExactAssertion Pass", func() {
+
+				planBuilder := yaml.NewPlanBuilder()
+				planBuilder.CreateJob().
+					CreateStep().
+					ToExecuteAction(GetHTTPRequestAction("/boom")).
+					WithAssertion(HTTPStatusExactAssertion(200))
+
+				summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
+				So(err, ShouldBeNil)
+				So(summary.TotalAssertions, ShouldEqual, int64(1))
+				So(summary.TotalAssertionFailures, ShouldEqual, int64(0))
+			})
+		})
+
+		Convey("Name", func() {
 			planBuilder := yaml.NewPlanBuilder()
 			planBuilder.CreateJob().
 				CreateStep().
-				ToExecuteAction(GetHTTPRequestAction("/boom")).
+				ToExecuteAction(GetHTTPRequestAction("/people")).
 				WithAssertion(HTTPStatusExactAssertion(201))
 
 			summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
-			Expect(err).To(BeNil())
-			Expect(summary.TotalAssertions).To(Equal(int64(1)))
-			Expect(summary.TotalAssertionFailures).To(Equal(int64(1)))
-		})
-
-		It("ExactAssertion Pass", func() {
-
-			planBuilder := yaml.NewPlanBuilder()
-			planBuilder.CreateJob().
-				CreateStep().
-				ToExecuteAction(GetHTTPRequestAction("/boom")).
-				WithAssertion(HTTPStatusExactAssertion(200))
-
-			summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
-			Expect(err).To(BeNil())
-			Expect(summary.TotalAssertions).To(Equal(int64(1)))
-			Expect(summary.TotalAssertionFailures).To(Equal(int64(0)))
+			So(err, ShouldBeNil)
+			So(summary.TotalRequests, ShouldBeGreaterThan, 0)
+			So(summary.TotalErrors, ShouldEqual, float64(0))
 		})
 	})
-
-	It("Name", func() {
-		planBuilder := yaml.NewPlanBuilder()
-		planBuilder.CreateJob().
-			CreateStep().
-			ToExecuteAction(GetHTTPRequestAction("/people")).
-			WithAssertion(HTTPStatusExactAssertion(201))
-
-		summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
-		Expect(err).To(BeNil())
-		Expect(summary.TotalRequests).To(BeNumerically(">", 0))
-		Expect(summary.TotalErrors).To(Equal(float64(0)))
-	})
-})
+}

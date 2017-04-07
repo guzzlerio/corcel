@@ -1,10 +1,11 @@
 package processor_test
 
 import (
+	"testing"
+
 	. "github.com/guzzlerio/corcel/processor"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func getPeopleCollection() []map[string]interface{} {
@@ -37,51 +38,55 @@ func getProductsCollection() []map[string]interface{} {
 	}
 }
 
-var _ = Describe("ListRingIterator", func() {
+func TestListRingIterator(t *testing.T) {
+	BeforeTest()
+	defer AfterTest()
+	Convey("ListRingIterator", t, func() {
 
-	It("Loops round", func() {
-		data := map[string][]map[string]interface{}{}
-		data["People"] = getPeopleCollection()
+		Convey("Loops round", func() {
+			data := map[string][]map[string]interface{}{}
+			data["People"] = getPeopleCollection()
 
-		iterator := NewListRingRevolver(data)
+			iterator := NewListRingRevolver(data)
 
-		values1 := iterator.Values()
-		Expect(values1["People.name"]).To(Equal("bob"))
-		Expect(values1["People.age"]).To(Equal(30))
+			values1 := iterator.Values()
+			So(values1["People.name"], ShouldEqual, "bob")
+			So(values1["People.age"], ShouldEqual, 30)
 
-		values2 := iterator.Values()
-		Expect(values2["People.name"]).To(Equal("carol"))
-		Expect(values2["People.age"]).To(Equal(31))
+			values2 := iterator.Values()
+			So(values2["People.name"], ShouldEqual, "carol")
+			So(values2["People.age"], ShouldEqual, 31)
 
-		values3 := iterator.Values()
-		Expect(values3["People.name"]).To(Equal("alice"))
-		Expect(values3["People.age"]).To(Equal(32))
+			values3 := iterator.Values()
+			So(values3["People.name"], ShouldEqual, "alice")
+			So(values3["People.age"], ShouldEqual, 32)
+		})
+
+		Convey("Loops around uneven lists", func() {
+			data := map[string][]map[string]interface{}{}
+			data["People"] = getPeopleCollection()
+			data["Products"] = getProductsCollection()
+
+			iterator := NewListRingRevolver(data)
+
+			values1 := iterator.Values()
+			So(values1["People.name"], ShouldEqual, "bob")
+			So(values1["People.age"], ShouldEqual, 30)
+			So(values1["Products.name"], ShouldEqual, "toaster")
+			So(values1["Products.sku"], ShouldEqual, "1234")
+
+			values2 := iterator.Values()
+			So(values2["People.name"], ShouldEqual, "carol")
+			So(values2["People.age"], ShouldEqual, 31)
+			So(values2["Products.name"], ShouldEqual, "grinder")
+			So(values2["Products.sku"], ShouldEqual, "5678")
+
+			values3 := iterator.Values()
+			So(values3["People.name"], ShouldEqual, "alice")
+			So(values3["People.age"], ShouldEqual, 32)
+			So(values3["Products.name"], ShouldEqual, "toaster")
+			So(values3["Products.sku"], ShouldEqual, "1234")
+		})
+
 	})
-
-	It("Loops around uneven lists", func() {
-		data := map[string][]map[string]interface{}{}
-		data["People"] = getPeopleCollection()
-		data["Products"] = getProductsCollection()
-
-		iterator := NewListRingRevolver(data)
-
-		values1 := iterator.Values()
-		Expect(values1["People.name"]).To(Equal("bob"))
-		Expect(values1["People.age"]).To(Equal(30))
-		Expect(values1["Products.name"]).To(Equal("toaster"))
-		Expect(values1["Products.sku"]).To(Equal("1234"))
-
-		values2 := iterator.Values()
-		Expect(values2["People.name"]).To(Equal("carol"))
-		Expect(values2["People.age"]).To(Equal(31))
-		Expect(values2["Products.name"]).To(Equal("grinder"))
-		Expect(values2["Products.sku"]).To(Equal("5678"))
-
-		values3 := iterator.Values()
-		Expect(values3["People.name"]).To(Equal("alice"))
-		Expect(values3["People.age"]).To(Equal(32))
-		Expect(values3["Products.name"]).To(Equal("toaster"))
-		Expect(values3["Products.sku"]).To(Equal("1234"))
-	})
-
-})
+}

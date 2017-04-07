@@ -1,27 +1,32 @@
 package processor_test
 
 import (
+	"testing"
+
 	"github.com/guzzlerio/corcel/core"
 	. "github.com/guzzlerio/corcel/processor"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-var _ = Describe("JobRevolvingStream", func() {
+func TestJobRevolvingStream(t *testing.T) {
+	BeforeTest()
+	defer AfterTest()
+	Convey("JobRevolvingStream", t, func() {
 
-	It("iterates", func() {
-		jobs := []core.Job{
-			core.Job{Name: "1"},
-			core.Job{Name: "2"},
-			core.Job{Name: "3"},
-		}
+		Convey("iterates", func() {
+			jobs := []core.Job{
+				core.Job{Name: "1"},
+				core.Job{Name: "2"},
+				core.Job{Name: "3"},
+			}
 
-		sequentialStream := CreateJobSequentialStream(jobs)
-		revolvingStream := CreateJobRevolvingStream(sequentialStream)
-		Expect(revolvingStream.Next()).To(Equal(jobs[0]))
-		Expect(revolvingStream.Next()).To(Equal(jobs[1]))
-		Expect(revolvingStream.Next()).To(Equal(jobs[2]))
-		Expect(revolvingStream.Next()).To(Equal(jobs[0]))
+			sequentialStream := CreateJobSequentialStream(jobs)
+			revolvingStream := CreateJobRevolvingStream(sequentialStream)
+			So(revolvingStream.Next(), ShouldResemble, jobs[0])
+			So(revolvingStream.Next(), ShouldResemble, jobs[1])
+			So(revolvingStream.Next(), ShouldResemble, jobs[2])
+			So(revolvingStream.Next(), ShouldResemble, jobs[0])
+		})
 	})
-})
+}

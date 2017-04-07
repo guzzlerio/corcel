@@ -1,26 +1,31 @@
 package processor
 
 import (
+	"testing"
+
 	"github.com/guzzlerio/corcel/core"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-var _ = Describe("JobSequentialStream", func() {
+func TestJobSequentialStream(t *testing.T) {
+	BeforeTest()
+	defer AfterTest()
+	Convey("JobSequentialStream", t, func() {
 
-	It("iterates", func() {
-		jobs := []core.Job{
-			core.Job{Name: "1"},
-			core.Job{Name: "2"},
-			core.Job{Name: "3"},
-		}
+		Convey("iterates", func() {
+			jobs := []core.Job{
+				core.Job{Name: "1"},
+				core.Job{Name: "2"},
+				core.Job{Name: "3"},
+			}
 
-		sequentialStream := CreateJobSequentialStream(jobs)
-		Expect(sequentialStream.Next()).To(Equal(jobs[0]))
-		Expect(sequentialStream.Next()).To(Equal(jobs[1]))
-		Expect(sequentialStream.Next()).To(Equal(jobs[2]))
-		Expect(sequentialStream.HasNext()).To(Equal(false))
+			sequentialStream := CreateJobSequentialStream(jobs)
+			So(sequentialStream.Next(), ShouldResemble, jobs[0])
+			So(sequentialStream.Next(), ShouldResemble, jobs[1])
+			So(sequentialStream.Next(), ShouldResemble, jobs[2])
+			So(sequentialStream.HasNext(), ShouldEqual, false)
+		})
+
 	})
-
-})
+}

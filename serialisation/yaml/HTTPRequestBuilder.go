@@ -1,4 +1,4 @@
-package http
+package yaml
 
 //NewHTTPRequestBuilder ...
 func NewHTTPRequestBuilder() RequestBuilder {

@@ -1,13 +1,17 @@
 package processor_test
 
 import (
-	. "github.com/onsi/ginkgo"
+	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-var _ = Describe("Control", func() {
+func TestControl(t *testing.T) {
+	Convey("Control", t, func() {
 
-	PDescribe("calling Start", func() {
-		It("returns the execution id", func() {})
-		It("does not block", func() {})
+		SkipConvey("calling Start", func() {
+			Convey("returns the execution id", func() {})
+			Convey("does not block", func() {})
+		})
 	})
-})
+}

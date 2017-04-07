@@ -3,12 +3,12 @@ package utils_test
 import (
 	"io/ioutil"
 	"os"
+	"testing"
 
 	"github.com/ghodss/yaml"
 	. "github.com/guzzlerio/corcel/utils"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 type Something struct {
@@ -16,39 +16,41 @@ type Something struct {
 	B int    `json:"b"`
 }
 
-var _ = Describe("FileUtils", func() {
+func TestFileUtils(t *testing.T) {
+	Convey("FileUtils", t, func() {
 
-	It("CreateFileFromLines", func() {
-		var lines = []string{"A", "B", "C"}
+		Convey("CreateFileFromLines", func() {
+			var lines = []string{"A", "B", "C"}
 
-		var file = CreateFileFromLines(lines)
+			var file = CreateFileFromLines(lines)
 
-		data, err := ioutil.ReadFile(file.Name())
+			data, err := ioutil.ReadFile(file.Name())
 
-		Expect(err).To(BeNil())
-		Expect(string(data)).To(Equal("A\nB\nC\n"))
+			So(err, ShouldBeNil)
+			So(string(data), ShouldEqual, "A\nB\nC\n")
+
+		})
+
+		Convey("MarshalYamlToFile", func() {
+			var subject = Something{
+				A: "something",
+				B: 1,
+			}
+
+			marshalFile, marshalErr := MarshalYamlToFile(os.TempDir(), subject)
+
+			So(marshalErr, ShouldBeNil)
+
+			fileData, fileErr := ioutil.ReadFile(marshalFile.Name())
+
+			So(fileErr, ShouldBeNil)
+
+			var newSubject Something
+			yaml.Unmarshal(fileData, &newSubject)
+
+			So(newSubject.A, ShouldEqual, "something")
+			So(newSubject.B, ShouldEqual, 1)
+		})
 
 	})
-
-	It("MarshalYamlToFile", func() {
-		var subject = Something{
-			A: "something",
-			B: 1,
-		}
-
-		marshalFile, marshalErr := MarshalYamlToFile(os.TempDir(), subject)
-
-		Expect(marshalErr).To(BeNil())
-
-		fileData, fileErr := ioutil.ReadFile(marshalFile.Name())
-
-		Expect(fileErr).To(BeNil())
-
-		var newSubject Something
-		yaml.Unmarshal(fileData, &newSubject)
-
-		Expect(newSubject.A).To(Equal("something"))
-		Expect(newSubject.B).To(Equal(1))
-	})
-
-})
+}

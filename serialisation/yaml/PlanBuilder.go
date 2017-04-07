@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/guzzlerio/corcel/core"
-	"github.com/guzzlerio/corcel/infrastructure/http"
 	"github.com/guzzlerio/corcel/utils"
 )
 
@@ -139,6 +138,6 @@ func (instance *PlanBuilder) BuildAndSave() (*os.File, error) {
 }
 
 //HTTPAction ...
-func (instance PlanBuilder) HTTPAction() http.RequestBuilder {
-	return http.NewHTTPRequestBuilder()
+func (instance PlanBuilder) HTTPAction() RequestBuilder {
+	return NewHTTPRequestBuilder()
 }

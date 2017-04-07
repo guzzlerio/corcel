@@ -1,68 +1,71 @@
 package assertions
 
 import (
+	"testing"
+
 	"github.com/guzzlerio/corcel/core"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-var _ = Describe("EmptyAssertion", func() {
+func TestEmptyAssertion(t *testing.T) {
+	Convey("EmptyAssertion", t, func() {
 
-	key := "some:key"
+		key := "some:key"
 
-	It("Succeeds when empty string", func() {
-		executionResult := core.ExecutionResult{
-			key: "",
-		}
+		Convey("Succeeds when empty string", func() {
+			executionResult := core.ExecutionResult{
+				key: "",
+			}
 
-		assertion := EmptyAssertion{
-			Key: key,
-		}
+			assertion := EmptyAssertion{
+				Key: key,
+			}
 
-		result := assertion.Assert(executionResult)
-		Expect(result[core.AssertionResultUrn.String()]).To(Equal(true))
-		Expect(result[core.AssertionMessageUrn.String()]).To(BeNil())
+			result := assertion.Assert(executionResult)
+			So(result[core.AssertionResultUrn.String()], ShouldEqual, true)
+			So(result[core.AssertionMessageUrn.String()], ShouldBeNil)
+		})
+
+		Convey("Succeeds when empty string of whitespace", func() {
+			executionResult := core.ExecutionResult{
+				key: "    ",
+			}
+
+			assertion := EmptyAssertion{
+				Key: key,
+			}
+
+			result := assertion.Assert(executionResult)
+			So(result[core.AssertionResultUrn.String()], ShouldEqual, true)
+			So(result[core.AssertionMessageUrn.String()], ShouldBeNil)
+		})
+
+		Convey("Succeeds when nil", func() {
+			executionResult := core.ExecutionResult{}
+
+			assertion := EmptyAssertion{
+				Key: key,
+			}
+
+			result := assertion.Assert(executionResult)
+			So(result[core.AssertionResultUrn.String()], ShouldEqual, true)
+			So(result[core.AssertionMessageUrn.String()], ShouldBeNil)
+		})
+
+		Convey("Fails when value is not nil", func() {
+
+			executionResult := core.ExecutionResult{
+				key: 8,
+			}
+
+			assertion := EmptyAssertion{
+				Key: key,
+			}
+
+			result := assertion.Assert(executionResult)
+			So(result[core.AssertionResultUrn.String()], ShouldEqual, false)
+			So(result[core.AssertionMessageUrn.String()], ShouldEqual, "FAIL: value is not empty")
+		})
 	})
-
-	It("Succeeds when empty string of whitespace", func() {
-		executionResult := core.ExecutionResult{
-			key: "    ",
-		}
-
-		assertion := EmptyAssertion{
-			Key: key,
-		}
-
-		result := assertion.Assert(executionResult)
-		Expect(result[core.AssertionResultUrn.String()]).To(Equal(true))
-		Expect(result[core.AssertionMessageUrn.String()]).To(BeNil())
-	})
-
-	It("Succeeds when nil", func() {
-		executionResult := core.ExecutionResult{}
-
-		assertion := EmptyAssertion{
-			Key: key,
-		}
-
-		result := assertion.Assert(executionResult)
-		Expect(result[core.AssertionResultUrn.String()]).To(Equal(true))
-		Expect(result[core.AssertionMessageUrn.String()]).To(BeNil())
-	})
-
-	It("Fails when value is not nil", func() {
-
-		executionResult := core.ExecutionResult{
-			key: 8,
-		}
-
-		assertion := EmptyAssertion{
-			Key: key,
-		}
-
-		result := assertion.Assert(executionResult)
-		Expect(result[core.AssertionResultUrn.String()]).To(Equal(false))
-		Expect(result[core.AssertionMessageUrn.String()]).To(Equal("FAIL: value is not empty"))
-	})
-})
+}

@@ -2,39 +2,41 @@ package yaml
 
 import (
 	"fmt"
+	"testing"
 
 	"github.com/guzzlerio/corcel/assertions"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-var _ = Describe("NotEmptyAssertionParser", func() {
+func TestNotEmptyAssertionParser(t *testing.T) {
+	Convey("NotEmptyAssertionParser", t, func() {
 
-	It("Parses", func() {
+		Convey("Parses", func() {
 
-		var expected = "talula"
-		var input = map[string]interface{}{
-			"key": expected,
-		}
+			var expected = "talula"
+			var input = map[string]interface{}{
+				"key": expected,
+			}
 
-		var parser = NotEmptyAssertionParser{}
-		assertion, err := parser.Parse(input)
-		emptyAssertion := assertion.(*assertions.NotEmptyAssertion)
-		Expect(err).To(BeNil())
+			var parser = NotEmptyAssertionParser{}
+			assertion, err := parser.Parse(input)
+			emptyAssertion := assertion.(*assertions.NotEmptyAssertion)
+			So(err, ShouldBeNil)
 
-		Expect(emptyAssertion.Key).To(Equal(expected))
+			So(emptyAssertion.Key, ShouldEqual, expected)
+		})
+
+		Convey("Fails to parse", func() {
+			var expected = "talula"
+			var input = map[string]interface{}{
+				"bang": expected,
+			}
+
+			var parser = NotEmptyAssertionParser{}
+			_, err := parser.Parse(input)
+
+			So(err, ShouldNotBeNil)
+			So(fmt.Sprintf("%v", err), ShouldContainSubstring, "key is not present")
+		})
 	})
-
-	It("Fails to parse", func() {
-		var expected = "talula"
-		var input = map[string]interface{}{
-			"bang": expected,
-		}
-
-		var parser = NotEmptyAssertionParser{}
-		_, err := parser.Parse(input)
-
-		Expect(err).ToNot(BeNil())
-		Expect(fmt.Sprintf("%v", err)).To(ContainSubstring("key is not present"))
-	})
-})
+}

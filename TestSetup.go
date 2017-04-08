@@ -12,6 +12,7 @@ import (
 )
 
 var (
+	//TestServer ...
 	TestServer *rizo.RequestRecordingServer
 )
 

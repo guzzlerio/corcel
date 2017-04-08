@@ -31,7 +31,8 @@ lint: generate
 	go get -u github.com/alecthomas/gometalinter
 	go get -t ./...
 	gometalinter --install
-	gometalinter -e "duplicate" -e "undeclared name: Asset" -e "_test" --deadline=30s
+	# The Before and AfterTest ones here are because deadcode in the linter collection falsely detects them as dead code
+	gometalinter -e "BeforeTest" -e "AfterTest" -e "should have comment" -e "duplicate" -e "undeclared name: Asset" -e "_test" --deadline=30s
 
 dist: dist_linux
 

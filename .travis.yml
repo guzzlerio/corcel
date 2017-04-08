@@ -33,7 +33,8 @@ script:
     - gometalinter -e "duplicate" -e "_test" --deadline=120s
     - echo go build -ldflags "-X main.BuildTime=`date -u '+%Y-%m-%d_%I:%M:%S%p'` -X main.CommitHash=`git rev-parse HEAD` -X main.Version=\"${APP_VERSION}\""
     - go build -ldflags "-X main.BuildTime=`date -u '+%Y-%m-%d_%I:%M:%S%p'` -X main.CommitHash=`git rev-parse HEAD` -X main.Version=\"${APP_VERSION}\""
-    - ginkgo -cover -r --race -noisyPendings=false -slowSpecThreshold=10
+      #- ginkgo -cover -r --race -noisyPendings=false -slowSpecThreshold=10
+    - go test -p 1 -cover -coverprofile cover.out ./...
     - gover
     - goveralls -service travis-ci -coverprofile=gover.coverprofile -ignore=report/bindata.go
 notifications:

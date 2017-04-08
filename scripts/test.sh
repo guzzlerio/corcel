@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 set -e
-echo "" > coverage.txt
+rm coverage.txt 2> /dev/null
+touch coverage.txt
 
 for d in $(go list ./... | grep -v vendor); do
     go test -race -coverprofile=profile.out -covermode=atomic $d

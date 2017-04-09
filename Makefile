@@ -30,7 +30,7 @@ lint: generate
 	go get -t ./...
 	gometalinter --install
 	# The Before and AfterTest ones here are because deadcode in the linter collection falsely detects them as dead code
-	gometalinter -e "BeforeTest" -e "AfterTest" -e "should have comment" -e "duplicate" -e "undeclared name: Asset" -e "_test" --deadline=600s
+	gometalinter --fast --concurrency=4 -e "BeforeTest" -e "AfterTest" -e "should have comment" -e "duplicate" -e "undeclared name: Asset" -e "_test" --deadline=600s
 
 dist: dist_linux
 

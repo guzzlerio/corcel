@@ -51,7 +51,7 @@ func TestBefore_After(t *testing.T) {
 						CreateStep().
 						ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-					_, _ = test.ExecutePlanBuilder(planBuilder)
+					_, _ = test.ExecutePlanBuilderForApplication(planBuilder)
 					So(getBody(TestServer.Requests), ShouldResemble, []string{
 						"Before Plan",
 						"Zee Body",
@@ -66,7 +66,7 @@ func TestBefore_After(t *testing.T) {
 						CreateStep().
 						ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-					_, _ = test.ExecutePlanBuilder(planBuilder)
+					_, _ = test.ExecutePlanBuilderForApplication(planBuilder)
 					So(getBody(TestServer.Requests), ShouldResemble, []string{
 						"Before Plan 1",
 						"Before Plan 2",
@@ -82,7 +82,7 @@ func TestBefore_After(t *testing.T) {
 					CreateStep().
 					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-				_, _ = test.ExecutePlanBuilder(planBuilder)
+				_, _ = test.ExecutePlanBuilderForApplication(planBuilder)
 				So(getBody(TestServer.Requests), ShouldResemble, []string{
 					"Zee Body",
 					"After Plan",
@@ -97,7 +97,7 @@ func TestBefore_After(t *testing.T) {
 					CreateStep().
 					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-				_, _ = test.ExecutePlanBuilder(planBuilder)
+				_, _ = test.ExecutePlanBuilderForApplication(planBuilder)
 				So(getBody(TestServer.Requests), ShouldResemble, []string{
 					"Before Plan",
 					"Zee Body",
@@ -115,7 +115,7 @@ func TestBefore_After(t *testing.T) {
 						CreateStep().
 						ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-					_, _ = test.ExecutePlanBuilder(planBuilder)
+					_, _ = test.ExecutePlanBuilderForApplication(planBuilder)
 					So(getBody(TestServer.Requests), ShouldResemble, []string{
 						"Before Job",
 						"Zee Body",
@@ -131,7 +131,7 @@ func TestBefore_After(t *testing.T) {
 						CreateStep().
 						ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-					_, _ = test.ExecutePlanBuilder(planBuilder)
+					_, _ = test.ExecutePlanBuilderForApplication(planBuilder)
 					So(getBody(TestServer.Requests), ShouldResemble, []string{
 						"Zee Body",
 						"After Job",
@@ -148,7 +148,7 @@ func TestBefore_After(t *testing.T) {
 						CreateStep().
 						ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-					_, _ = test.ExecutePlanBuilder(planBuilder)
+					_, _ = test.ExecutePlanBuilderForApplication(planBuilder)
 					So(getBody(TestServer.Requests), ShouldResemble, []string{
 						"Before Job",
 						"Zee Body",
@@ -170,7 +170,7 @@ func TestBefore_After(t *testing.T) {
 						AddBefore(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("Before Step").Build()).
 						ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-					_, _ = test.ExecutePlanBuilder(planBuilder)
+					_, _ = test.ExecutePlanBuilderForApplication(planBuilder)
 					So(getBody(TestServer.Requests), ShouldResemble, []string{
 						"Zee Body",
 						"Before Step",
@@ -191,7 +191,7 @@ func TestBefore_After(t *testing.T) {
 						AddAfter(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("After Step 2").Build()).
 						ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-					_, _ = test.ExecutePlanBuilder(planBuilder)
+					_, _ = test.ExecutePlanBuilderForApplication(planBuilder)
 					So(getBody(TestServer.Requests), ShouldResemble, []string{
 						"Zee Body",
 						"After Step 1",
@@ -214,7 +214,7 @@ func TestBefore_After(t *testing.T) {
 						AddAfter(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("After Step 2").Build()).
 						ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
 
-					_, _ = test.ExecutePlanBuilder(planBuilder)
+					_, _ = test.ExecutePlanBuilderForApplication(planBuilder)
 					So(getBody(TestServer.Requests), ShouldResemble, []string{
 						"Zee Body",
 						"After Step 1",
@@ -249,7 +249,8 @@ func TestBefore_After(t *testing.T) {
 				jobBuilder.CreateStep().
 					AddAfter(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body("After Job 2, Step 1").Build()).
 					ToExecuteAction(planBuilder.HTTPAction().URL(TestServer.CreateURL(path)).Body(body).Build())
-				_, _ = test.ExecutePlanBuilder(planBuilder)
+				_, _ = test.ExecutePlanBuilderForApplication(planBuilder)
+
 				So(getBody(TestServer.Requests), ShouldResemble, []string{
 					"Before Plan",
 					"Before Job 1",

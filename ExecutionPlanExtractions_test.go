@@ -8,9 +8,13 @@ import (
 	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/test"
 
-	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+type SimpleTestCase struct {
+	input    interface{}
+	expected interface{}
+}
 
 func TestExecutionPlanExtractions(t *testing.T) {
 	BeforeTest()
@@ -419,21 +423,25 @@ jobs:
           </book>
         </library>`
 
-			var entries = []TableEntry{
-				Entry("", "/library/book/isbn", "0836217462"),
-				Entry("", "library/*/isbn", "0836217462"),
-				Entry("", "/library/book/../book/./isbn", "0836217462"),
-				Entry("", "/library/book/character[2]/name", "Snoopy"),
-				Entry("", "/library/book/character[born='1950-10-04']/name", "Snoopy"),
-				Entry("", "/library/book//node()[@id='PP']/name", "Peppermint Patty"),
-				Entry("", "//book[author/@id='CMS']/title", "Being a Dog Is a Full-Time Job"),
-				Entry("", "/library/book/preceding::comment()", " Great book. "),
-				Entry("", "//*[contains(born,'1922')]/name", "Charles M Schulz"),
-				Entry("", "//*[@id='PP' or @id='Snoopy']/born", "1966-08-22"),
+			var simpleEntries = []SimpleTestCase{
+				SimpleTestCase{"/library/book/isbn", "0836217462"},
+				SimpleTestCase{"library/*/isbn", "0836217462"},
+				SimpleTestCase{"/library/book/../book/./isbn", "0836217462"},
+				SimpleTestCase{"/library/book/character[2]/name", "Snoopy"},
+				SimpleTestCase{"/library/book/character[born='1950-10-04']/name", "Snoopy"},
+				SimpleTestCase{"/library/book//node()[@id='PP']/name", "Peppermint Patty"},
+				SimpleTestCase{"//book[author/@id='CMS']/title", "Being a Dog Is a Full-Time Job"},
+				SimpleTestCase{"/library/book/preceding::comment()", " Great book. "},
+				SimpleTestCase{"//*[contains(born,'1922')]/name", "Charles M Schulz"},
+				SimpleTestCase{"//*[@id='PP' or @id='Snoopy']/born", "1966-08-22"},
 			}
 
 			Convey("Step Scope", func() {
-				DescribeTable("Succeeds", func(testCase string, expectedValue string) {
+
+				for _, entry := range simpleEntries {
+					testCase := entry.input.(string)
+					expectedValue := entry.expected.(string)
+
 					planBuilder := yaml.NewPlanBuilder()
 
 					planBuilder.
@@ -446,7 +454,7 @@ jobs:
 					summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
 					So(err, ShouldBeNil)
 					So(summary.TotalAssertionFailures, ShouldEqual, int64(0))
-				}, entries...)
+				}
 
 				Convey("Fails", func() {
 					planBuilder := yaml.NewPlanBuilder()
@@ -464,7 +472,9 @@ jobs:
 				})
 			})
 			Convey("Job Scope", func() {
-				DescribeTable("Succeeds", func(testCase string, expectedValue string) {
+				for _, entry := range simpleEntries {
+					testCase := entry.input.(string)
+					expectedValue := entry.expected.(string)
 					planBuilder := yaml.NewPlanBuilder()
 
 					jobBuilder := planBuilder.
@@ -480,7 +490,7 @@ jobs:
 					summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
 					So(err, ShouldBeNil)
 					So(summary.TotalAssertionFailures, ShouldEqual, int64(0))
-				}, entries...)
+				}
 
 				Convey("fails", func() {
 					planBuilder := yaml.NewPlanBuilder()
@@ -501,7 +511,9 @@ jobs:
 			})
 
 			Convey("Plan Scope", func() {
-				DescribeTable("Succeeds", func(testCase string, expectedValue string) {
+				for _, entry := range simpleEntries {
+					testCase := entry.input.(string)
+					expectedValue := entry.expected.(string)
 					planBuilder := yaml.NewPlanBuilder()
 
 					planBuilder.
@@ -518,7 +530,7 @@ jobs:
 					summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
 					So(err, ShouldBeNil)
 					So(summary.TotalAssertionFailures, ShouldEqual, int64(0))
-				}, entries...)
+				}
 
 				Convey("Fails", func() {
 					planBuilder := yaml.NewPlanBuilder()
@@ -580,34 +592,34 @@ jobs:
 			"expensive": 10
 		}`
 
-			var entries = []TableEntry{
-				Entry("", "$.expensive", float64(10)),
-				Entry("", "$.store.book[0].price", float64(8.95)),
-				Entry("", "$.store.book[-1].isbn", "0-395-19395-8"),
-				Entry("", "$.store.book[0,1].price", []float64{8.95, 12.99}),
-				Entry("", "$.store.book[0:2].price", []float64{8.95, 12.99, 8.99}),
-				Entry("", "$.store.book[?(@.isbn)].price", []float64{8.99, 22.99}),
-				Entry("", "$.store.book[?(@.price > 10)].title", []string{"Sword of Honour", "The Lord of the Rings"}),
-				Entry("", "$.store.book[?(@.price < $.expensive)].price", []float64{8.95, 8.99}),
-				Entry("", "$.store.book[:].price", []float64{8.95, 12.99, 8.99, 22.99}),
+			var simpleEntries = []SimpleTestCase{
+				SimpleTestCase{"$.expensive", float64(10)},
+				SimpleTestCase{"$.store.book[0].price", float64(8.95)},
+				SimpleTestCase{"$.store.book[-1].isbn", "0-395-19395-8"},
+				SimpleTestCase{"$.store.book[0,1].price", []float64{8.95, 12.99}},
+				SimpleTestCase{"$.store.book[0:2].price", []float64{8.95, 12.99, 8.99}},
+				SimpleTestCase{"$.store.book[?(@.isbn)].price", []float64{8.99, 22.99}},
+				SimpleTestCase{"$.store.book[?(@.price > 10)].title", []string{"Sword of Honour", "The Lord of the Rings"}},
+				SimpleTestCase{"$.store.book[?(@.price < $.expensive)].price", []float64{8.95, 8.99}},
+				SimpleTestCase{"$.store.book[:].price", []float64{8.95, 12.99, 8.99, 22.99}},
 			}
 
 			Convey("Step Scope", func() {
-				DescribeTable("Succeeds",
-					func(testCase string, expectedValue interface{}) {
-						planBuilder := yaml.NewPlanBuilder()
-						planBuilder.
-							CreateJob().
-							CreateStep().
-							ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
-							WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath(testCase).Build()).
-							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
+				for _, entry := range simpleEntries {
+					testCase := entry.input.(string)
+					expectedValue := entry.expected
+					planBuilder := yaml.NewPlanBuilder()
+					planBuilder.
+						CreateJob().
+						CreateStep().
+						ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
+						WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath(testCase).Build()).
+						WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
 
-						summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
-						So(err, ShouldBeNil)
-						So(summary.TotalAssertionFailures, ShouldEqual, int64(0))
-					},
-					entries...)
+					summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
+					So(err, ShouldBeNil)
+					So(summary.TotalAssertionFailures, ShouldEqual, int64(0))
+				}
 
 				Convey("Fails", func() {
 					planBuilder := yaml.NewPlanBuilder()
@@ -625,25 +637,25 @@ jobs:
 				})
 			})
 			Convey("Job Scope", func() {
-				DescribeTable("Succeeds",
-					func(testCase string, expectedValue interface{}) {
-						planBuilder := yaml.NewPlanBuilder()
+				for _, entry := range simpleEntries {
+					testCase := entry.input.(string)
+					expectedValue := entry.expected
+					planBuilder := yaml.NewPlanBuilder()
 
-						jobBuilder := planBuilder.
-							CreateJob()
-						jobBuilder.
-							CreateStep().
-							ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
-							WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath(testCase).Scope(core.JobScope).Build())
-						jobBuilder.
-							CreateStep().
-							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
+					jobBuilder := planBuilder.
+						CreateJob()
+					jobBuilder.
+						CreateStep().
+						ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
+						WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath(testCase).Scope(core.JobScope).Build())
+					jobBuilder.
+						CreateStep().
+						WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
 
-						summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
-						So(err, ShouldBeNil)
-						So(summary.TotalAssertionFailures, ShouldEqual, int64(0))
-					},
-					entries...)
+					summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
+					So(err, ShouldBeNil)
+					So(summary.TotalAssertionFailures, ShouldEqual, int64(0))
+				}
 
 				Convey("Fails", func() {
 					planBuilder := yaml.NewPlanBuilder()
@@ -664,26 +676,26 @@ jobs:
 				})
 			})
 			Convey("Plan Scope", func() {
-				DescribeTable("Succeeds",
-					func(testCase string, expectedValue interface{}) {
-						planBuilder := yaml.NewPlanBuilder()
+				for _, entry := range simpleEntries {
+					testCase := entry.input.(string)
+					expectedValue := entry.expected
+					planBuilder := yaml.NewPlanBuilder()
 
-						planBuilder.
-							CreateJob().
-							CreateStep().
-							ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
-							WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath(testCase).Scope(core.PlanScope).Build())
+					planBuilder.
+						CreateJob().
+						CreateStep().
+						ToExecuteAction(planBuilder.DummyAction().Set("value:1", sampleContent).Build()).
+						WithExtractor(planBuilder.JSONPathExtractor().Name("jsonpath:match:1").Key("value:1").JSONPath(testCase).Scope(core.PlanScope).Build())
 
-						planBuilder.
-							CreateJob().
-							CreateStep().
-							WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
+					planBuilder.
+						CreateJob().
+						CreateStep().
+						WithAssertion(planBuilder.ExactAssertion("jsonpath:match:1", expectedValue))
 
-						summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
-						So(err, ShouldBeNil)
-						So(summary.TotalAssertionFailures, ShouldEqual, int64(0))
-					},
-					entries...)
+					summary, err := test.ExecutePlanBuilderForApplication(planBuilder)
+					So(err, ShouldBeNil)
+					So(summary.TotalAssertionFailures, ShouldEqual, int64(0))
+				}
 
 				Convey("Fails", func() {
 					planBuilder := yaml.NewPlanBuilder()

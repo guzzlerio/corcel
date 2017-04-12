@@ -1,81 +1,87 @@
-package http
+package http_test
 
 import (
 	nethttp "net/http"
+	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/guzzlerio/corcel/infrastructure/http"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-var _ = Describe("Http DefaultsExtractor", func() {
-	Describe("Sets Defaults", func() {
-		var result HttpActionState
-		BeforeEach(func() {
+func TestHttpDefaultsExtractor(t *testing.T) {
+	BeforeTest()
+
+	defer AfterTest()
+	Convey("Http DefaultsExtractor", t, func() {
+		Convey("Sets Defaults", func() {
+			var result http.HttpActionState
+			func() {
+				var input = map[string]interface{}{}
+				var extractor = http.NewDefaultsExtractor()
+
+				result = extractor.Extract(input)
+			}()
+			Convey("sets default URL to empty string", func() {
+				So(result.URL, ShouldEqual, "")
+			})
+			Convey("sets default method to GET", func() {
+				So(result.Method, ShouldEqual, "GET")
+			})
+			Convey("sets default body to empty string", func() {
+				So(result.Body, ShouldEqual, "")
+			})
+			Convey("sets default header to empty collection", func() {
+				So(result.Headers, ShouldResemble, nethttp.Header{})
+			})
+		})
+
+		Convey("Extracts HttpActionState", func() {
 			var input = map[string]interface{}{}
-			var extractor = NewDefaultsExtractor()
+			input["defaults"] = map[string]interface{}{}
+			var defaults = input["defaults"].(map[string]interface{})
+			defaults["HttpAction"] = map[string]interface{}{}
 
-			result = extractor.Extract(input)
+			var action = defaults["HttpAction"].(map[string]interface{})
+			action["headers"] = map[string]interface{}{}
+
+			var headers = action["headers"].(map[string]interface{})
+
+			headers["key"] = "value"
+
+			action["method"] = "GET"
+			action["body"] = "Bang Bang"
+			action["url"] = "http://somewhere"
+
+			var extractor = http.NewDefaultsExtractor()
+
+			var result = extractor.Extract(input)
+
+			So(result.Headers.Get("key"), ShouldEqual, "value")
+			So(result.Method, ShouldEqual, action["method"])
+			So(result.Body, ShouldEqual, action["body"])
+			So(result.URL, ShouldEqual, action["url"])
 		})
-		It("sets default URL to empty string", func() {
-			Expect(result.URL).To(Equal(""))
+
+		Convey("returns Empty state when no defaults", func() {
+			var extractor = http.NewDefaultsExtractor()
+			var state = map[string]interface{}{}
+			So(extractor.Extract(state), ShouldNotBeNil)
 		})
-		It("sets default method to GET", func() {
-			Expect(result.Method).To(Equal("GET"))
+
+		Convey("returns Empty state when no default HttpAction", func() {
+			var extractor = http.NewDefaultsExtractor()
+			var state = map[string]interface{}{}
+			state["defaults"] = map[string]interface{}{}
+			So(extractor.Extract(state), ShouldNotBeNil)
 		})
-		It("sets default body to empty string", func() {
-			Expect(result.Body).To(Equal(""))
-		})
-		It("sets default header to empty collection", func() {
-			Expect(result.Headers).To(Equal(nethttp.Header{}))
+
+		Convey("returns Empty state when no http definitions", func() {
+			var extractor = http.NewDefaultsExtractor()
+			var state = map[string]interface{}{}
+			state["defaults"] = map[string]interface{}{}
+			var defaults = state["defaults"].(map[string]interface{})
+			defaults["HttpAction"] = map[string]interface{}{}
+			So(extractor.Extract(state), ShouldNotBeNil)
 		})
 	})
-
-	It("Extracts HttpActionState", func() {
-		var input = map[string]interface{}{}
-		input["defaults"] = map[string]interface{}{}
-		var defaults = input["defaults"].(map[string]interface{})
-		defaults["HttpAction"] = map[string]interface{}{}
-
-		var action = defaults["HttpAction"].(map[string]interface{})
-		action["headers"] = map[string]interface{}{}
-
-		var headers = action["headers"].(map[string]interface{})
-
-		headers["key"] = "value"
-
-		action["method"] = "GET"
-		action["body"] = "Bang Bang"
-		action["url"] = "http://somewhere"
-
-		var extractor = NewDefaultsExtractor()
-
-		var result = extractor.Extract(input)
-
-		Expect(result.Headers.Get("key")).To(Equal("value"))
-		Expect(result.Method).To(Equal(action["method"]))
-		Expect(result.Body).To(Equal(action["body"]))
-		Expect(result.URL).To(Equal(action["url"]))
-	})
-
-	It("returns Empty state when no defaults", func() {
-		var extractor = NewDefaultsExtractor()
-		var state = map[string]interface{}{}
-		Expect(extractor.Extract(state)).ToNot(BeNil())
-	})
-
-	It("returns Empty state when no default HttpAction", func() {
-		var extractor = NewDefaultsExtractor()
-		var state = map[string]interface{}{}
-		state["defaults"] = map[string]interface{}{}
-		Expect(extractor.Extract(state)).ToNot(BeNil())
-	})
-
-	It("returns Empty state when no http definitions", func() {
-		var extractor = NewDefaultsExtractor()
-		var state = map[string]interface{}{}
-		state["defaults"] = map[string]interface{}{}
-		var defaults = state["defaults"].(map[string]interface{})
-		defaults["HttpAction"] = map[string]interface{}{}
-		Expect(extractor.Extract(state)).ToNot(BeNil())
-	})
-})
+}

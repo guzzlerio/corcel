@@ -1,41 +1,44 @@
 package assertions
 
 import (
+	"testing"
+
 	"github.com/guzzlerio/corcel/core"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-var _ = Describe("NotEqualAssertion", func() {
-	key := "some:key"
+func TestNotEqualAssertion(t *testing.T) {
+	Convey("NotEqualAssertion", t, func() {
+		key := "some:key"
 
-	It("Succeeds", func() {
-		executionResult := core.ExecutionResult{
-			key: 8,
-		}
+		Convey("Succeeds", func() {
+			executionResult := core.ExecutionResult{
+				key: 8,
+			}
 
-		assertion := NotEqualAssertion{
-			Key:   key,
-			Value: 7,
-		}
+			assertion := NotEqualAssertion{
+				Key:   key,
+				Value: 7,
+			}
 
-		result := assertion.Assert(executionResult)
-		Expect(result[core.AssertionResultUrn.String()]).To(Equal(true))
-		Expect(result[core.AssertionMessageUrn.String()]).To(BeNil())
+			result := assertion.Assert(executionResult)
+			So(result[core.AssertionResultUrn.String()], ShouldEqual, true)
+			So(result[core.AssertionMessageUrn.String()], ShouldBeNil)
+		})
+
+		Convey("Fails", func() {
+			executionResult := core.ExecutionResult{
+				key: 7,
+			}
+
+			assertion := NotEqualAssertion{
+				Key:   key,
+				Value: 7,
+			}
+
+			result := assertion.Assert(executionResult)
+			So(result[core.AssertionResultUrn.String()], ShouldEqual, false)
+			So(result[core.AssertionMessageUrn.String()], ShouldEqual, "FAIL: 7 does match 7")
+		})
 	})
-
-	It("Fails", func() {
-		executionResult := core.ExecutionResult{
-			key: 7,
-		}
-
-		assertion := NotEqualAssertion{
-			Key:   key,
-			Value: 7,
-		}
-
-		result := assertion.Assert(executionResult)
-		Expect(result[core.AssertionResultUrn.String()]).To(Equal(false))
-		Expect(result[core.AssertionMessageUrn.String()]).To(Equal("FAIL: 7 does match 7"))
-	})
-})
+}

@@ -1,18 +1,13 @@
-package request
+package processor
 
 import (
 	"io/ioutil"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/guzzlerio/corcel/config"
 	"github.com/guzzlerio/corcel/global"
 	"github.com/guzzlerio/corcel/logger"
-	"github.com/Sirupsen/logrus"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	"github.com/guzzlerio/rizo"
-
-	"testing"
 )
 
 var (
@@ -20,20 +15,15 @@ var (
 	TestServer *rizo.RequestRecordingServer
 )
 
-var _ = BeforeSuite(func() {
+func BeforeTest() {
 	logger.Initialise()
 	logger.ConfigureLogging(&config.Configuration{})
 	logrus.SetOutput(ioutil.Discard)
 	logger.Log.Out = ioutil.Discard
 	TestServer = rizo.CreateRequestRecordingServer(global.TestPort)
 	TestServer.Start()
-})
+}
 
-var _ = AfterSuite(func() {
+func AfterTest() {
 	TestServer.Stop()
-})
-
-func TestCorcel(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Request Suite")
 }

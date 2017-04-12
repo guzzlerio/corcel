@@ -2,56 +2,58 @@ package yaml
 
 import (
 	"fmt"
+	"testing"
 
 	"github.com/guzzlerio/corcel/assertions"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-var _ = Describe("GreaterThanAssertionParser", func() {
+func TestGreaterThanAssertionParser(t *testing.T) {
+	Convey("GreaterThanAssertionParser", t, func() {
 
-	It("Parses", func() {
+		Convey("Parses", func() {
 
-		var expectedKey = "talula"
-		var input = map[string]interface{}{
-			"key":      expectedKey,
-			"expected": 7,
-		}
+			var expectedKey = "talula"
+			var input = map[string]interface{}{
+				"key":      expectedKey,
+				"expected": 7,
+			}
 
-		var parser = GreaterThanAssertionParser{}
-		assertion, err := parser.Parse(input)
-		var gtAssertion = assertion.(*assertions.GreaterThanAssertion)
+			var parser = GreaterThanAssertionParser{}
+			assertion, err := parser.Parse(input)
+			var gtAssertion = assertion.(*assertions.GreaterThanAssertion)
 
-		Expect(err).To(BeNil())
-		Expect(gtAssertion.Key).To(Equal(expectedKey))
-		Expect(gtAssertion.Value).To(Equal(7))
+			So(err, ShouldBeNil)
+			So(gtAssertion.Key, ShouldEqual, expectedKey)
+			So(gtAssertion.Value, ShouldEqual, 7)
+		})
+
+		Convey("Returns Key", func() {
+			So(GreaterThanAssertionParser{}.Key(), ShouldEqual, "GreaterThanAssertion")
+		})
+
+		Convey("Fails to parse without key", func() {
+			var input = map[string]interface{}{
+				"boom":     "talula",
+				"expected": 7,
+			}
+
+			var parser = GreaterThanAssertionParser{}
+			_, err := parser.Parse(input)
+			So(err, ShouldNotBeNil)
+			So(fmt.Sprintf("%v", err), ShouldContainSubstring, "key is not present")
+		})
+
+		Convey("Fails to parse without expected", func() {
+			var input = map[string]interface{}{
+				"key":  "talula",
+				"boom": 7,
+			}
+
+			var parser = GreaterThanAssertionParser{}
+			_, err := parser.Parse(input)
+			So(err, ShouldNotBeNil)
+			So(fmt.Sprintf("%v", err), ShouldContainSubstring, "expected is not present")
+		})
 	})
-
-	It("Returns Key", func() {
-		Expect(GreaterThanAssertionParser{}.Key()).To(Equal("GreaterThanAssertion"))
-	})
-
-	It("Fails to parse without key", func() {
-		var input = map[string]interface{}{
-			"boom":     "talula",
-			"expected": 7,
-		}
-
-		var parser = GreaterThanAssertionParser{}
-		_, err := parser.Parse(input)
-		Expect(err).ToNot(BeNil())
-		Expect(fmt.Sprintf("%v", err)).To(ContainSubstring("key is not present"))
-	})
-
-	It("Fails to parse without expected", func() {
-		var input = map[string]interface{}{
-			"key":  "talula",
-			"boom": 7,
-		}
-
-		var parser = GreaterThanAssertionParser{}
-		_, err := parser.Parse(input)
-		Expect(err).ToNot(BeNil())
-		Expect(fmt.Sprintf("%v", err)).To(ContainSubstring("expected is not present"))
-	})
-})
+}

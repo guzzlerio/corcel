@@ -2,6 +2,7 @@ package config
 
 import (
 	"crypto/md5"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -22,17 +23,54 @@ import (
 
 //Configuration ...
 type Configuration struct {
-	Iterations    int
-	Random        bool
-	Summary       bool
-	SummaryFormat string    `json:"summary-format"`
-	LogLevel      log.Level `json:"log-level"`
-	Workers       int
-	Duration      time.Duration
+	Iterations    int           `json:"iterations"`
+	Random        bool          `json:"random"`
+	Summary       bool          `json:"summary"`
+	SummaryFormat string        `json:"summary-format"`
+	LogLevel      log.Level     `json:"log-level"`
+	Workers       int           `json:"workers"`
+	Duration      time.Duration `json:"duration"`
 	WaitTime      time.Duration `json:"wait-time"`
-	Progress      string
-	Plan          bool
-	FilePath      string
+	Progress      string        `json:"progress"`
+	Plan          bool          `json:"plan"`
+	FilePath      string        `json:"file_path"`
+}
+
+func parseDuration(value string, name string) (time.Duration, error) {
+	if value == "" {
+		return time.Duration(0), nil
+	}
+	result, err := time.ParseDuration(value)
+	if err == nil {
+		return result, nil
+	}
+
+	return time.Duration(0), errors.New(fmt.Sprintf("Unable to parse duration for field: %s", name))
+}
+
+func (instance *Configuration) UnmarshalJSON(data []byte) error {
+	if instance == nil || string(data) == "null" {
+		return nil
+	}
+	type Alias Configuration
+	aux := &struct {
+		Duration string `json:"duration"`
+		WaitTime string `json:"wait-time"`
+		*Alias
+	}{
+		Alias: (*Alias)(instance),
+	}
+
+	var err error
+
+	if err = json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	instance.Duration, _ = parseDuration(aux.Duration, "duration")
+	instance.WaitTime, _ = parseDuration(aux.WaitTime, "wait-time")
+
+	return nil
 }
 
 //WithDuration converts a string duration into a time value and adds it to the configuration
@@ -78,6 +116,7 @@ func ParseConfiguration(cfg *Configuration) (*Configuration, error) {
 	//log.SetLevel(logLevel)
 
 	pwd, err := PwdConfig()
+
 	if err != nil {
 		return nil, err
 	}
@@ -87,12 +126,13 @@ func ParseConfiguration(cfg *Configuration) (*Configuration, error) {
 	}
 
 	defaults := DefaultConfig()
-	eachConfig := []interface{}{configuration, pwd, usr, &defaults}
+	eachConfig := []interface{}{configuration, pwd, usr, defaults}
 	for _, item := range eachConfig {
 		if err := mergo.Merge(configuration, item); err != nil {
 			return nil, err
 		}
 	}
+
 	SetLogLevel(configuration, eachConfig)
 	//log.WithFields(log.Fields{"config": config}).Info("Configuration")
 
@@ -166,6 +206,7 @@ func PwdConfig() (*Configuration, error) {
 	if err := config.parse(contents); err != nil {
 		return nil, err
 	}
+
 	return &config, nil
 }
 
@@ -187,14 +228,15 @@ func UserDirConfig() (*Configuration, error) {
 	if err := config.parse(contents); err != nil {
 		return nil, err
 	}
+
 	return &config, nil
 }
 
 //DefaultConfig ...
-func DefaultConfig() Configuration {
+func DefaultConfig() *Configuration {
 	waitTime := time.Duration(0)
 	duration := time.Duration(0)
-	return Configuration{
+	return &Configuration{
 		Duration:      duration,
 		Plan:          false,
 		Random:        false,
@@ -230,8 +272,8 @@ func (instance *Configuration) handleHTTPEndpointForURLFile() error {
 
 func (instance *Configuration) parse(data []byte) error {
 	if err := yamlFormat.Unmarshal(data, instance); err != nil {
-		log.Warn("Unable to parse config file")
-		return nil
+		log.Warn("Unable to parse config file", err)
+		return err
 	}
 	return nil
 }

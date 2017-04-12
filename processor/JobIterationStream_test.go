@@ -1,30 +1,36 @@
 package processor_test
 
 import (
+	"testing"
+
 	"github.com/guzzlerio/corcel/core"
 	. "github.com/guzzlerio/corcel/processor"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-var _ = Describe("JobIterationStream", func() {
-	It("iterates", func() {
-		jobs := []core.Job{
-			core.Job{Name: "1"},
-			core.Job{Name: "2"},
-			core.Job{Name: "3"},
-		}
+func TestJobIterationStream(t *testing.T) {
+	BeforeTest()
+	defer AfterTest()
 
-		iterations := 5
+	Convey("JobIterationStream", t, func() {
+		Convey("iterates", func() {
+			jobs := []core.Job{
+				core.Job{Name: "1"},
+				core.Job{Name: "2"},
+				core.Job{Name: "3"},
+			}
 
-		sequentialStream := CreateJobSequentialStream(jobs)
-		revolvingStream := CreateJobRevolvingStream(sequentialStream)
-		iterationStream := CreateJobIterationStream(*revolvingStream, len(jobs), iterations)
+			iterations := 5
 
-		for i := 0; i < iterations*len(jobs); i++ {
-			Expect(iterationStream.Next()).To(Equal(jobs[i%len(jobs)]))
-		}
-		Expect(iterationStream.HasNext()).To(Equal(false))
+			sequentialStream := CreateJobSequentialStream(jobs)
+			revolvingStream := CreateJobRevolvingStream(sequentialStream)
+			iterationStream := CreateJobIterationStream(*revolvingStream, len(jobs), iterations)
+
+			for i := 0; i < iterations*len(jobs); i++ {
+				So(iterationStream.Next(), ShouldResemble, jobs[i%len(jobs)])
+			}
+			So(iterationStream.HasNext(), ShouldEqual, false)
+		})
 	})
-})
+}

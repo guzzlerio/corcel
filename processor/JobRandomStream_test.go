@@ -1,26 +1,31 @@
 package processor_test
 
 import (
+	"testing"
+
 	"github.com/guzzlerio/corcel/core"
 	. "github.com/guzzlerio/corcel/processor"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-var _ = Describe("JobRandomStream", func() {
+func TestJobRandomStream(t *testing.T) {
+	BeforeTest()
+	defer AfterTest()
+	Convey("JobRandomStream", t, func() {
 
-	It("iterates", func() {
-		jobs := []core.Job{
-			core.Job{Name: "1"},
-			core.Job{Name: "2"},
-			core.Job{Name: "3"},
-		}
+		Convey("iterates", func() {
+			jobs := []core.Job{
+				core.Job{Name: "1"},
+				core.Job{Name: "2"},
+				core.Job{Name: "3"},
+			}
 
-		randomStream := CreateJobRandomStream(jobs)
-		randomStream.Next()
-		randomStream.Next()
-		randomStream.Next()
-		Expect(randomStream.HasNext()).To(Equal(false))
+			randomStream := CreateJobRandomStream(jobs)
+			randomStream.Next()
+			randomStream.Next()
+			randomStream.Next()
+			So(randomStream.HasNext(), ShouldEqual, false)
+		})
 	})
-})
+}

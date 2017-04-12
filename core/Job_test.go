@@ -1,23 +1,26 @@
 package core
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-var _ = Describe("Job", func() {
-	It("Does not override set step name", func() {
-		expectedName := "fubar"
+func TestJob(t *testing.T) {
+	Convey("Job", t, func() {
+		Convey("Does not override set step name", func() {
+			expectedName := "fubar"
 
-		job := Job{
-			Steps: []Step{},
-		}
+			job := Job{
+				Steps: []Step{},
+			}
 
-		step := job.CreateStep()
-		step.Name = expectedName
+			step := job.CreateStep()
+			step.Name = expectedName
 
-		job = job.AddStep(step)
+			job = job.AddStep(step)
 
-		Expect(job.Steps[0].Name).To(Equal(expectedName))
+			So(job.Steps[0].Name, ShouldEqual, expectedName)
+		})
 	})
-})
+}

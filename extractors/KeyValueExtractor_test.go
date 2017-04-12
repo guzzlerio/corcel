@@ -1,45 +1,48 @@
 package extractors
 
 import (
+	"testing"
+
 	"github.com/guzzlerio/corcel/core"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-var _ = Describe("KeyValueExtractor", func() {
+func TestKeyValueExtractor(t *testing.T) {
+	Convey("KeyValueExtractor", t, func() {
 
-	It("Succeeds when key is present", func() {
-		var extractor = KeyValueExtractor{
-			Key:   "key",
-			Name:  "target",
-			Scope: core.StepScope,
-		}
+		Convey("Succeeds when key is present", func() {
+			var extractor = KeyValueExtractor{
+				Key:   "key",
+				Name:  "target",
+				Scope: core.StepScope,
+			}
 
-		var executionResult = core.ExecutionResult{
-			"key": "talula",
-		}
+			var executionResult = core.ExecutionResult{
+				"key": "talula",
+			}
 
-		var extractionResult = extractor.Extract(executionResult)
+			var extractionResult = extractor.Extract(executionResult)
 
-		Expect(extractionResult["target"]).To(Equal("talula"))
-		Expect(extractionResult["scope"]).To(Equal(core.StepScope))
+			So(extractionResult["target"], ShouldEqual, "talula")
+			So(extractionResult["scope"], ShouldEqual, core.StepScope)
+		})
+
+		Convey("Extraction result does not contain the name when the key does not exist inside the execution result", func() {
+			var extractor = KeyValueExtractor{
+				Key:   "key",
+				Name:  "target",
+				Scope: core.StepScope,
+			}
+
+			var executionResult = core.ExecutionResult{
+				"lock": "talula",
+			}
+
+			var extractionResult = extractor.Extract(executionResult)
+
+			So(extractionResult["target"], ShouldBeNil)
+		})
+
 	})
-
-	It("Extraction result does not contain the name when the key does not exist inside the execution result", func() {
-		var extractor = KeyValueExtractor{
-			Key:   "key",
-			Name:  "target",
-			Scope: core.StepScope,
-		}
-
-		var executionResult = core.ExecutionResult{
-			"lock": "talula",
-		}
-
-		var extractionResult = extractor.Extract(executionResult)
-
-		Expect(extractionResult["target"]).To(BeNil())
-	})
-
-})
+}

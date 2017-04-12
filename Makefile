@@ -19,9 +19,7 @@ build: clean lint generate
 	go build -ldflags "-X main.BuildTime=`date -u '+%Y-%m-%d_%I:%M:%S%p'` -X main.CommitHash=`git rev-parse HEAD` -X main.Version=`git describe --tags --always`"
 
 test: build 
-	go get github.com/onsi/ginkgo/ginkgo
-	go get github.com/onsi/gomega
-	ginkgo -cover -r --race -noisyPendings=false -slowSpecThreshold=10
+	bash ./scripts/test.sh
 
 generate:
 	go get -u github.com/jteeuwen/go-bindata/...
@@ -31,7 +29,8 @@ lint: generate
 	go get -u github.com/alecthomas/gometalinter
 	go get -t ./...
 	gometalinter --install
-	gometalinter -e "duplicate" -e "undeclared name: Asset" -e "_test" --deadline=30s
+	# The Before and AfterTest ones here are because deadcode in the linter collection falsely detects them as dead code
+	gometalinter --fast --concurrency=4 -e "BeforeTest" -e "AfterTest" -e "should have comment" -e "duplicate" -e "undeclared name: Asset" -e "_test" --deadline=600s
 
 dist: dist_linux
 

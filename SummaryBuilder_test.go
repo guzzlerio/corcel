@@ -86,7 +86,7 @@ func TestSummary_Builders(t *testing.T) {
 
 			Convey("writes the expected table to the console", func() {
 				builder.Write(summary)
-				So(writer.String(), yaml.ShouldMatchYaml, `
+				So(writer.String(), json.ShouldMatchJson, `
 {
 "availability": 100,
   "bytes": {

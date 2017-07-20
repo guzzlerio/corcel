@@ -3,11 +3,18 @@ package cmd
 import (
 	"github.com/guzzlerio/corcel/config"
 	"github.com/guzzlerio/corcel/core"
+	"github.com/guzzlerio/corcel/errormanager"
 	"github.com/guzzlerio/corcel/infrastructure/http"
 	"github.com/guzzlerio/corcel/infrastructure/inproc"
 	"github.com/guzzlerio/corcel/serialisation/yaml"
 	"github.com/guzzlerio/corcel/statistics"
 )
+
+func check(err error) {
+	if err != nil {
+		errormanager.Log(err)
+	}
+}
 
 //Application ...
 type Application struct{}

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -12,30 +11,6 @@ import (
 	"github.com/guzzlerio/corcel/logger"
 	"github.com/guzzlerio/corcel/report"
 )
-
-// ServerCommand ...
-type ServerCommand struct {
-	Port     int
-	registry *core.Registry
-}
-
-//NewServerCommand ...
-func NewServerCommand(app *kingpin.Application, registry *core.Registry) {
-	c := &ServerCommand{
-		registry: registry,
-	}
-	server := app.Command("server", "Start HTTP server").Action(c.run)
-	server.Flag("port", "Port").Default("54332").IntVar(&c.Port)
-}
-
-func (this *ServerCommand) run(c *kingpin.ParseContext) error {
-	// have access to c.registry
-	//Start HTTP Server
-	// construct HTTP Host
-	// Start HTTP Host from cmd options
-	fmt.Printf("Would now be starting the HTTP server on %v\n", this.Port)
-	return nil
-}
 
 // RunCommand ...
 type RunCommand struct {
@@ -70,7 +45,6 @@ func (this *RunCommand) run(c *kingpin.ParseContext) error {
 	configuration, err := config.ParseConfiguration(this.Config)
 	if err != nil {
 		errormanager.Log(err)
-		panic("REPLACE ME THIS IS TEMP")
 		os.Exit(1)
 	}
 	logger.ConfigureLogging(configuration)
@@ -88,10 +62,4 @@ func (this *RunCommand) run(c *kingpin.ParseContext) error {
 		summaryBuilder.Write(summary)
 	}
 	return nil
-}
-
-func check(err error) {
-	if err != nil {
-		errormanager.Log(err)
-	}
 }
